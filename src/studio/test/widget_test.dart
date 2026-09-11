@@ -1,29 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/cli/qtcloud_work.dart';
-import 'package:qtcloud_work_studio/main.dart';
-import 'package:qtcloud_work_studio/models/workspace.dart';
+import 'package:qtcloud_work_studio/app.dart';
 
-import 'cli/qtcloud_work_test.dart' show RecordingRunner, fixture;
-
-const workspace = Workspace(root: '/w', data: '/w/data', workflows: '/w/workflows');
+import 'support/fake_runner.dart';
 
 void main() {
-  testWidgets('任务页把步骤、产物与流水摆出来', (tester) async {
-    // 顺序有用：列表那条先匹配，其余 `task <名字>` 都给详情夹具
-    final runner = RecordingRunner({
-      'task --list': fixture('task_list'),
-      'task ': fixture('task_detail'),
-    });
-    final client = QtcloudWork(workspace: workspace, runner: runner);
+  testWidgets('工作台起来就是任务页：顶栏 + 侧栏 + 任务', (tester) async {
     await tester.pumpWidget(
-      QtcloudWorkStudioApp(client: client, workspace: workspace),
+      QtcloudWorkStudioApp(client: fakeClient(), workspace: testWorkspace),
     );
     await tester.pumpAndSettle();
 
-    // 产物与流水在滚动区下面，模型层已经逐字段核过；这里只看首屏
-    expect(find.text('量潮工作云工作台'), findsOneWidget);
+    expect(find.text('任务'), findsOneWidget);
+    expect(find.text('流程'), findsOneWidget);
+    expect(find.text('设置'), findsOneWidget);
+    expect(find.text('量潮工作云工作台'), findsNothing); // 标题在窗口上，不在页面里
+    expect(find.text('走完'), findsOneWidget);
+  });
+
+  testWidgets('切到流程页换成步骤链', (tester) async {
+    await tester.pumpWidget(
+      QtcloudWorkStudioApp(client: fakeClient(), workspace: testWorkspace),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('流程'));
+    await tester.pumpAndSettle();
     expect(find.text('learn-task-create'), findsWidgets);
-    expect(find.text('5 个步骤都走过了'), findsOneWidget);
-    expect(find.text('profile'), findsWidgets);
+    expect(find.text('步骤'), findsOneWidget);
   });
 }

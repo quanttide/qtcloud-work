@@ -82,4 +82,9 @@ class QtcloudWork {
   /// 核对判据里的路径在不在、描述提到的小节有没有判据覆盖。
   Future<TableResult> workflowCheck(String name) =>
       call(['workflow', name, '--check']);
+
+  // ---- 其他 ----
+
+  /// 探活已部署的 provider。
+  Future<TableResult> health() => call(['health']);
 }

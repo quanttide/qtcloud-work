@@ -1,0 +1,24 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:qtcloud_work_studio/models/table_result.dart';
+import 'package:qtcloud_work_studio/models/task.dart';
+import 'package:qtcloud_work_studio/screens/task_screen.dart';
+
+import '../support/fake_runner.dart';
+import '../support/widget.dart';
+
+void main() {
+  final task = TaskDetail.fromResult(
+    TableResult.fromStdout(fixture('task_detail')),
+  );
+
+  testWidgets('左边对话、右边状态面板', (tester) async {
+    await pumpScreen(
+      tester,
+      TaskScreen(client: fakeClient(), task: task, onReload: () async {}),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('说目标，或者对流程提修改…'), findsOneWidget);
+    expect(find.text('闸门（留给人）'), findsOneWidget);
+    expect(find.text('走下一步'), findsOneWidget);
+  });
+}
