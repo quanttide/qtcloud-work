@@ -1,0 +1,49 @@
+{
+  "columns": [
+    "步骤",
+    "状态"
+  ],
+  "lines": [
+    "任务：learn-task-create",
+    "  开工：2026-09-11 20:28",
+    "  工作流：learn-task-create——把一份学习任务书从个人档案送出去——先提交到 learn 的 profile（学习管理档案），再提交到 qtclass 仓的 site（量潮课堂站点内容），最后给 site 发一个新版本（推 site/* tag，触发 deploy-site 构建上传）。跨三个仓，工作区根是领域仓（quanttide-work）：learn 的档案与 qtclass 用相对路径 ../quanttide-learn/data/profile 与 ../qtclass，qtclass 需先在本地有工作副本（没克隆就先 git clone https://github.com/quanttide/qtclass.git ../qtclass）；发版走 qtcloud-devops release audit / publish。产物是本任务的报告，五节：档案 / 站点 / 预检 / 发布 / 结论。跑法：qtcloud-work task --new learn-task-create --workflow learn-task-create，再 --next 一条一条走。版本号一处都不能落：`src/site/package.json`、`src/site/CHANGELOG.md`、这条定义判据里写的 tag，三处同时改",
+    "  步骤：5 个",
+    "  ✓ profile",
+    "  ✓ site",
+    "  ✓ audit",
+    "  ✓ publish",
+    "  ✓ conclude",
+    "5 个步骤都走过了",
+    "指令：tasks/learn-task-create.yaml",
+    "产物：artifacts/report/learn-task-create.md、artifacts/journal/learn-task-create.md　流水：tasks/learn-task-create.yaml",
+    "流水（最近五条）：",
+    "  2026-09-11 20:36　audit　版本 0.1.2-beta.7（package.json 与 CHANGELOG 两处对齐）；qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交），提交 1280ead 后 7/7 全过；创始人放行",
+    "  2026-09-11 20:37　audit　AI 执行：`src/site/package.json` 与 `src/site/CHANGELOG.md` 两处已同步在 `0.1.2-beta.7`（与站点发布提交 ",
+    "  2026-09-11 20:37　audit·判　站点版本与变更记录两处对齐；预检全过；写进报告",
+    "  2026-09-11 20:39　audit　版本 0.1.2-beta.7 两处对齐、提交 1280ead；发布前 qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交）、提交后 7/7 全过（输出见报告「预检」一节）；创始人放行",
+    "  2026-09-11 20:39　conclude　结论三行 + 三件拿不准的已写进报告；剩：把试用邀请 issue #1 指向这份任务书"
+  ],
+  "ok": true,
+  "rows": [
+    [
+      "profile",
+      "✓"
+    ],
+    [
+      "site",
+      "✓"
+    ],
+    [
+      "audit",
+      "✓"
+    ],
+    [
+      "publish",
+      "✓"
+    ],
+    [
+      "conclude",
+      "✓"
+    ]
+  ]
+}

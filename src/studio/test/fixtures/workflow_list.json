@@ -1,0 +1,42 @@
+{
+  "columns": [
+    "工作流",
+    "步骤",
+    "位置"
+  ],
+  "lines": [
+    "code-implement           步骤：outline、doc、test、code",
+    "code-refactor            步骤：read、gap、precise、migrate、conclude",
+    "design-review            步骤：impression、look、review、advise、conclude",
+    "devops-release           步骤：version、gate、audit、rehearse、confirm、publish",
+    "learn-task-create        步骤：profile、site、audit、publish、conclude"
+  ],
+  "ok": true,
+  "rows": [
+    [
+      "code-implement",
+      "outline、doc、test、code",
+      "/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/code-implement.yaml"
+    ],
+    [
+      "code-refactor",
+      "read、gap、precise、migrate、conclude",
+      "/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/code-refactor.yaml"
+    ],
+    [
+      "design-review",
+      "impression、look、review、advise、conclude",
+      "/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/design-review.yaml"
+    ],
+    [
+      "devops-release",
+      "version、gate、audit、rehearse、confirm、publish",
+      "/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/devops-release.yaml"
+    ],
+    [
+      "learn-task-create",
+      "profile、site、audit、publish、conclude",
+      "/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/learn-task-create.yaml"
+    ]
+  ]
+}

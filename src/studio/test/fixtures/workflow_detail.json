@@ -1,0 +1,43 @@
+{
+  "columns": [
+    "步骤",
+    "谁执行",
+    "怎么算完"
+  ],
+  "lines": [
+    "工作流：learn-task-create（/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/learn-task-create.yaml）",
+    "  profile：agent　3 rule / 1 agent / 0 human",
+    "  site：agent　4 rule / 1 agent / 0 human",
+    "  audit：agent　3 rule / 0 agent / 1 human",
+    "  publish：agent　2 rule / 1 agent / 0 human",
+    "  conclude：agent　1 rule / 1 agent / 0 human"
+  ],
+  "ok": true,
+  "rows": [
+    [
+      "profile",
+      "agent",
+      "3 rule / 1 agent / 0 human"
+    ],
+    [
+      "site",
+      "agent",
+      "4 rule / 1 agent / 0 human"
+    ],
+    [
+      "audit",
+      "agent",
+      "3 rule / 0 agent / 1 human"
+    ],
+    [
+      "publish",
+      "agent",
+      "2 rule / 1 agent / 0 human"
+    ],
+    [
+      "conclude",
+      "agent",
+      "1 rule / 1 agent / 0 human"
+    ]
+  ]
+}

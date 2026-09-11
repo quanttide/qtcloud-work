@@ -1,0 +1,42 @@
+{
+  "columns": [
+    "任务",
+    "工作流",
+    "下一步"
+  ],
+  "lines": [
+    "compare-course-profile   工作流 compare-course-profile　下一步：走完",
+    "context-to-profile       工作流 context-to-profile　下一步：走完",
+    "lab-to-platform          工作流 lab-to-platform　下一步：走完",
+    "learn-task-create        工作流 learn-task-create　下一步：走完",
+    "pre-release              工作流 pre-release　下一步：走完"
+  ],
+  "ok": true,
+  "rows": [
+    [
+      "compare-course-profile",
+      "compare-course-profile",
+      "走完"
+    ],
+    [
+      "context-to-profile",
+      "context-to-profile",
+      "走完"
+    ],
+    [
+      "lab-to-platform",
+      "lab-to-platform",
+      "走完"
+    ],
+    [
+      "learn-task-create",
+      "learn-task-create",
+      "走完"
+    ],
+    [
+      "pre-release",
+      "pre-release",
+      "走完"
+    ]
+  ]
+}
