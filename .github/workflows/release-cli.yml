@@ -130,6 +130,8 @@ jobs:
           --repo "$GITHUB_REPOSITORY" --clobber
 
   publish-crate:
+    # 预发布（tag 里带 `-`，如 cli/v0.1.0-alpha.1）不推 crates.io：等正式版再发。
+    if: ${{ !contains(github.ref_name, '-') }}
     needs: [quality-gates, upload-release-assets]
     runs-on: ubuntu-latest
     defaults:
@@ -141,20 +143,29 @@ jobs:
       - name: publish to crates.io
         env:
           CRATE_NAME: qtcloud-work-cli
-          CRATE_VERSION: ${{ needs.check.outputs.version }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_API_TOKEN }}
         run: |
+          # 版本从 tag 现取：cli/v0.1.0 → 0.1.0（crates.io 的 API 不带 v 前缀）
+          VERSION="${GITHUB_REF_NAME#cli/v}"
+          echo "准备发布 ${CRATE_NAME}@${VERSION}"
           status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
-            "https://crates.io/api/v1/crates/${CRATE_NAME}/${CRATE_VERSION}")"
+            "https://crates.io/api/v1/crates/${CRATE_NAME}/${VERSION}")"
           case "$status" in
             200)
-              echo "${CRATE_NAME}@${CRATE_VERSION} 已存在于 crates.io，跳过重复发布。"
+              echo "${CRATE_NAME}@${VERSION} 已存在于 crates.io，跳过重复发布。"
               ;;
             404)
               cargo publish --locked --registry crates-io
               ;;
             *)
-              echo "无法确认 ${CRATE_NAME}@${CRATE_VERSION} 是否已发布（HTTP ${status}）。" >&2
+              echo "无法确认 ${CRATE_NAME}@${VERSION} 是否已发布（HTTP ${status}）。" >&2
               exit 1
               ;;
           esac
+
+      - name: mark pre-release
+        # qtcloud-devops 建 Release 时不标预发布，这里按 tag 里的 `-` 补上。
+        if: ${{ contains(github.ref_name, '-') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${GITHUB_REF_NAME}" --prerelease
