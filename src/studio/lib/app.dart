@@ -179,6 +179,7 @@ class _WorkbenchState extends State<Workbench> {
               child: FlowScreen(
                 client: widget.client,
                 workflow: workflow,
+                workspace: widget.workspace,
                 onCreated: _created,
               ),
             ),
@@ -225,6 +226,7 @@ class _WorkbenchState extends State<Workbench> {
               child: TaskScreen(
                 client: widget.client,
                 task: task,
+                workspace: widget.workspace,
                 busy: _busy,
                 onReload: _reload,
               ),

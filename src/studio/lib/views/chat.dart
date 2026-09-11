@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/host/host.dart';
+
 /// 对话里的一条消息。
 class ChatMessage {
   const ChatMessage({
@@ -16,21 +18,74 @@ class ChatMessage {
 }
 
 /// 对话：用来说目标、改流程。（见 doc/views/chat.md）
-class ChatPanel extends StatelessWidget {
+///
+/// 人跟本机的 pi 智能体说；话不落盘——程序不往产物里写一个字，
+/// 要留痕是智能体按任务书自己写的事。
+class ChatPanel extends StatefulWidget {
   const ChatPanel({
     super.key,
-    required this.messages,
     required this.placeholder,
-    this.enabled = false,
-    this.onSend,
+    required this.workingDir,
+    this.opening = const [],
+    this.brief = '',
+    this.ask = runPiAsync,
   });
 
-  final List<ChatMessage> messages;
   final String placeholder;
 
-  /// 对话这一路还没接（谁跟谁说话、话记在哪得先定），先摆出来但不可用。
-  final bool enabled;
-  final ValueChanged<String>? onSend;
+  /// 起 pi 时的当前目录（工作区根）。
+  final String workingDir;
+
+  /// 开场那几句。
+  final List<ChatMessage> opening;
+
+  /// 每次发话时随带的背景：这一屏在看什么。
+  final String brief;
+
+  /// 起 pi 的那只手。测试里换成假的。
+  final Future<({bool ran, String out})> Function(String prompt, String cwd)
+  ask;
+
+  @override
+  State<ChatPanel> createState() => _ChatPanelState();
+}
+
+class _ChatPanelState extends State<ChatPanel> {
+  late final List<ChatMessage> _messages = [...widget.opening];
+  final TextEditingController _controller = TextEditingController();
+  bool _asking = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _asking) return;
+    setState(() {
+      _messages.add(ChatMessage(text: text, fromUser: true));
+      _asking = true;
+    });
+    _controller.clear();
+    final prompt = widget.brief.isEmpty
+        ? text
+        : '${widget.brief}\n\n---\n\n$text';
+    ({bool ran, String out}) reply;
+    try {
+      reply = await widget.ask(prompt, widget.workingDir);
+    } catch (error) {
+      reply = (ran: false, out: '$error');
+    }
+    if (!mounted) return;
+    setState(() {
+      _asking = false;
+      _messages.add(
+        ChatMessage(text: reply.ran ? reply.out : '没跑成：${reply.out}'),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +95,17 @@ class ChatPanel extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              for (final message in messages)
+              for (final message in _messages)
                 Align(
                   alignment: message.fromUser
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
                   child: _bubble(context, message),
+                ),
+              if (_asking)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _bubble(context, const ChatMessage(text: '…在想')),
                 ),
             ],
           ),
@@ -56,20 +116,19 @@ class ChatPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: TextField(
-                  enabled: enabled,
+                  controller: _controller,
+                  enabled: !_asking,
                   decoration: InputDecoration(
-                    hintText: placeholder,
+                    hintText: widget.placeholder,
                     border: const OutlineInputBorder(),
                     isDense: true,
                   ),
-                  onSubmitted: (value) {
-                    if (enabled) onSend?.call(value);
-                  },
+                  onSubmitted: (_) => _send(),
                 ),
               ),
               const SizedBox(width: 8),
               FilledButton(
-                onPressed: enabled ? () {} : null,
+                onPressed: _asking ? null : _send,
                 child: const Text('发送'),
               ),
             ],

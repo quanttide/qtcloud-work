@@ -26,6 +26,25 @@ import 'dart:io';
   }
 }
 
+/// 把一段话交给 pi 跑，等它答完（不冻界面）。
+///
+/// 和 [runPi] 同一件事，区别是不占着那一个线程：界面上发一句话，
+/// pi 要想几十秒，用同步那只整个窗口就僵住了。
+Future<({bool ran, String out})> runPiAsync(String prompt, String cwd) async {
+  try {
+    final result = await Process.run('pi', [
+      '-p',
+      '--no-session',
+      prompt,
+    ], workingDirectory: cwd);
+    final out = '${result.stdout}'.trim();
+    final err = '${result.stderr}'.trim();
+    return (ran: result.exitCode == 0, out: out.isEmpty ? err : out);
+  } catch (error) {
+    return (ran: false, out: '没找到 pi：$error');
+  }
+}
+
 /// 探活一个地址，返回（拿到没有，正文）。
 ({bool ok, String body}) httpGet(String url) {
   try {

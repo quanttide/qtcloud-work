@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../cli/qtcloud_work.dart';
 import '../models/workflow.dart';
+import '../models/workspace.dart';
 import '../views/chat.dart';
 import '../views/criteria_panel.dart';
 import '../views/definition_view.dart';
@@ -13,11 +14,13 @@ class FlowScreen extends StatefulWidget {
     super.key,
     required this.client,
     required this.workflow,
+    required this.workspace,
     this.onCreated,
   });
 
   final QtcloudWork client;
   final WorkflowDetail workflow;
+  final Workspace workspace;
 
   /// 起了一件任务之后通知外面（刷新列表、去打开它）。
   final Future<void> Function(String name)? onCreated;
@@ -122,11 +125,17 @@ class _FlowScreenState extends State<FlowScreen> {
         Expanded(
           child: ChatPanel(
             placeholder: '说这条流程该怎么走…',
-            messages: [
+            workingDir: widget.workspace.root,
+            brief:
+                '你在量潮工作云工作台里，看的是工作流定义「${workflow.name}」。\n'
+                '定义文件：${workflow.path}\n'
+                '要改就在这条对话里说，pi 会在工作流目录里改这个文件。\n\n'
+                '定义原文：\n${workflow.yaml}',
+            opening: [
               const ChatMessage(
                 text:
-                    '对话这一路还没接：改流程现在改工作流目录里的 .yaml，'
-                    '或者 `workflow --new` 起一条新的。',
+                    '这一屏聊的是这条流程该怎么走。改定义就直接说——'
+                    'pi 会在工作流目录里改那个 .yaml。',
               ),
               ChatMessage(text: '${workflow.name}：${workflow.summary}'),
             ],
