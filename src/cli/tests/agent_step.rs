@@ -32,4 +32,25 @@ fn take_one_agent_step_through_pi() {
     broken.run_recorded(&["task", "AI冒烟", "--next"]);
     let failed = broken.task_yaml("AI冒烟");
     assert!(failed.contains("ok: false"), "AI 没跑成不该算过:\n{failed}");
+
+    // 同类场景的第三半：执行跑成了，但审查判 ✗ —— 这一步仍不算走过，下一步还是它。
+    let judged_out = Fixture::new("step-review-fail");
+    judged_out.workflow(
+        "AI冒烟",
+        "name: AI冒烟\ndescription: 冒烟\nsteps:\n- name: 问候\n  description: 写一行中文问候\n  criteria:\n  - executor: rule\n    description: 问候落在\n    path: 问候.md\n  - executor: agent\n    description: 问候是中文\n",
+    );
+    judged_out.pi("printf '你好\\n' > 问候.md\necho 不通过");
+    judged_out.run_full(true, &["task", "--new", "AI冒烟", "--workflow", "AI冒烟"]);
+    let stepped = judged_out.run_recorded(&["task", "AI冒烟", "--next"]);
+    assert!(
+        !stepped.ok(),
+        "审查判 ✗ 时这一步不该算过: {}",
+        stepped.crop()
+    );
+    let view = judged_out.run_recorded(&["task", "AI冒烟"]);
+    assert!(
+        view.crop().contains("下一步：问候"),
+        "这一步没过，下一步还是它: {}",
+        view.crop()
+    );
 }

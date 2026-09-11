@@ -144,17 +144,29 @@ impl Task {
     }
 
     /// 哪些步骤走过了：流水里成功执行过的、且名字确实是工作流上的步骤。
+    /// 哪些步骤走过了：这一步的**每一条**流水（执行与审查）都 ok 才算走过。
+    ///
+    /// 审查不通过（`<步骤>·审` 记 ✗）时这一步不算过，下一步还是它。
     pub fn done(&self) -> Vec<String> {
         let names: Vec<String> = self.steps().into_iter().map(|s| s.name()).collect();
-        let mut done = Vec::new();
+        let mut failed: Vec<String> = Vec::new();
+        let mut passed: Vec<String> = Vec::new();
         for event in self.events() {
             let ok = event.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
-            let step = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
-            if ok && names.iter().any(|n| n == step) && !done.iter().any(|d: &String| d == step) {
-                done.push(step.to_string());
+            let raw = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
+            let step = raw.strip_suffix("·审").unwrap_or(raw).to_string();
+            if !names.contains(&step) {
+                continue;
+            }
+            if ok {
+                if !passed.contains(&step) {
+                    passed.push(step);
+                }
+            } else if !failed.contains(&step) {
+                failed.push(step);
             }
         }
-        done
+        passed.into_iter().filter(|s| !failed.contains(s)).collect()
     }
 
     pub fn next_step(&self) -> Option<Step> {
