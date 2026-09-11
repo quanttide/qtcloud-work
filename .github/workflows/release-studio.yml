@@ -26,8 +26,34 @@ env:
   CDN_DOMAIN: work.cloud.quanttide.com
 
 jobs:
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/studio
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
   build-and-deploy:
     name: Build Flutter Web & Deploy to OSS
+    needs: quality-gates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

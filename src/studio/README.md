@@ -45,6 +45,9 @@ flutter analyze
 flutter test
 ```
 
+CI 跑的就是这两条：**改动即跑**见 `.github/workflows/quality-studio.yml`，
+**发布前再跑一道**（没过就不构建、不上传）见 `release-studio.yml`。
+
 ## 许可
 
 [CC BY 4.0](../../LICENSE)
