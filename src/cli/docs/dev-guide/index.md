@@ -9,8 +9,9 @@ crate 在 `apps/qtcloud-work/src/cli/`，Rust 加 clap，二进制名 `qtcloud-w
 ```text
 src/cli/
 ├── Cargo.toml          包装：bin 名 qtcloud-work
-├── src/main.rs         入口
-├── scripts/            版本与变更校验（发布用）
+├── src/                源码（分层见下）
+├── tests/              用例测试：一个场景一个文件，夹具在 common/
+├── scripts/            版本与变更校验（发布用）、用例对账
 └── docs/               user-guide / dev-guide / api-references
 ```
 
@@ -20,23 +21,23 @@ src/cli/
 
 ```text
 src/
-├── main.rs      入口：clap 定义、定位工作区与数据仓、调动作层、打印结果
-├── report.rs    动作结果层：Result（ok / lines / columns / rows）与各动作
-├── workflow.rs  工作流定义：YAML 读写与严格 schema
-├── task.rs      任务：状态推导、走一步、流水、报告、日志
-├── checks.rs    判据：四种 rule 判法的执行
-├── records.rs   记录的段位与骨架：报告两节、日志模板
-├── assets.rs    资产表：二十格与落点规则
-├── catalog.rs   目录层：扫描成名字索引
-└── material.rs  材料：类型 / 内容 / 来源 / 时间，阶段由位置承担
+├── main.rs      入口：只有一行——把命令行交给 cli 模块
+├── cli.rs       入口模块：clap 定义、定位工作区与数据仓、调动作层、打印结果
+├── outcome.rs   动作结果：Result（ok / lines / columns / rows）与 JSON 化
+├── artifact.rs  资产表：二十格与落点规则
+├── audit.rs     判据的机械核对：四种 rule 判法
+├── catalog.rs   目录层：扫描成名字索引；含按名找文档的动作
+├── material.rs  材料：类型 / 内容 / 来源 / 时间，阶段由位置承担；含列材料的动作
+├── workflow.rs  工作流：YAML 读写与严格 schema；含工作流的五个动作
+└── task.rs      任务：状态推导、走一步、流水、报告与日志（含两节的段位与骨架）；含任务的六个动作
 ```
 
 各层的分工：
 
 - 入口不写算法，只解析参数、定位路径、把动作层的结果印出来；工作区与数据仓的默认值在入口一处定。
-- 动作层是唯一算东西的地方，每个动作返回一个 `Result`。`lines` 给命令行印，`columns` 与 `rows` 给将来的窗口画，`ok` 定退出码。动作之间不互相打印。
+- 动作各归其主：动作与它操作的对象住同一个模块（工作流的动作在 `workflow.rs`、任务的在 `task.rs`、材料的在 `material.rs`、目录与找文档在 `catalog.rs`），每个动作返回一个 `outcome::Result`——`lines` 给命令行印，`columns` 与 `rows` 给将来的窗口画，`ok` 定退出码。动作之间不互相打印。
 - 定义层（workflow）与执行层（task）分家：工作流是数据不是代码，加流程不改程序；任务引用工作流名，状态从流水读出来。
-- 判据、记录段位、资产表、材料字段各只写一处，模板与核对都从那一处取，不在别处再抄一遍。
+- 判据、报告的段位与骨架、资产表、材料字段各只写一处，用的人从那一处取，不在别处再抄一遍。
 
 ## 状态机与数据流
 

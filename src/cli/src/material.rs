@@ -179,3 +179,62 @@ fn collect_markdown(base: &Path, out: &mut Vec<PathBuf>) {
         }
     }
 }
+
+use crate::outcome::Result;
+use serde_json::json;
+// ---- 动作 ----
+
+pub fn material(root: &Path, paths: Option<&[String]>) -> Result {
+    let found = materials(root, paths);
+    let mut result = Result::new(true);
+    result.columns = vec![
+        "材料".to_string(),
+        "类型".to_string(),
+        "阶段".to_string(),
+        "时间".to_string(),
+        "来源".to_string(),
+    ];
+    for (rel, mat) in &found {
+        let created = if mat.created_at.is_empty() {
+            "（缺）".to_string()
+        } else {
+            mat.created_at.clone()
+        };
+        result.rows.push(vec![
+            rel.clone(),
+            mat.r#type.clone(),
+            mat.stage.clone(),
+            created.clone(),
+            mat.source.clone(),
+        ]);
+        result.lines.push(format!(
+            "{rel:52} {:5} {:5} {created:11} {}",
+            mat.r#type, mat.stage, mat.source
+        ));
+        if !mat.missing().is_empty() {
+            result.ok = false;
+            result
+                .lines
+                .push(format!("缺字段：{rel}——{}", mat.missing().join("、")));
+        }
+    }
+    if result.ok {
+        result
+            .lines
+            .push("阶段由资产位置承担：日志是原始，其余是材料。".to_string());
+    }
+    result.payload = Some(json!({
+        "count": found.len(),
+        "materials": found.iter().map(|(rel, mat)| json!({
+            "path": rel,
+            "type": mat.r#type,
+            "content": mat.content,
+            "source": mat.source,
+            "created_at": mat.created_at,
+            "stage": mat.stage,
+        })).collect::<Vec<_>>(),
+    }));
+    result
+}
+
+// ---- 工作流 ----

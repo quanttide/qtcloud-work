@@ -6,8 +6,6 @@
 //! 走一步：执行者是 AI 的交给 `pi` 跑，然后程序自己判机械判据、把闸门项列给人，
 //! 事实记进流水与报告。
 
-use crate::checks;
-use crate::records;
 use crate::workflow::{self, Step, Workflow};
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
@@ -208,10 +206,10 @@ pub fn create(
         );
     }
     if !task.artifact(REPORT).is_file() {
-        let _ = std::fs::write(task.artifact(REPORT), records::report_template(name));
+        let _ = std::fs::write(task.artifact(REPORT), report_template(name));
     }
     if !task.artifact(JOURNAL).is_file() {
-        let _ = std::fs::write(task.artifact(JOURNAL), records::journal_template(name));
+        let _ = std::fs::write(task.artifact(JOURNAL), journal_template(name));
     }
     task
 }
@@ -248,7 +246,7 @@ pub fn reopen(data: &Path, name: &str, root: Option<&Path>, workflows: Option<&P
         Some(root) => root.to_path_buf(),
         None => {
             if recorded_root.is_empty() {
-                crate::assets::repo_root().unwrap_or_else(|_| PathBuf::from("."))
+                crate::artifact::repo_root().unwrap_or_else(|_| PathBuf::from("."))
             } else {
                 PathBuf::from(shellexpand_home(&recorded_root))
             }
@@ -370,7 +368,7 @@ pub fn criteria_text(step: &Step) -> String {
                 .get("executor")
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
-            let described = checks::description_of(criterion);
+            let described = crate::audit::description_of(criterion);
             let described = if described.is_empty() {
                 criterion
                     .get("description")
@@ -607,8 +605,8 @@ pub fn execute(
         return (true, lines, Vec::new());
     }
 
-    let rule_items = checks::items_of(&expanded_criteria(task, &found.rules()));
-    let (results, _) = checks::run(root, &rule_items);
+    let rule_items = crate::audit::items_of(&expanded_criteria(task, &found.rules()));
+    let (results, _) = crate::audit::run(root, &rule_items);
     let agents = found.agents();
     let judged: Vec<(String, String, String)> = if auto && !agents.is_empty() {
         judge_by_ai(task, &found, &expanded_criteria(task, &agents))
@@ -745,8 +743,8 @@ pub fn write_report(task: &Task, gates: &[String]) -> PathBuf {
                 .collect()
         }
     };
-    text = records::replace_section(&text, "执行记录", &records);
-    text = records::replace_section(&text, "闸门项", &gate_lines);
+    text = replace_section(&text, "执行记录", &records);
+    text = replace_section(&text, "闸门项", &gate_lines);
     let _ = std::fs::write(&path, text);
     path
 }
@@ -778,8 +776,7 @@ fn existing_gates(text: &str) -> Vec<String> {
 /// 日志收叙事：一段一段往下写。
 pub fn narrate(task: &Task, words: &str) {
     let path = task.artifact(JOURNAL);
-    let mut text =
-        std::fs::read_to_string(&path).unwrap_or_else(|_| records::journal_template(&task.name));
+    let mut text = std::fs::read_to_string(&path).unwrap_or_else(|_| journal_template(&task.name));
     text = text
         .lines()
         .filter(|line| {
@@ -811,5 +808,266 @@ pub fn state_line(task: &Task) -> String {
     match task.next_step() {
         Some(step) => format!("下一步：{}", step.name()),
         None => format!("{} 个步骤都走过了", steps.len()),
+    }
+}
+
+// ---- 动作 ----
+
+use crate::outcome::{Result, short};
+
+pub fn task_new(
+    root: &Path,
+    data: &Path,
+    name: &str,
+    workflow_name: &str,
+    workflows: Option<&Path>,
+) -> Result {
+    if name.trim().is_empty() {
+        return Result::lines(false, vec!["请先给这件任务起个名字".to_string()]);
+    }
+    let flow = workflow::open_workflow(data, workflow_name, workflows);
+    if !flow.exists() {
+        return Result::lines(
+            false,
+            vec![format!(
+                "没有这条工作流：{}（qtcloud-work workflow --list 看有哪些）",
+                short(data, &flow.file())
+            )],
+        );
+    }
+    let existing = reopen(data, name.trim(), Some(root), workflows);
+    if existing.exists() {
+        return Result::lines(
+            false,
+            vec![format!(
+                "已经有这件任务：{}（换个名字，不覆盖）",
+                short(data, &existing.file())
+            )],
+        );
+    }
+    let task = create(root, data, name.trim(), workflow_name.trim(), workflows);
+    task_status(Some(root), data, name.trim(), workflows)
+        .with_first(format!("起了：{}", short(data, &task.file())))
+}
+
+pub fn task_status(
+    root: Option<&Path>,
+    data: &Path,
+    name: &str,
+    workflows: Option<&Path>,
+) -> Result {
+    if name.trim().is_empty() {
+        return Result::lines(
+            false,
+            vec!["请先选一件任务（qtcloud-work task --list 看有哪些）".to_string()],
+        );
+    }
+    let task = reopen(data, name, root, workflows);
+    if !task.exists() {
+        return Result::lines(
+            false,
+            vec![format!("没有这件任务：{}", short(data, &task.file()))],
+        );
+    }
+    let done = task.done();
+    let mut result = Result::new(true);
+    result.columns = vec!["步骤".to_string(), "状态".to_string()];
+    result.lines.push(format!("任务：{}", task.name));
+    result.lines.push(format!(
+        "  开工：{}",
+        if task.start().is_empty() {
+            "（没记）".to_string()
+        } else {
+            task.start()
+        }
+    ));
+    result.lines.push(format!(
+        "  工作流：{}——{}",
+        task.workflow_name(),
+        task.workflow().description()
+    ));
+    result
+        .lines
+        .push(format!("  步骤：{} 个", task.steps().len()));
+    for step in task.steps() {
+        let state = if done.contains(&step.name()) {
+            "✓"
+        } else {
+            "—"
+        };
+        result.rows.push(vec![step.name(), state.to_string()]);
+        result.lines.push(format!("  {state} {}", step.name()));
+    }
+    result.lines.push(state_line(&task));
+    result
+        .lines
+        .push(format!("指令：{}", short(data, &task.file())));
+    result.lines.push(format!(
+        "产物：{}、{}　流水：{}",
+        short(data, &task.artifact(REPORT)),
+        short(data, &task.artifact(JOURNAL)),
+        short(data, &task.artifact(LOG))
+    ));
+    let events = task.events();
+    if !events.is_empty() {
+        result.lines.push("流水（最近五条）：".to_string());
+        for event in events
+            .iter()
+            .rev()
+            .take(5)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+        {
+            let at = event.get("at").and_then(|v| v.as_str()).unwrap_or("");
+            let step = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
+            let detail = event.get("detail").and_then(|v| v.as_str()).unwrap_or("");
+            result.lines.push(format!("  {at}　{step}　{detail}"));
+        }
+    }
+    result
+}
+
+pub fn task_list(root: Option<&Path>, data: &Path, workflows: Option<&Path>) -> Result {
+    let found = listing(root, data, workflows);
+    let mut result = Result::new(true);
+    result.columns = vec![
+        "任务".to_string(),
+        "工作流".to_string(),
+        "下一步".to_string(),
+    ];
+    for task in &found {
+        let next = task
+            .next_step()
+            .map(|s| s.name())
+            .unwrap_or_else(|| "走完".to_string());
+        result
+            .rows
+            .push(vec![task.name.clone(), task.workflow_name(), next.clone()]);
+        result.lines.push(format!(
+            "{:24} 工作流 {}　下一步：{next}",
+            task.name,
+            task.workflow_name()
+        ));
+    }
+    if found.is_empty() {
+        result.lines =
+            vec!["还没有任务：qtcloud-work task --new <名字> --workflow <工作流>".to_string()];
+    }
+    result
+}
+
+/// 走一步：能让 AI 跑的交给 AI（auto），然后跑判据、记账。
+pub fn task_step(
+    root: Option<&Path>,
+    data: &Path,
+    name: &str,
+    step: &str,
+    note: &str,
+    auto: bool,
+    workflows: Option<&Path>,
+) -> Result {
+    let task: Task = reopen(data, name, root, workflows);
+    if !task.exists() {
+        return Result::lines(
+            false,
+            vec![format!("没有这件任务：{}", short(data, &task.file()))],
+        );
+    }
+    let mut chosen = step.trim().to_string();
+    if chosen.is_empty() {
+        if !auto {
+            return Result::lines(
+                false,
+                vec!["请给步骤名（qtcloud-work task <名字> 看有哪些步骤）".to_string()],
+            );
+        }
+        match task.next_step() {
+            None => return Result::lines(true, vec!["所有步骤都走过了".to_string()]),
+            Some(next) => chosen = next.name(),
+        }
+    }
+    let (ok, lines, rows) = execute(&task, &task.root, &chosen, note, auto);
+    let mut result = Result {
+        ok,
+        lines,
+        ..Default::default()
+    };
+    result.columns = vec!["核对".to_string(), "结论".to_string(), "说明".to_string()];
+    result.rows = rows.into_iter().map(|(a, b, c)| vec![a, b, c]).collect();
+    result.lines.push(state_line(&task));
+    result
+}
+
+pub fn task_journal(
+    root: Option<&Path>,
+    data: &Path,
+    name: &str,
+    words: &str,
+    workflows: Option<&Path>,
+) -> Result {
+    let task = reopen(data, name, root, workflows);
+    if !task.exists() {
+        return Result::lines(
+            false,
+            vec![format!("没有这件任务：{}", short(data, &task.file()))],
+        );
+    }
+    if words.trim().is_empty() {
+        return Result::lines(
+            false,
+            vec![format!(
+                "日志要人来写：{}",
+                short(data, &task.artifact(JOURNAL))
+            )],
+        );
+    }
+    narrate(&task, words);
+    Result::lines(
+        true,
+        vec![
+            format!("日志记下一段：{}", short(data, &task.artifact(JOURNAL))),
+            state_line(&task),
+        ],
+    )
+}
+
+// ---- 记录的段位与骨架：报告两节与日志模板 ----
+
+/// 日志模板里的占位行，收叙事时先去掉它。
+pub const JOURNAL_PLACEHOLDER: &str = "（这个任务的来龙去脉，你写）";
+
+pub fn report_template(title: &str) -> String {
+    let title = if title.is_empty() {
+        "<任务的名字>"
+    } else {
+        title
+    };
+    format!("# 报告：{title}\n\n## 执行记录\n\n## 闸门项\n")
+}
+
+pub fn journal_template(title: &str) -> String {
+    let title = if title.is_empty() {
+        "<任务的名字>"
+    } else {
+        title
+    };
+    format!("# 日志：{title}\n\n{JOURNAL_PLACEHOLDER}\n")
+}
+
+/// 把某一节的正文换掉，其它节原样保留；没有这一节就补在后面。
+pub fn replace_section(text: &str, title: &str, body: &[String]) -> String {
+    let marker = format!("## {title}");
+    let block = format!("## {title}\n\n{}\n", body.join("\n"));
+    match text.find(&marker) {
+        None => format!("{}\n\n{}", text.trim_end(), block),
+        Some(at) => {
+            let head = &text[..at];
+            let tail = &text[at + marker.len()..];
+            match tail.find("## ") {
+                None => format!("{head}{block}"),
+                Some(next) => format!("{head}{block}\n{}", &tail[next..]),
+            }
+        }
     }
 }

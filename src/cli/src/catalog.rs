@@ -3,7 +3,6 @@
 //! 目录是快照——仓库变了要重扫；名字索引同时收文件名与篇内标题，因为命名规则规定
 //! 英文文件名与中文标题不互译。
 
-use crate::assets;
 use serde_json::{Value as Json, json};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -67,9 +66,9 @@ impl Catalog {
 
     /// 目录有而契约无：未登记在资产表里的顶层子目录。
     pub fn unregistered(&self, root: &Path) -> Vec<PathBuf> {
-        let known: BTreeSet<PathBuf> = assets::assets()
+        let known: BTreeSet<PathBuf> = crate::artifact::assets()
             .iter()
-            .flat_map(|asset| assets::locate(root, asset))
+            .flat_map(|asset| crate::artifact::locate(root, asset))
             .collect();
         let mut found: Vec<PathBuf> = Vec::new();
         for container in CONTAINERS {
@@ -185,8 +184,8 @@ pub fn build(root: &Path) -> Catalog {
     let mut catalog = Catalog {
         entries: Vec::new(),
     };
-    for asset in assets::assets() {
-        for path in assets::locate(root, &asset) {
+    for asset in crate::artifact::assets() {
+        for path in crate::artifact::locate(root, &asset) {
             let mut names: BTreeSet<String> = BTreeSet::new();
             names.insert(asset.kind.clone());
             names.insert(asset.name.clone());
@@ -213,4 +212,65 @@ pub fn build(root: &Path) -> Catalog {
         }
     }
     catalog
+}
+
+// ---- 动作（按名找文档、看目录）----
+
+use crate::outcome::Result;
+
+pub fn catalog(root: &Path) -> Result {
+    let found = build(root);
+    let mut result = Result {
+        ok: true,
+        ..Default::default()
+    };
+    result.columns = vec!["种类".to_string(), "路径".to_string()];
+    for entry in &found.entries {
+        let rel = short(root, &entry.path);
+        result.lines.push(format!("[{}] {rel}", entry.kind));
+        result.rows.push(vec![entry.kind.clone(), rel]);
+    }
+    result.payload = Some(payload(root, &found));
+    result
+}
+
+pub fn find(root: &Path, name: &str, show: bool) -> Result {
+    if name.trim().is_empty() {
+        return Result::lines(false, vec!["请填要找的名字".to_string()]);
+    }
+    let matches = build(root).find(name);
+    if matches.is_empty() {
+        return Result::lines(false, vec![format!("未找到：{name}")]);
+    }
+    let mut result = Result::new(true);
+    for entry in matches {
+        let rel = short(root, &entry.path);
+        result.lines.push(format!("[{}] {rel}", entry.kind));
+        result.rows.push(vec![entry.kind.clone(), rel]);
+        if show {
+            if entry.path.is_dir() {
+                let listed: Vec<String> = std::fs::read_dir(&entry.path)
+                    .map(|entries| {
+                        entries
+                            .flatten()
+                            .map(|e| e.file_name().to_string_lossy().to_string())
+                            .filter(|n| !n.starts_with('.'))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                result
+                    .lines
+                    .push(format!("  （目录）{}", listed.join("、")));
+            } else {
+                result.lines.push(
+                    std::fs::read_to_string(&entry.path)
+                        .unwrap_or_default()
+                        .trim_end()
+                        .to_string(),
+                );
+            }
+        }
+    }
+    result.columns = vec!["种类".to_string(), "路径".to_string()];
+    result
 }
