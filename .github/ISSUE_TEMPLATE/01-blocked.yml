@@ -1,0 +1,37 @@
+name: 挡住我——跑不通
+description: 命令报错、卡住、跑不完
+title: "[试用] 挡住我："
+labels: [试用, 挡住我]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        谢谢你把卡点记下来。四项填齐我们就能照着复现；**能复现就算通过**，不用给修复方案。
+  - type: input
+    id: env
+    attributes:
+      label: 环境与版本
+      description: 系统，以及 `qtcloud-work --version` 的输出
+      placeholder: macOS 14.5，qtcloud-work 0.1.0-alpha.4
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: 敲了什么
+      description: 命令按顺序一行一条；顺手写一句你当时在哪个目录
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望什么
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际什么
+      description: 报错原文照贴（别只写「报错了」）
+    validations:
+      required: true

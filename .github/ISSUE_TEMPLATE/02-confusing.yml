@@ -1,0 +1,37 @@
+name: 看不懂——说不清
+description: 帮助、文档或输出里读不明白的地方
+title: "[试用] 看不懂："
+labels: [试用, 看不懂]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        说不清也是一种信息：写下你当时**以为**它是什么意思，比「不清楚」有用得多。
+  - type: input
+    id: env
+    attributes:
+      label: 环境与版本
+      description: 系统，以及 `qtcloud-work --version` 的输出
+      placeholder: macOS 14.5，qtcloud-work 0.1.0-alpha.4
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: 哪一处
+      description: 把原文贴过来（`--help` 的一行、文档一句、某条输出），加一句它在哪看到的
+    validations:
+      required: true
+  - type: textarea
+    id: guessed
+    attributes:
+      label: 我以为它是什么意思
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际做出来是什么
+      description: 如果试出来的话；没试出来就写「没敢试」或「试了发现另一回事」
+    validations:
+      required: true

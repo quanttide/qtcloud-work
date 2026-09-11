@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 先看任务书
+    url: https://github.com/quanttide/qtcloud-work/issues/1
+    about: 试用的四步、交到哪、以及「能复现就是通过」的判据

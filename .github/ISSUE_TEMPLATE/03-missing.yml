@@ -1,0 +1,38 @@
+name: 缺——想做做不了
+description: 你想干一件事，工具没给你这个能力
+title: "[试用] 缺："
+labels: [试用, 缺]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        写清「我想干什么」比「我想要某个功能」管用——我们要听的是你的事。
+  - type: input
+    id: env
+    attributes:
+      label: 环境与版本
+      description: 系统，以及 `qtcloud-work --version` 的输出
+      placeholder: macOS 14.5，qtcloud-work 0.1.0-alpha.4
+    validations:
+      required: true
+  - type: textarea
+    id: want
+    attributes:
+      label: 我想做什么
+      description: 具体到场景：什么时候、为了什么、多久干一次
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: 我拿现在的东西怎么凑的
+      description: 试过哪些命令、绕了多远；没试过就写「没试」
+    validations:
+      required: false
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么想要
+      description: 它替你省掉什么、或挡住你哪一步
+    validations:
+      required: true

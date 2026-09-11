@@ -1,0 +1,42 @@
+name: 工作流——我写了一条
+description: 交一条自己写的工作流（任务书第三步）
+title: "[试用] 工作流："
+labels: [试用, 工作流]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        交一条你每周都烦、想让它替你干的事。**能跑起来、`--check` 不报错**就算通过。
+  - type: input
+    id: env
+    attributes:
+      label: 环境与版本
+      description: 系统，以及 `qtcloud-work --version` 的输出
+      placeholder: macOS 14.5，qtcloud-work 0.1.0-alpha.4
+    validations:
+      required: true
+  - type: textarea
+    id: yaml
+    attributes:
+      label: 工作流全文（YAML）
+      description: 原样贴上来，包括 `--check` 的输出
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: saves
+    attributes:
+      label: 它替你省了什么
+      description: 一句话，具体到哪一步
+    validations:
+      required: true
+  - type: dropdown
+    id: ran
+    attributes:
+      label: 走到哪一步了
+      options:
+        - 定义了，也用 `task` 走完了
+        - 定义了，走不动（哪一步卡住写在下面）
+        - 只写了定义，还没跑
+    validations:
+      required: true
