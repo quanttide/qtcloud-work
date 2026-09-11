@@ -1,4 +1,54 @@
-# 工作流
+# workflow
+
+六个动作加定义的 schema。
+
+## workflow --list
+
+```bash
+qtcloud-work workflow --list
+```
+
+列出工作流、各自的步骤与文件位置。
+
+## workflow --new
+
+```bash
+qtcloud-work workflow --new <名字> --steps 甲,乙,丙 [--note 一句话]
+```
+
+写一条工作流到 `<工作流目录>/<名字>.yaml`。每步给一份判据骨架：一条 rule（`path: data/journal/README.md`）加一条 human。`--note` 是工作流的一句话描述，不给就用一句默认。
+
+## workflow <名字>
+
+```bash
+qtcloud-work workflow <名字>
+```
+
+看这条工作流的步骤、谁执行、各有几条 rule / agent / human。
+
+## workflow <名字> --check
+
+```bash
+qtcloud-work workflow <名字> --check
+```
+
+核对这条定义的声明与判据对不对得上：判据里的路径（`path` / `file`）在不在工作区里；描述里提到的报告小节（`## 名字` 或「名字」一节）有没有判据覆盖。按任务落点的占位（`{{report}}` / `{{journal}}` / `{{log}}`）在定义这一层核不了，跳过。有一件对不上就退出码 1。
+
+## workflow <名字> --export <文件>
+
+```bash
+qtcloud-work workflow <名字> --export <文件>
+```
+
+把定义原样存成一份可带走的文件，步骤、执行者、判据一字不改。目标是目录时，存成目录下的同名文件。
+
+## workflow --import <文件> [--as <名字>]
+
+```bash
+qtcloud-work workflow --import <文件> [--as <名字>]
+```
+
+把一份工作流导进来。先按 schema 验一遍，不是工作流的文件挡回来；重名挡回来，用 `--as` 换名。导入后落在 `<工作流目录>/`。
 
 工作流是编排定义：一串步骤，每步写着谁做与怎么算完。
 

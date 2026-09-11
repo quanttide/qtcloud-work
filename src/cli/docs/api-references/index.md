@@ -1,13 +1,20 @@
 # 接口参考
 
-命令、字段与落点的参考。怎么用看[使用指南](../user-guide/index.md)，程序分层看[开发指南](../dev-guide/index.md)。
+签名、字段与落点的**接口参考**，一个 API 一篇。怎么用、怎么走一遍看[使用指南](../user-guide/index.md)；程序分层看[开发指南](../dev-guide/index.md)。
 
-这份参考按四篇拆开：
+## API 索引
 
-- [命令面](commands.md)——每个动作的参数与行为；
-- [工作流](workflow.md)——定义的 schema、判据、占位；
-- [任务](task.md)——运行数据的字段、流水、闸门、产物落点；
-- [工作区](workspace.md)——文件布局、资产与落点、目录层、结果与 JSON。
+| API | 做什么 |
+| :-- | :-- |
+| [find](find.md) | 按名找文档 |
+| [catalog](catalog.md) | 按资产种类列条目 |
+| [audit](audit.md) | 审计资产表与工作区 |
+| [material](material.md) | 材料的四字段与阶段 |
+| [workflow](workflow.md) | 工作流的定义与六个动作 |
+| [task](task.md) | 任务的一次执行与六个动作 |
+| [health](health.md) | provider 探活 |
+
+落点与资产表在[工作区](workspace.md)。
 
 ## 全局选项
 
@@ -28,3 +35,11 @@
 ## 契约与版本
 
 `--json` 的字段与退出码是脚本依赖的契约，只加不改：要改先加新字段、后废旧的，旧字段先留一轮。`--version` 打印版本号，与 `CHANGELOG.md` 头一行、`scripts/validate-version.sh` 的校验一致。
+
+## 结果与 JSON
+
+每个动作算出一个结果，四项：`ok` 通不通、`lines` 命令行要打印的话、`columns` 与 `rows` 给窗口画的同一份表格。命令行的 `--json` 与窗口都从这层取，算法只写一遍。
+
+### 已知未接线
+
+`task --new` 的 `--about`（一句话说这次要什么）在实验室里被解析了却没有接下去，本轮不替它编行为，接口参考也不列它。
