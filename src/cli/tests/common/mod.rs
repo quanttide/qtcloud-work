@@ -135,10 +135,11 @@ impl Fixture {
     }
 
     /// 只给数据仓跑（工作区与工作流目录靠任务里记的上下文）。
+    /// 交给 `pi` 的地方一律用桩顶替，免得测试依赖真模型。
     pub fn run_recorded(&self, args: &[&str]) -> Run {
         let mut full: Vec<&str> = vec!["--data", self.data.to_str().unwrap()];
         full.extend_from_slice(args);
-        self.run(false, &full)
+        self.run(true, &full)
     }
 
     pub fn task_yaml(&self, name: &str) -> String {
