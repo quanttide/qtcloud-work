@@ -33,7 +33,17 @@ fn 定义里的声明与判据对不对得上() {
         bad.crop()
     );
 
-    // 三、描述提到的小节没有判据覆盖 → 红
+    // 三、版本号写法（`## [X.Y.Z-pre.N]`）不是报告小节，不该误报
+    let fix = Fixture::new("check-noise");
+    fix.file("材料.md", "内容\n");
+    fix.workflow(
+        "试一条",
+        "name: 试一条\ndescription: 试\nsteps:\n- name: 一步\n  description: 把 Unreleased 收成 `## [X.Y.Z-pre.N]` 一节\n  criteria:\n  - executor: rule\n    description: 材料在\n    path: 材料.md\n",
+    );
+    let noise = fix.run_full(false, &["workflow", "试一条", "--check"]);
+    assert!(noise.ok(), "版本号写法不该被当成报告小节: {}", noise.crop());
+
+    // 四、描述提到的小节没有判据覆盖 → 红
     let fix = Fixture::new("check-section");
     fix.file("材料.md", "内容\n");
     fix.workflow(

@@ -645,7 +645,7 @@ pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
                 .unwrap_or("")
                 .trim()
                 .to_string();
-            if !name.is_empty() && !mentioned.contains(&name) {
+            if looks_like_section(&name) && !mentioned.contains(&name) {
                 mentioned.push(name);
             }
         }
@@ -657,7 +657,7 @@ pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
             let tail = after[end + '」'.len_utf8()..].trim_start();
             let is_section =
                 tail.starts_with("一节") || tail.starts_with("节") || tail.starts_with("两节");
-            if is_section && !name.is_empty() && !name.contains(' ') && !mentioned.contains(&name) {
+            if is_section && looks_like_section(&name) && !mentioned.contains(&name) {
                 mentioned.push(name);
             }
             rest = &after[end + '」'.len_utf8()..];
@@ -671,6 +671,19 @@ pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
         });
     }
     found
+}
+
+/// 像不像报告小节的名字：中文短词。版本号写法（`## [X.Y.Z-pre.N]`）、占位、路径都不算。
+fn looks_like_section(name: &str) -> bool {
+    !name.is_empty()
+        && name.chars().count() <= 12
+        && !name.contains(|ch: char| {
+            ch.is_ascii_digit()
+                || matches!(
+                    ch,
+                    '[' | ']' | '{' | '}' | '.' | '/' | '`' | '<' | '>' | '-' | '_'
+                )
+        })
 }
 
 /// 判据里的占位先按数据仓展开（够核对用：`{{report}}` 一类指到本仓的产物路径）。
