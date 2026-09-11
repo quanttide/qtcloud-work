@@ -68,10 +68,7 @@ List<String>? helpTopic(String name) {
 /// 导览：三处位置、分组命令、下一步。
 Outcome helpGuide() {
   final result = Outcome(true)
-    ..lines = [
-      '量潮工作云命令行——把知识工作做成可执行的编排。',
-      '',
-    ]
+    ..lines = ['量潮工作云命令行——把知识工作做成可执行的编排。', '']
     ..columns = ['组', '命令', '做什么'];
   for (final group in helpGroups) {
     result.lines.add(group.name);
@@ -81,8 +78,12 @@ Outcome helpGuide() {
     }
     result.lines.add('');
   }
-  result.lines.add('三处位置：--root 工作区 / --data 数据仓 / --workflows 工作流目录（缺省见 `--help`）。');
-  result.lines.add('话题：`qtcloud-work help <命令>` 看它一句话要点；`qtcloud-work <命令> --help` 看全部选项。');
+  result.lines.add(
+    '三处位置：--root 工作区 / --data 数据仓 / --workflows 工作流目录（缺省见 `--help`）。',
+  );
+  result.lines.add(
+    '话题：`qtcloud-work help <命令>` 看它一句话要点；`qtcloud-work <命令> --help` 看全部选项。',
+  );
   return result;
 }
 

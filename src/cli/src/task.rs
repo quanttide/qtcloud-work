@@ -6,7 +6,7 @@
 //! 走一步：执行者是 AI 的交给 `pi` 跑，然后程序自己判机械判据、把闸门项记进任务文件，
 //! 事实记进流水与报告。
 
-use crate::workflow::{self, Step, Workflow};
+use crate::workflow::{self, Step, WorkflowFile};
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -126,7 +126,7 @@ impl Task {
         text_of(&self.payload(), "workflow")
     }
 
-    pub fn workflow(&self) -> Workflow {
+    pub fn workflow(&self) -> WorkflowFile {
         workflow::open_workflow(&self.data, &self.workflow_name(), self.workflows.as_deref())
     }
 
@@ -148,42 +148,16 @@ impl Task {
     ///
     /// 审查判 ✗ 时不算走过（下一步还是它）；重走一次都 ok，就算走过——上一笔失败不
     /// 再压着它。
+    /// 哪些步骤走过了：算法在工具箱里（附加判定投票、重新执行从头算）。
     pub fn done(&self) -> Vec<String> {
         let names: Vec<String> = self.steps().into_iter().map(|s| s.name()).collect();
-        let mut verdict: Vec<(String, bool)> = Vec::new();
-        for event in self.events() {
-            let ok = event.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
-            let raw = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
-            let (step, extra) = match raw.split_once('·') {
-                Some((step, rest)) => (step.to_string(), Some(rest.to_string())),
-                None => (raw.to_string(), None),
-            };
-            if !names.contains(&step) {
-                continue;
-            }
-            match verdict.iter_mut().find(|(name, _)| *name == step) {
-                Some((_, last)) => {
-                    if extra.is_some() {
-                        *last = *last && ok; // 附加判定（审查、机器判据）都给这一步的结论投票
-                    } else {
-                        *last = ok; // 重新执行：这一步的判定从头算
-                    }
-                }
-                None => verdict.push((step, ok)),
-            }
-        }
-        verdict
-            .into_iter()
-            .filter(|(_, ok)| *ok)
-            .map(|(name, _)| name)
-            .collect()
+        quanttide_work::tasklog::done(&names, &self.events())
     }
 
     pub fn next_step(&self) -> Option<Step> {
-        let done = self.done();
-        self.steps()
-            .into_iter()
-            .find(|step| !done.contains(&step.name()))
+        let names: Vec<String> = self.steps().into_iter().map(|s| s.name()).collect();
+        let next = quanttide_work::tasklog::next_step(&names, &self.events())?;
+        self.steps().into_iter().find(|step| step.name() == next)
     }
 
     /// 记一笔流水：读任务文件、追加一条、写回去（流水只增不改）。
@@ -377,43 +351,33 @@ pub fn listing(root: Option<&Path>, data: &Path, workflows: Option<&Path>) -> Ve
 }
 
 /// 交给 AI 的那一段话：这一步做什么、判据是什么、产物落在哪。
+/// 交给 AI 的那一段话：说什么、不说什么是定死的，话本身在工具箱里。
 pub fn prompt_for(task: &Task, step: &Step) -> String {
-    let steps = task
-        .steps()
-        .into_iter()
-        .map(|s| s.name())
-        .collect::<Vec<_>>()
-        .join("、");
-    format!(
-        "你在按一条工作流走一步。只做这一步，做完就停。\n\n\
-         工作区：{root}\n\
-         数据仓：{data}\n\
-         任务：{name}（开工：{start}）\n\
-         工作流：{flow}——{description}\n\
-         步骤：{steps}\n\
-         这一步：{step}\n\
-         做什么：\n{what}\n\n\
-         判据（程序随后自己核对，你不能改判据、也不许改判据文件）：\n{criteria}\n\n\
-         本任务的三样东西（报告与日志是产物，流水是执行痕迹）：\n\
-           产物：{report}（程序不碰产物内容，谁写谁定；闸门项记在任务文件里）\n\
-           日志：{journal}\n\
-           流水：{log}（就在任务文件里）\n\
-         工作流里用 {{{{report}}}} / {{{{journal}}}} / {{{{log}}}} 指这三样；工作内容写进报告，别动程序那两节。\n\
-         规矩：数据只写数据仓；工作区里只动「做什么」点名的东西。最后用一句话说明你做了什么。\n",
-        root = task.root.display(),
-        data = task.data.display(),
-        name = task.name,
-        start = task.start(),
-        flow = task.workflow_name(),
-        description = task.workflow().description(),
-        steps = steps,
-        step = step.name(),
-        what = step.description(),
-        criteria = criteria_text(step),
-        report = task.relative(&task.artifact(REPORT)),
-        journal = task.relative(&task.artifact(JOURNAL)),
-        log = task.relative(&task.artifact(LOG)),
-    )
+    quanttide_work::prompts::prompt_for(&facts_of(task, step), &step.criteria())
+}
+
+/// 这一步的现场：路径由命令行这边算好递进去。
+fn facts_of(task: &Task, step: &Step) -> quanttide_work::prompts::Facts {
+    quanttide_work::prompts::Facts {
+        root: task.root.display().to_string(),
+        data: task.data.display().to_string(),
+        name: task.name.clone(),
+        start: task.start(),
+        workflow_name: task.workflow_name(),
+        workflow_description: task.workflow().description(),
+        steps: task
+            .steps()
+            .into_iter()
+            .map(|s| s.name())
+            .collect::<Vec<_>>()
+            .join("、"),
+        step: step.name(),
+        what: step.description(),
+        report: task.relative(&task.artifact(REPORT)),
+        journal: task.relative(&task.artifact(JOURNAL)),
+        log: task.relative(&task.artifact(LOG)),
+        artifacts: task.artifacts_dir().display().to_string(),
+    }
 }
 
 /// 把这一步交给 AI 跑：非交互调 `pi`。
@@ -433,64 +397,9 @@ pub fn run_ai(prompt: &str, root: &Path) -> (bool, String) {
     }
 }
 
-pub fn criteria_text(step: &Step) -> String {
-    let lines: Vec<String> = step
-        .criteria()
-        .iter()
-        .map(|criterion| {
-            let executor = criterion
-                .get("executor")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
-            let described = crate::audit::description_of(criterion);
-            let described = if described.is_empty() {
-                criterion
-                    .get("description")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string()
-            } else {
-                described
-            };
-            format!("- {executor}：{described}")
-        })
-        .collect();
-    if lines.is_empty() {
-        "（这一步没有判据）".to_string()
-    } else {
-        lines.join("\n")
-    }
-}
-
 /// 交给智能体审的那一段话：产物 + 判准，逐条回答。
 pub fn judge_prompt(task: &Task, step: &Step, criteria: &[Value]) -> String {
-    let listed = criteria
-        .iter()
-        .enumerate()
-        .map(|(index, criterion)| {
-            format!(
-                "{}. {}",
-                index + 1,
-                criterion
-                    .get("description")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-    format!(
-        "你是审查者，不是执行者。别改产物、别改判据文件。\n\n\
-         工作区：{root}\n\
-         要审的东西：这一步的产物在 {artifacts}（也可以看工作区里相关文件）\n\
-         这一步做什么：{what}\n\n\
-         判准（逐条判）：\n{listed}\n\n\
-         对每条输出一行，格式只能是「序号. 通过 — 一句话理由」或「序号. 不通过 — 一句话理由」，最后不要写别的。\n",
-        root = task.root.display(),
-        artifacts = task.artifacts_dir().display(),
-        what = step.description(),
-        listed = listed,
-    )
+    quanttide_work::prompts::judge_prompt(&facts_of(task, step), criteria)
 }
 
 fn one_line(text: &str, limit: usize) -> String {
@@ -823,17 +732,8 @@ pub fn narrate(task: &Task, words: &str) {
 }
 
 pub fn state_line(task: &Task) -> String {
-    let steps = task.steps();
-    if steps.is_empty() {
-        return format!(
-            "这条工作流没有步骤——在 workflows/{}.yaml 的 steps 里写步骤",
-            task.workflow_name()
-        );
-    }
-    match task.next_step() {
-        Some(step) => format!("下一步：{}", step.name()),
-        None => format!("{} 个步骤都走过了", steps.len()),
-    }
+    let names: Vec<String> = task.steps().into_iter().map(|s| s.name()).collect();
+    quanttide_work::tasklog::state_line(&names, &task.events(), &task.workflow_name())
 }
 
 // ---- 动作 ----

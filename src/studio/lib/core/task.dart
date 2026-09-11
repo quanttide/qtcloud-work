@@ -1,6 +1,7 @@
 import 'definition.dart';
 import 'fs/fs.dart' as fs;
 import 'outcome.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'yaml.dart';
 
 /// 任务：工作流的一次执行实例。
@@ -85,7 +86,7 @@ class Task {
 
   String get workflowName => textOf(payload(), 'workflow');
 
-  Workflow workflow() => openWorkflow(data, workflowName, workflows);
+  WorkflowFile workflow() => openWorkflow(data, workflowName, workflows);
 
   List<Step> steps() => workflow().steps;
 
@@ -93,37 +94,18 @@ class Task {
   List<Map> events() =>
       (payload()['log'] as List?)?.whereType<Map>().toList() ?? const [];
 
-  /// 哪些步骤走过了：看这一步**最近一次**尝试。
-  ///
-  /// 带后缀的（`·审` 审查、`·判` 机器判据）给这一步的结论投票；
-  /// 不带后缀的（重新执行一次）把结论从头算——上一笔失败不再压着它。
+  /// 哪些步骤走过了：算法在工具箱里（附加判定投票、重新执行从头算）。
   List<String> done() {
     final names = steps().map((step) => step.name).toList();
-    final verdict = <String, bool>{};
-    final order = <String>[];
-    for (final event in events()) {
-      final ok = event['ok'] == true;
-      final raw = '${event['step'] ?? ''}';
-      final at = raw.indexOf('·');
-      final step = at < 0 ? raw : raw.substring(0, at);
-      final hasExtra = at >= 0;
-      if (!names.contains(step)) continue;
-      if (verdict.containsKey(step)) {
-        verdict[step] = hasExtra ? (verdict[step]! && ok) : ok;
-      } else {
-        verdict[step] = ok;
-        order.add(step);
-      }
-    }
-    return order.where((step) => verdict[step] == true).toList();
+    return qt.done(names, events());
   }
 
-  List<Step> allSteps() => steps();
-
   Step? nextStep() {
-    final finished = done();
+    final names = steps().map((step) => step.name).toList();
+    final next = qt.nextStep(names, events());
+    if (next == null) return null;
     for (final step in steps()) {
-      if (!finished.contains(step.name)) return step;
+      if (step.name == next) return step;
     }
     return null;
   }
@@ -181,7 +163,9 @@ Task createTask(
 Map<String, String> taskContext(String root, String data, String? workflows) {
   String asWritten(String? path) {
     if (path == null) return '';
-    return path.startsWith(root) ? path.substring(root.length).replaceFirst(RegExp(r'^/'), '') : path;
+    return path.startsWith(root)
+        ? path.substring(root.length).replaceFirst(RegExp(r'^/'), '')
+        : path;
   }
 
   return {
@@ -204,12 +188,15 @@ Task reopen(String data, String name, String? root, String? workflows) {
   final raw = Task(root: '.', data: data, name: name).payload();
   final recordedRoot = textOf(raw, 'root');
   final resolvedRoot =
-      root ?? (recordedRoot.isEmpty ? repoRootFrom('.') : _expandHome(recordedRoot));
+      root ??
+      (recordedRoot.isEmpty ? repoRootFrom('.') : _expandHome(recordedRoot));
   String? resolvedFlows = workflows;
   if (resolvedFlows == null) {
     final recorded = textOf(raw, 'workflows');
     if (recorded.isNotEmpty) {
-      resolvedFlows = recorded.startsWith('/') ? recorded : '$resolvedRoot/$recorded';
+      resolvedFlows = recorded.startsWith('/')
+          ? recorded
+          : '$resolvedRoot/$recorded';
     }
   }
   return Task(
@@ -239,20 +226,22 @@ String repoRootFrom(String from) {
 List<Task> listingTasks(String? root, String data, String? workflows) {
   final base = '$data/tasks';
   if (!fs.dirExists(base)) return const [];
-  final paths = fs.listDir(base).where((path) => path.endsWith('.yaml')).toList()..sort();
+  final paths =
+      fs.listDir(base).where((path) => path.endsWith('.yaml')).toList()..sort();
   return [
     for (final path in paths)
-      reopen(data, path.split('/').last.replaceAll(RegExp(r'\.yaml$'), ''), root, workflows),
+      reopen(
+        data,
+        path.split('/').last.replaceAll(RegExp(r'\.yaml$'), ''),
+        root,
+        workflows,
+      ),
   ];
 }
 
 String stateLine(Task task) {
-  final steps = task.steps();
-  if (steps.isEmpty) {
-    return '这条工作流没有步骤——在 workflows/${task.workflowName}.yaml 的 steps 里写步骤';
-  }
-  final next = task.nextStep();
-  return next == null ? '${steps.length} 个步骤都走过了' : '下一步：${next.name}';
+  final names = task.steps().map((step) => step.name).toList();
+  return qt.stateLine(names, task.events(), task.workflowName);
 }
 
 // ---- 动作 ----
@@ -275,17 +264,22 @@ Outcome taskNew(
   if (existing.exists) {
     return Outcome.failed(['已经有这件任务：${short(data, existing.file)}（换个名字，不覆盖）']);
   }
-  final task = createTask(root, data, name.trim(), workflowName.trim(), workflows);
-  return taskStatus(root, data, name.trim(), workflows)
-      .withFirst('起了：${short(data, task.file)}');
+  final task = createTask(
+    root,
+    data,
+    name.trim(),
+    workflowName.trim(),
+    workflows,
+  );
+  return taskStatus(
+    root,
+    data,
+    name.trim(),
+    workflows,
+  ).withFirst('起了：${short(data, task.file)}');
 }
 
-Outcome taskStatus(
-  String? root,
-  String data,
-  String name,
-  String? workflows,
-) {
+Outcome taskStatus(String? root, String data, String name, String? workflows) {
   if (name.trim().isEmpty) {
     return Outcome.failed(['请先选一件任务（qtcloud-work task --list 看有哪些）']);
   }
@@ -297,7 +291,9 @@ Outcome taskStatus(
   final result = Outcome(true)..columns = ['步骤', '状态'];
   result.lines.add('任务：${task.name}');
   result.lines.add('  开工：${task.start.isEmpty ? '（没记）' : task.start}');
-  result.lines.add('  工作流：${task.workflowName}——${task.workflow().description}');
+  result.lines.add(
+    '  工作流：${task.workflowName}——${task.workflow().description}',
+  );
   result.lines.add('  步骤：${task.steps().length} 个');
   for (final step in task.steps()) {
     final state = finished.contains(step.name) ? '✓' : '—';
@@ -314,7 +310,9 @@ Outcome taskStatus(
   final events = task.events();
   if (events.isNotEmpty) {
     result.lines.add('流水（最近五条）：');
-    final tail = events.length <= 5 ? events : events.sublist(events.length - 5);
+    final tail = events.length <= 5
+        ? events
+        : events.sublist(events.length - 5);
     for (final event in tail) {
       result.lines.add(
         '  ${event['at'] ?? ''}　${event['step'] ?? ''}　${event['detail'] ?? ''}',
@@ -330,7 +328,9 @@ Outcome taskList(String? root, String data, String? workflows) {
   for (final task in found) {
     final next = task.nextStep()?.name ?? '走完';
     result.rows.add([task.name, task.workflowName, next]);
-    result.lines.add('${task.name.padRight(24)} 工作流 ${task.workflowName}　下一步：$next');
+    result.lines.add(
+      '${task.name.padRight(24)} 工作流 ${task.workflowName}　下一步：$next',
+    );
   }
   if (found.isEmpty) {
     result.lines = ['还没有任务：qtcloud-work task --new <名字> --workflow <工作流>'];
@@ -352,7 +352,11 @@ void narrate(Task task, String words) {
   text = text.trimRight();
   final trimmed = words.trim();
   fs.writeText(path, '$text\n\n$trimmed\n');
-  task.record('历史', trimmed.length > 40 ? trimmed.substring(0, 40) : trimmed, true);
+  task.record(
+    '历史',
+    trimmed.length > 40 ? trimmed.substring(0, 40) : trimmed,
+    true,
+  );
 }
 
 Outcome taskJournal(
@@ -367,11 +371,16 @@ Outcome taskJournal(
     return Outcome.failed(['没有这件任务：${short(data, task.file)}']);
   }
   if (words.trim().isEmpty) {
-    return Outcome.failed(['日志要人来写：${short(data, task.artifact(journalKind))}']);
+    return Outcome.failed([
+      '日志要人来写：${short(data, task.artifact(journalKind))}',
+    ]);
   }
   narrate(task, words);
-  return Outcome(true, lines: [
-    '日志记下一段：${short(data, task.artifact(journalKind))}',
-    stateLine(task),
-  ]);
+  return Outcome(
+    true,
+    lines: [
+      '日志记下一段：${short(data, task.artifact(journalKind))}',
+      stateLine(task),
+    ],
+  );
 }

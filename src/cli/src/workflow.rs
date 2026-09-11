@@ -3,14 +3,17 @@
 //! 定义要有**固定的意义**，所以是 YAML 而不是散文：字段名、字段取值、判据种类都由 schema
 //! 定死，不认识的字段直接报错。
 //!
-//! `<工作流目录>/<名字>.yaml`（默认 `<数据仓>/workflows/`，可用 `--workflows` 另指）。
+//! 定义这一类**领域模型**（字段表、校验、步骤与判据的视图、定义核对）都在工具箱
+//! `quanttide-work` 里——两侧共用一份规矩。这一层只剩命令行自己的两件事：
+//! 文件读写（`<工作流目录>/<名字>.yaml`）与把动作写成信封。
 
+use quanttide_work::definition::{self as shared, Finding, Workflow as SharedWorkflow};
 use serde_yaml::{Mapping, Value};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
 // 字段表与取值：一处定义、两侧共用（工具箱 `quanttide-work`）。
-pub use quanttide_work::definition::{AGENT, HUMAN, RULE};
+pub use quanttide_work::definition::{AGENT, HUMAN, RULE, Step};
 
 /// 这份文件不像一份工作流。
 #[derive(Debug)]
@@ -41,19 +44,14 @@ pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
         std::fs::read_to_string(path).map_err(|e| WorkflowError(format!("{file} 读不了：{e}")))?;
     let payload: Value = serde_yaml::from_str(&text)
         .map_err(|e| WorkflowError(format!("{file} 不是合法的 YAML：{e}")))?;
-    if let Err(error) = quanttide_work::definition::validate(&payload, &file) {
+    if let Err(error) = shared::validate(&payload, &file) {
         return Err(WorkflowError(error.0));
     }
     Ok(payload)
 }
 
-fn text_of(value: &Value, key: &str) -> String {
-    value
-        .get(key)
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .trim()
-        .to_string()
+pub fn text_of(value: &Value, key: &str) -> String {
+    shared::text_of(value, key)
 }
 
 /// 工作流目录：默认跟在数据仓里，可另指一处固定资产目录。
@@ -64,72 +62,18 @@ pub fn workflows_dir(data: &Path, workflows: Option<&Path>) -> PathBuf {
     }
 }
 
-/// 一个工作步骤：叫什么、做什么、谁执行、怎么算完。
-#[derive(Clone)]
-pub struct Step {
-    payload: Value,
-}
-
-impl Step {
-    pub fn name(&self) -> String {
-        text_of(&self.payload, "name")
-    }
-
-    pub fn description(&self) -> String {
-        text_of(&self.payload, "description")
-    }
-
-    pub fn executor(&self) -> String {
-        let value = text_of(&self.payload, "executor");
-        if value.is_empty() {
-            AGENT.to_string()
-        } else {
-            value
-        }
-    }
-
-    pub fn human(&self) -> bool {
-        self.executor() == HUMAN
-    }
-
-    pub fn criteria(&self) -> Vec<Value> {
-        self.payload
-            .get("criteria")
-            .and_then(|v| v.as_sequence())
-            .cloned()
-            .unwrap_or_default()
-    }
-
-    pub fn of(&self, kind: &str) -> Vec<Value> {
-        self.criteria()
-            .into_iter()
-            .filter(|c| c.get("executor").and_then(|v| v.as_str()) == Some(kind))
-            .collect()
-    }
-
-    pub fn rules(&self) -> Vec<Value> {
-        self.of(RULE)
-    }
-    pub fn agents(&self) -> Vec<Value> {
-        self.of(AGENT)
-    }
-    pub fn gates(&self) -> Vec<Value> {
-        self.of(HUMAN)
-    }
-}
-
-/// 过程的编排定义：一串步骤。
-pub struct Workflow {
+/// 一条定义**连同它的文件位置**（工具箱那份只管内容，不管文件）。
+pub struct WorkflowFile {
     pub name: String,
     pub payload: Value,
     pub workflows: PathBuf,
 }
 
-impl Workflow {
+impl WorkflowFile {
     pub fn new(data: &Path, name: &str, payload: Value, workflows: Option<&Path>) -> Self {
         let data = data.to_path_buf();
         let workflows = workflows_dir(&data, workflows);
-        Workflow {
+        WorkflowFile {
             name: name.to_string(),
             payload,
             workflows,
@@ -153,27 +97,22 @@ impl Workflow {
         self
     }
 
+    /// 内容那一层交给工具箱。
+    pub fn shared(&self) -> SharedWorkflow {
+        SharedWorkflow::new(&self.name, self.payload.clone())
+    }
+
     pub fn description(&self) -> String {
-        text_of(&self.payload, "description")
+        self.shared().description()
     }
 
     /// 步骤：按定义里的顺序——这就是「串联」。
     pub fn steps(&self) -> Vec<Step> {
-        self.payload
-            .get("steps")
-            .and_then(|v| v.as_sequence())
-            .map(|items| {
-                items
-                    .iter()
-                    .cloned()
-                    .map(|payload| Step { payload })
-                    .collect()
-            })
-            .unwrap_or_default()
+        self.shared().steps()
     }
 
     pub fn step(&self, name: &str) -> Option<Step> {
-        self.steps().into_iter().find(|step| step.name() == name)
+        self.shared().step(name)
     }
 
     pub fn to_yaml(&self) -> String {
@@ -188,7 +127,7 @@ pub fn create(
     steps: &[String],
     note: &str,
     workflows: Option<&Path>,
-) -> Workflow {
+) -> WorkflowFile {
     let mut payload = Mapping::new();
     payload.insert(
         Value::String("name".into()),
@@ -239,7 +178,7 @@ pub fn create(
         })
         .collect();
     payload.insert(Value::String("steps".into()), Value::Sequence(steps_value));
-    let flow = Workflow::new(data, name, Value::Mapping(payload), workflows);
+    let flow = WorkflowFile::new(data, name, Value::Mapping(payload), workflows);
     if let Some(parent) = flow.file().parent() {
         let _ = std::fs::create_dir_all(parent);
     }
@@ -247,12 +186,12 @@ pub fn create(
     flow
 }
 
-pub fn open_workflow(data: &Path, name: &str, workflows: Option<&Path>) -> Workflow {
-    Workflow::new(data, name, Value::Mapping(Mapping::new()), workflows).reload()
+pub fn open_workflow(data: &Path, name: &str, workflows: Option<&Path>) -> WorkflowFile {
+    WorkflowFile::new(data, name, Value::Mapping(Mapping::new()), workflows).reload()
 }
 
 /// 把一条工作流存成一份可带走的文件（原样，不改内容）。
-pub fn export(flow: &Workflow, target: &Path) -> PathBuf {
+pub fn export(flow: &WorkflowFile, target: &Path) -> PathBuf {
     let target = if target.is_dir() {
         target.join(format!("{}.yaml", flow.name))
     } else {
@@ -271,7 +210,7 @@ pub fn import_workflow(
     source: &Path,
     name: &str,
     workflows: Option<&Path>,
-) -> std::result::Result<Workflow, WorkflowError> {
+) -> std::result::Result<WorkflowFile, WorkflowError> {
     let mut payload = load(source)?;
     let chosen = if !name.trim().is_empty() {
         name.trim().to_string()
@@ -286,7 +225,7 @@ pub fn import_workflow(
             from_payload
         }
     };
-    let flow = Workflow::new(data, &chosen, payload.clone(), workflows);
+    let flow = WorkflowFile::new(data, &chosen, payload.clone(), workflows);
     if flow.exists() {
         return Err(WorkflowError(format!(
             "已经有一条工作流叫「{chosen}」：{}（换名字用 --as）",
@@ -296,7 +235,7 @@ pub fn import_workflow(
     if let Some(mapping) = payload.as_mapping_mut() {
         mapping.insert(Value::String("name".into()), Value::String(chosen.clone()));
     }
-    let flow = Workflow::new(data, &chosen, payload, workflows);
+    let flow = WorkflowFile::new(data, &chosen, payload, workflows);
     if let Some(parent) = flow.file().parent() {
         let _ = std::fs::create_dir_all(parent);
     }
@@ -304,7 +243,7 @@ pub fn import_workflow(
     Ok(flow)
 }
 
-pub fn listing(data: &Path, workflows: Option<&Path>) -> Vec<Workflow> {
+pub fn listing(data: &Path, workflows: Option<&Path>) -> Vec<WorkflowFile> {
     let base = workflows_dir(data, workflows);
     if !base.is_dir() {
         return Vec::new();
@@ -434,20 +373,13 @@ pub fn workflow_list(data: &Path, workflows: Option<&Path>) -> Result {
     result
 }
 
-// ---- 任务 ----
-
 // ---- 定义核对：声明与判据对不对得上 ----
-
-/// 一条定义核对出来的一件事（工具箱那份）。
-pub use quanttide_work::definition::Finding;
 
 /// 核对一条工作流：判据里的路径在不在；描述里提到的报告小节有没有判据覆盖。
 ///
-/// 规矩在工具箱里；这里只把命令行这边的 YAML 转成它吃的 JSON，并把「路径在不在」
-/// 用工作区根包一层。
-pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
-    let shared = quanttide_work::definition::Workflow::new(&flow.name, flow.payload.clone());
-    quanttide_work::definition::check(&shared, &data.to_string_lossy(), |written| {
+/// 规矩在工具箱里；这里只把「路径在不在」用工作区根包一层。
+pub fn check(flow: &WorkflowFile, root: &Path, data: &Path) -> Vec<Finding> {
+    shared::check(&flow.shared(), &data.to_string_lossy(), |written| {
         let path = Path::new(written);
         let target = if path.is_absolute() {
             path.to_path_buf()
@@ -460,11 +392,11 @@ pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
 
 /// 核对结果写成人读的一段。
 pub fn describe(found: &[Finding]) -> Vec<String> {
-    quanttide_work::definition::describe(found)
+    shared::describe(found)
 }
 
 pub fn all_ok(found: &[Finding]) -> bool {
-    quanttide_work::definition::all_ok(found)
+    shared::all_ok(found)
 }
 
 /// 核对一条工作流的声明与判据对不对得上，结果印给人。

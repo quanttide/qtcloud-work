@@ -13,11 +13,11 @@ import 'dart:io';
 /// 把一段话交给 pi 跑（非交互），工作目录是工作区根。
 ({bool ran, String out}) runPi(String prompt, String cwd) {
   try {
-    final result = Process.runSync(
-      'pi',
-      ['-p', '--no-session', prompt],
-      workingDirectory: cwd,
-    );
+    final result = Process.runSync('pi', [
+      '-p',
+      '--no-session',
+      prompt,
+    ], workingDirectory: cwd);
     final out = '${result.stdout}'.trim();
     final err = '${result.stderr}'.trim();
     return (ran: result.exitCode == 0, out: out.isEmpty ? err : out);
@@ -38,14 +38,16 @@ import 'dart:io';
     var done = false;
     var body = '';
     var ok = false;
-    response.then((text) {
-      done = true;
-      ok = true;
-      body = text;
-    }).catchError((Object error) {
-      done = true;
-      body = '$error';
-    });
+    response
+        .then((text) {
+          done = true;
+          ok = true;
+          body = text;
+        })
+        .catchError((Object error) {
+          done = true;
+          body = '$error';
+        });
     final deadline = DateTime.now().add(const Duration(seconds: 10));
     while (!done && DateTime.now().isBefore(deadline)) {
       sleep(const Duration(milliseconds: 50));

@@ -5,7 +5,6 @@
 ({bool ran, String out}) runPi(String prompt, String cwd) =>
     (ran: false, out: '网页版起不了 pi');
 
-({bool ok, String body}) httpGet(String url) =>
-    (ok: false, body: '网页版不做探活');
+({bool ok, String body}) httpGet(String url) => (ok: false, body: '网页版不做探活');
 
 String? envOf(String name) => null;

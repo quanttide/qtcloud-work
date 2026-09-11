@@ -90,9 +90,16 @@ Outcome workflowCommand(
   }
   final name = first;
   final rest = args.sublist(1);
-  if (rest.contains('--check')) return workflowCheck(data, name, root, workflows);
+  if (rest.contains('--check')) {
+    return workflowCheck(data, name, root, workflows);
+  }
   if (rest.contains('--export')) {
-    return workflowExport(data, name, rest[rest.indexOf('--export') + 1], workflows);
+    return workflowExport(
+      data,
+      name,
+      rest[rest.indexOf('--export') + 1],
+      workflows,
+    );
   }
   return workflowShow(data, name, workflows);
 }
@@ -121,16 +128,26 @@ Outcome taskCommand(
   final name = first;
   final rest = args.sublist(1);
   var note = '';
-  if (rest.contains('--note')) note = rest[rest.indexOf('--note') + 1];
+  if (rest.contains('--note')) {
+    note = rest[rest.indexOf('--note') + 1];
+  }
   if (rest.contains('--journal')) {
-    return taskJournal(root, data, name, rest[rest.indexOf('--journal') + 1], workflows);
+    return taskJournal(
+      root,
+      data,
+      name,
+      rest[rest.indexOf('--journal') + 1],
+      workflows,
+    );
   }
   if (rest.contains('--next')) {
     return taskStep(root, data, name, '', note, true, workflows);
   }
   if (rest.contains('--done')) {
     final at = rest.indexOf('--done');
-    final step = (at + 1 < rest.length && !rest[at + 1].startsWith('--')) ? rest[at + 1] : '';
+    final step = (at + 1 < rest.length && !rest[at + 1].startsWith('--'))
+        ? rest[at + 1]
+        : '';
     return taskStep(root, data, name, step, note, false, workflows);
   }
   return taskStatus(root, data, name, workflows);
