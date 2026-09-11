@@ -1,0 +1,12 @@
+{
+    "name": "qtcloud_work_studio",
+    "short_name": "知识工作云",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0F766E",
+    "theme_color": "#0F766E",
+    "description": "量潮知识工作云工作台",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": []
+}

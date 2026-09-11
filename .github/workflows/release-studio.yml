@@ -1,0 +1,98 @@
+# 发布 studio：推送 studio/* tag（如 studio/v0.1.0，由 qtcloud-devops release publish 创建）时，
+# 构建 Flutter Web 版，上传到 OSS 发布桶（qtcloud-work-studio，静态网站托管），并刷新 CDN 缓存。
+#
+# 对齐 qtcloud-human、qtclass 与 qtdata 的 studio 发布模式（其文件名为 deploy-studio.yml）：
+#   studio/* tag → Actions（flutter build web，ossutil cp）→ OSS 桶 → CDN（work.cloud.quanttide.com）→ 用户浏览器
+#
+# 触发说明：用 tag 精确匹配 studio/ 前缀，避免其他 tag 误触发。
+#
+# 所需 GitHub secrets（org / repo 级）：
+#   - ALIYUN_ACCESS_KEY_ID / ALIYUN_ACCESS_KEY_SECRET：RAM 用户 AccessKey（OSS 上传 + CDN 刷新）
+
+name: release-studio
+
+on:
+  push:
+    tags:
+      - 'studio/**'
+
+concurrency:
+  group: release-studio
+  cancel-in-progress: true
+
+env:
+  OSS_BUCKET: qtcloud-work-studio
+  OSS_ENDPOINT: oss-cn-hangzhou.aliyuncs.com
+  CDN_DOMAIN: work.cloud.quanttide.com
+
+jobs:
+  build-and-deploy:
+    name: Build Flutter Web & Deploy to OSS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+
+      - name: Pub get
+        working-directory: src/studio
+        run: flutter pub get
+
+      - name: Build Web
+        working-directory: src/studio
+        run: flutter build web --release --dart-define=APP_VERSION=${GITHUB_REF_NAME#studio/}
+
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v3.0
+        with:
+          endpoint: ${{ env.OSS_ENDPOINT }}
+          access-key-id: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+
+      # 缓存策略：哈希资源（assets/ canvaskit/ 等）长缓存；
+      # 固定名入口文件（index.html / main.dart.js 等）必须 no-cache，
+      # 否则发版后浏览器/CDN 拿旧 JS（文件名不随内容变化）
+      - name: Upload Web to OSS（长缓存）
+        working-directory: src/studio
+        run: |
+          ossutil cp build/web/ oss://${{ env.OSS_BUCKET }}/ -r -f \
+            --exclude "index.html" --exclude "main.dart.js" \
+            --exclude "flutter_bootstrap.js" --exclude "flutter.js" \
+            --exclude "manifest.json" --exclude "version.json" \
+            --exclude "flutter_service_worker.js" --exclude "favicon.png" \
+            --meta "Cache-Control:public,max-age=31536000"
+
+      - name: Upload entry files（no-cache）
+        working-directory: src/studio
+        run: |
+          for f in index.html main.dart.js flutter_bootstrap.js flutter.js manifest.json version.json flutter_service_worker.js favicon.png; do
+            ossutil cp build/web/$f oss://${{ env.OSS_BUCKET }}/$f -f --meta "Cache-Control:no-cache"
+          done
+
+      # 静态网站托管的错误文档
+      - name: Upload 404.html
+        working-directory: src/studio
+        run: |
+          printf '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>404</title></head><body><h1>404 Not Found</h1><p><a href="/">返回首页</a></p></body></html>' > 404.html
+          ossutil cp 404.html oss://${{ env.OSS_BUCKET }}/404.html -f --meta "Cache-Control:no-cache"
+
+      - name: Refresh CDN
+        run: |
+          pip install aliyun-python-sdk-cdn
+          python -c "
+          from aliyunsdkcore.client import AcsClient
+          from aliyunsdkcdn.request.v20180510.RefreshObjectCachesRequest import RefreshObjectCachesRequest
+          import os
+          cli = AcsClient(os.environ['ALIYUN_ACCESS_KEY_ID'], os.environ['ALIYUN_ACCESS_KEY_SECRET'], 'cn-hangzhou')
+          req = RefreshObjectCachesRequest()
+          req.set_ObjectPath('https://${{ env.CDN_DOMAIN }}/')
+          req.set_ObjectType('Directory')
+          cli.do_action_with_exception(req)
+          "
+        env:
+          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
