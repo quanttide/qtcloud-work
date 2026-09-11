@@ -1,3 +1,5 @@
+import '../core/env.dart';
+
 /// 三处位置。它们是命令行唯一的输入，也是界面唯一要记住的东西。
 class Workspace {
   const Workspace({
@@ -26,7 +28,7 @@ class Workspace {
 
   /// 从环境读，没给就用当前目录下的常见位置。
   factory Workspace.fromEnvironment([Map<String, String>? environment]) {
-    final env = environment ?? const <String, String>{};
+    final env = environment ?? processEnvironment();
     return Workspace(
       root: env['QTCLOUD_WORK_ROOT'] ?? '.',
       data: env['QTCLOUD_WORK_DATA'] ?? 'data/context/qtcloud-work',
