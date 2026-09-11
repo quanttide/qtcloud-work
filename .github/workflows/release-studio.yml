@@ -1,10 +1,12 @@
-# 发布 studio：推送 studio/* tag（如 studio/v0.1.0，由 qtcloud-devops release publish 创建）时，
-# 构建 Flutter Web 版，上传到 OSS 发布桶（qtcloud-work-studio，静态网站托管），并刷新 CDN 缓存。
+# studio 的两件事，一个文件管：
+#   - 改了 studio（推分支或提 PR）→ 只跑质量门禁（analyze + test），不部署
+#   - 推 studio/* tag（如 studio/v0.1.0，由 qtcloud-devops release publish 创建）→ 门禁过了再构建 Web 版，
+#     上传到 OSS 发布桶（qtcloud-work-studio，静态网站托管），并刷新 CDN 缓存
 #
 # 对齐 qtcloud-human、qtclass 与 qtdata 的 studio 发布模式（其文件名为 deploy-studio.yml）：
 #   studio/* tag → Actions（flutter build web，ossutil cp）→ OSS 桶 → CDN（work.cloud.quanttide.com）→ 用户浏览器
 #
-# 触发说明：用 tag 精确匹配 studio/ 前缀，避免其他 tag 误触发。
+# 用 `if` 把部署限在 tag 上：分支推送只跑到门禁为止。
 #
 # 所需 GitHub secrets（org / repo 级）：
 #   - ALIYUN_ACCESS_KEY_ID / ALIYUN_ACCESS_KEY_SECRET：RAM 用户 AccessKey（OSS 上传 + CDN 刷新）
@@ -13,11 +15,21 @@ name: release-studio
 
 on:
   push:
+    branches:
+      - '**'
     tags:
       - 'studio/**'
+    paths:
+      - 'src/studio/**'
+      - '.github/workflows/release-studio.yml'
+  pull_request:
+    paths:
+      - 'src/studio/**'
+      - '.github/workflows/release-studio.yml'
 
+# 按 ref 分组：分支上的门禁不会把正在跑的发布干掉
 concurrency:
-  group: release-studio
+  group: release-studio-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -34,7 +46,7 @@ jobs:
         working-directory: src/studio
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -54,10 +66,11 @@ jobs:
   build-and-deploy:
     name: Build Flutter Web & Deploy to OSS
     needs: quality-gates
+    if: startsWith(github.ref, 'refs/tags/studio/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

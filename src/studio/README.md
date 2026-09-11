@@ -45,8 +45,8 @@ flutter analyze
 flutter test
 ```
 
-CI 跑的就是这两条：**改动即跑**见 `.github/workflows/quality-studio.yml`，
-**发布前再跑一道**（没过就不构建、不上传）见 `release-studio.yml`。
+CI 跑的就是这两条，都在 `.github/workflows/release-studio.yml`：
+**改了 studio 只跑到门禁为止**（不部署），**推 `studio/*` tag 才是门禁过了再构建部署**。
 
 ## 许可
 
