@@ -53,4 +53,15 @@ fn take_one_agent_step_through_pi() {
         "这一步没过，下一步还是它: {}",
         view.crop()
     );
+
+    // 同类场景的第四半：重走一次、这次审查也过 —— 算走过，上一笔失败不再压着它。
+    judged_out.pi("printf '你好\\n' > 问候.md\necho 通过");
+    let again = judged_out.run_recorded(&["task", "AI冒烟", "--next"]);
+    assert!(again.ok(), "重走一次该过: {}", again.crop());
+    let after = judged_out.run_recorded(&["task", "AI冒烟"]);
+    assert!(
+        !after.crop().contains("下一步：问候"),
+        "重走一次都 ok 就该算走过: {}",
+        after.crop()
+    );
 }

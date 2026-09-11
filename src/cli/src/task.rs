@@ -144,29 +144,37 @@ impl Task {
     }
 
     /// 哪些步骤走过了：流水里成功执行过的、且名字确实是工作流上的步骤。
-    /// 哪些步骤走过了：这一步的**每一条**流水（执行与审查）都 ok 才算走过。
+    /// 哪些步骤走过了：看这一步**最近一次**尝试（执行与审查合起来）是否都 ok。
     ///
-    /// 审查不通过（`<步骤>·审` 记 ✗）时这一步不算过，下一步还是它。
+    /// 审查判 ✗ 时不算走过（下一步还是它）；重走一次都 ok，就算走过——上一笔失败不
+    /// 再压着它。
     pub fn done(&self) -> Vec<String> {
         let names: Vec<String> = self.steps().into_iter().map(|s| s.name()).collect();
-        let mut failed: Vec<String> = Vec::new();
-        let mut passed: Vec<String> = Vec::new();
+        let mut verdict: Vec<(String, bool)> = Vec::new();
         for event in self.events() {
             let ok = event.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
             let raw = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
+            let reviewed = raw.ends_with("·审");
             let step = raw.strip_suffix("·审").unwrap_or(raw).to_string();
             if !names.contains(&step) {
                 continue;
             }
-            if ok {
-                if !passed.contains(&step) {
-                    passed.push(step);
+            match verdict.iter_mut().find(|(name, _)| *name == step) {
+                Some((_, last)) => {
+                    if reviewed {
+                        *last = *last && ok;
+                    } else {
+                        *last = ok; // 重新执行：这一步的判定从头算
+                    }
                 }
-            } else if !failed.contains(&step) {
-                failed.push(step);
+                None => verdict.push((step, ok)),
             }
         }
-        passed.into_iter().filter(|s| !failed.contains(s)).collect()
+        verdict
+            .into_iter()
+            .filter(|(_, ok)| *ok)
+            .map(|(name, _)| name)
+            .collect()
     }
 
     pub fn next_step(&self) -> Option<Step> {
