@@ -12,11 +12,6 @@ use std::path::{Path, PathBuf};
 // 字段表与取值：一处定义、两侧共用（工具箱 `quanttide-work`）。
 pub use quanttide_work::definition::{AGENT, HUMAN, RULE};
 
-/// YAML → JSON：工具箱的模型吃 `serde_json::Value`，命令行这边解析出来的是 YAML。
-pub fn yaml_to_json(value: &Value) -> serde_json::Value {
-    serde_json::to_value(value).unwrap_or(serde_json::Value::Null)
-}
-
 /// 这份文件不像一份工作流。
 #[derive(Debug)]
 pub struct WorkflowError(pub String);
@@ -46,7 +41,7 @@ pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
         std::fs::read_to_string(path).map_err(|e| WorkflowError(format!("{file} 读不了：{e}")))?;
     let payload: Value = serde_yaml::from_str(&text)
         .map_err(|e| WorkflowError(format!("{file} 不是合法的 YAML：{e}")))?;
-    if let Err(error) = quanttide_work::definition::validate(&yaml_to_json(&payload), &file) {
+    if let Err(error) = quanttide_work::definition::validate(&payload, &file) {
         return Err(WorkflowError(error.0));
     }
     Ok(payload)
@@ -451,8 +446,7 @@ pub use quanttide_work::definition::Finding;
 /// 规矩在工具箱里；这里只把命令行这边的 YAML 转成它吃的 JSON，并把「路径在不在」
 /// 用工作区根包一层。
 pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
-    let payload = yaml_to_json(&flow.payload);
-    let shared = quanttide_work::definition::Workflow::new(&flow.name, payload);
+    let shared = quanttide_work::definition::Workflow::new(&flow.name, flow.payload.clone());
     quanttide_work::definition::check(&shared, &data.to_string_lossy(), |written| {
         let path = Path::new(written);
         let target = if path.is_absolute() {
