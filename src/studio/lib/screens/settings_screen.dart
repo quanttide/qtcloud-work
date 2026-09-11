@@ -5,7 +5,11 @@ import '../models/workspace.dart';
 
 /// 设置页：三处位置 + provider 探活。（见 doc/screens/settings.md）
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.client, required this.workspace});
+  const SettingsScreen({
+    super.key,
+    required this.client,
+    required this.workspace,
+  });
 
   final QtcloudWork client;
   final Workspace workspace;

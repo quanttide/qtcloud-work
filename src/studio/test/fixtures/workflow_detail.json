@@ -39,5 +39,47 @@
       "agent",
       "1 rule / 1 agent / 0 human"
     ]
-  ]
+  ],
+  "data": {
+    "name": "learn-task-create",
+    "path": "/home/iguo/repos/quanttide/domains/quanttide-work/data/profile/quanttide/workflows/learn-task-create.yaml",
+    "description": "",
+    "steps": [
+      {
+        "name": "profile",
+        "executor": "agent",
+        "rule": 3,
+        "agent": 1,
+        "human": 0
+      },
+      {
+        "name": "site",
+        "executor": "agent",
+        "rule": 4,
+        "agent": 1,
+        "human": 0
+      },
+      {
+        "name": "audit",
+        "executor": "agent",
+        "rule": 3,
+        "agent": 0,
+        "human": 1
+      },
+      {
+        "name": "publish",
+        "executor": "agent",
+        "rule": 2,
+        "agent": 1,
+        "human": 0
+      },
+      {
+        "name": "conclude",
+        "executor": "agent",
+        "rule": 1,
+        "agent": 1,
+        "human": 0
+      }
+    ]
+  }
 }

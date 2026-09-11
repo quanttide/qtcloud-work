@@ -28,7 +28,10 @@ class CriteriaPanel extends StatelessWidget {
             children: [
               Text(current.name, style: theme.textTheme.titleSmall),
               const SizedBox(width: 8),
-              Text(current.executor.stepLabel, style: theme.textTheme.bodySmall),
+              Text(
+                current.executor.stepLabel,
+                style: theme.textTheme.bodySmall,
+              ),
               const Spacer(),
               Text(
                 '${current.criteria.total} 条判据（机器判 ${current.criteria.rule}）',
@@ -53,7 +56,9 @@ class CriteriaPanel extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '判据的逐条文字在定义文件里；这一屏现在只显示条数（与命令行显示的一致）。',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.disabledColor),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.disabledColor,
+            ),
           ),
         ],
       ),

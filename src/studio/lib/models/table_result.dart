@@ -10,12 +10,16 @@ class TableResult {
     this.columns = const [],
     this.lines = const [],
     this.rows = const [],
+    this.data = const {},
   });
 
   final bool ok;
   final List<String> columns;
   final List<String> lines;
   final List<List<String>> rows;
+
+  /// 界面用的结构化数据（core 交出来的那一栏）。命令行那边没有它。
+  final Map<String, Object?> data;
 
   factory TableResult.fromJson(Map<String, dynamic> json) => TableResult(
     ok: json['ok'] == true,
@@ -24,6 +28,7 @@ class TableResult {
     rows: (json['rows'] as List? ?? const [])
         .map(_strings)
         .toList(growable: false),
+    data: (json['data'] as Map?)?.cast<String, Object?>() ?? const {},
   );
 
   factory TableResult.fromStdout(String stdout) =>

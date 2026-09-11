@@ -6,8 +6,9 @@
 #   sh scripts/parity.sh workflow --list    # 只比这一条
 #   sh scripts/parity.sh --report           # 只报告，不因「没搬」而失败
 #
-# 结论只有三种：一致 / 不一致 / 没搬（studio 侧还没实现这条）。
-# 不一致与没搬都算不过——这就是「完整复制」的尺子。
+# 比的是**算出来的结果**：ok / columns / rows。
+# 给人看的话（lines）不比——界面跟命令行不必一字不差，各写各的。
+# 结论只有一种：一致；不一致就算不过。
 
 set -u
 
@@ -61,7 +62,7 @@ run_studio() {
     --root "$REPO_ROOT" --data "$DATA_DIR" --workflows "$WORKFLOWS_DIR" --json "$@")
 }
 
-# 比一次：一致 / 不一致 / 没搬
+# 比一次：算出来的结果一不一致
 verdict_of() {
   printf '%s' "$1" > /tmp/parity-cli.json
   printf '%s' "$2" > /tmp/parity-studio.json
@@ -77,11 +78,13 @@ try:
 except Exception:
     print('没搬')
     raise SystemExit
-lines = b.get('lines') or []
-if lines and str(lines[0]).startswith('还没搬'):
-    print('没搬')
-    raise SystemExit
-print('一致' if a == b else '不一致')
+
+
+def shape(x):
+    return {'ok': x.get('ok'), 'columns': x.get('columns'), 'rows': x.get('rows')}
+
+
+print('一致' if shape(a) == shape(b) else '不一致')
 PY
 }
 
@@ -112,9 +115,9 @@ $COMMANDS
 EOF
 
 echo
-echo "一致 $ok_count 条，没对上 $bad_count 条。"
+echo "结果一致 $ok_count 条，没对上 $bad_count 条。"
 if [ "$bad_count" -eq 0 ]; then
-  echo "全部一致：这一批命令，studio 与命令行给的是同一个信封。"
+  echo "结果一致：这一批命令，studio 与命令行算出来的是同一个结果。"
   exit 0
 fi
 [ "$REPORT_ONLY" -eq 1 ] && exit 0

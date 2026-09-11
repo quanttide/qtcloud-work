@@ -12,7 +12,7 @@ Flutter Web 客户端 `src/studio` 的界面参照，也是命令行 `qtcloud-wo
 | [views/](views/sidebar.md) | 页面里可复用的块：侧栏、顶栏、对话、状态面板、步骤链、判据面板、定义态 | [`lib/views/`](../lib/views) |
 | [models/](models/workflow.md) | 界面背后的数据：工作流（定义侧）、任务（执行侧）、三处位置 | [`lib/models/`](../lib/models) |
 
-命令行客户端在 [`lib/cli/`](../lib/cli)：只读统一信封，不自己解析工作流与任务文件的原文。
+界面跑的是 studio 自己那份实现（`../lib/core`），与命令行算出来的是同一个结果；给人看的话各写各的。
 
 每篇 `.md` 都配一份伴生文件：**屏与视图配 `.html`**（自带样式，可单独在浏览器里打开看），
 **模型配 `.json`**（真实样例，从仓里的工作流定义与任务文件转来）。

@@ -73,25 +73,24 @@ class WorkflowDetail {
 
   String get summary => '${steps.length} 步 · ${criteria.total} 条判据';
 
-  /// 从 `workflow <名字> --json` 的结果来：行是「步骤 / 谁执行 / 怎么算完」。
+  /// 从 core 交出来的 `data` 来（界面不读给人看的那些话）。
   factory WorkflowDetail.fromResult(TableResult result) {
-    final head = result.lines.isEmpty ? '' : result.lines.first;
-    final open = head.indexOf('（');
-    final close = head.lastIndexOf('）');
+    final data = result.data;
     return WorkflowDetail(
-      name: head.startsWith('工作流：')
-          ? head.substring('工作流：'.length, open < 0 ? head.length : open)
-          : '',
-      path: open >= 0 && close > open ? head.substring(open + 1, close) : '',
-      steps: result.rows
-          .map(
-            (row) => WorkflowStep(
-              name: row.isNotEmpty ? row[0] : '',
-              executor: Executor.parse(row.length > 1 ? row[1] : ''),
-              criteria: CriteriaCounts.parse(row.length > 2 ? row[2] : ''),
+      name: '${data['name'] ?? ''}',
+      path: '${data['path'] ?? ''}',
+      steps: [
+        for (final step in (data['steps'] as List? ?? const []).cast<Map>())
+          WorkflowStep(
+            name: '${step['name'] ?? ''}',
+            executor: Executor.parse('${step['executor'] ?? ''}'),
+            criteria: CriteriaCounts(
+              rule: (step['rule'] as num?)?.toInt() ?? 0,
+              agent: (step['agent'] as num?)?.toInt() ?? 0,
+              human: (step['human'] as num?)?.toInt() ?? 0,
             ),
-          )
-          .toList(growable: false),
+          ),
+      ],
     );
   }
 }

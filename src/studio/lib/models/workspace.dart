@@ -30,7 +30,8 @@ class Workspace {
     return Workspace(
       root: env['QTCLOUD_WORK_ROOT'] ?? '.',
       data: env['QTCLOUD_WORK_DATA'] ?? 'data/context/qtcloud-work',
-      workflows: env['QTCLOUD_WORK_WORKFLOWS'] ?? 'data/profile/quanttide/workflows',
+      workflows:
+          env['QTCLOUD_WORK_WORKFLOWS'] ?? 'data/profile/quanttide/workflows',
     );
   }
 

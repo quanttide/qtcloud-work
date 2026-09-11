@@ -48,7 +48,10 @@ class StatusPanel extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             const SizedBox(width: 6),
-            Text(task.finished ? '走完' : '运行中', style: theme.textTheme.titleSmall),
+            Text(
+              task.finished ? '走完' : '运行中',
+              style: theme.textTheme.titleSmall,
+            ),
             const Spacer(),
             Text('${task.doneCount} / ${task.steps.length}'),
           ],
@@ -85,7 +88,10 @@ class StatusPanel extends StatelessWidget {
               label: const Text('走下一步'),
             ),
             const SizedBox(width: 8),
-            OutlinedButton(onPressed: busy ? null : onDone, child: const Text('记一步')),
+            OutlinedButton(
+              onPressed: busy ? null : onDone,
+              child: const Text('记一步'),
+            ),
             const Spacer(),
             PopupMenuButton<String>(
               tooltip: '更多',

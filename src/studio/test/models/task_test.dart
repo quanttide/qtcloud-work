@@ -67,6 +67,21 @@ void main() {
           ['audit', '—'],
           ['publish', '—'],
         ],
+        data: {
+          'name': 'demo',
+          'start': '2026-09-12 09:00',
+          'workflow': 'devops-release',
+          'description': '走一次预发布',
+          'steps': [
+            {'name': 'version', 'done': true},
+            {'name': 'gate', 'done': true},
+            {'name': 'audit', 'done': false},
+            {'name': 'publish', 'done': false},
+          ],
+          'state': '下一步：audit',
+          'products': {'report': 'r', 'journal': 'j', 'log': 'l'},
+          'journal': [],
+        },
       );
       final task = TaskDetail.fromResult(result);
       expect(task.doneCount, 2);

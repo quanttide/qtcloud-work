@@ -32,8 +32,11 @@ class _FlowScreenState extends State<FlowScreen> {
           child: ChatPanel(
             placeholder: '说这条流程该怎么走…',
             messages: [
-              const ChatMessage(text: '对话这一路还没接：改流程现在改工作流目录里的 .yaml，'
-                  '或者 `workflow --new` 起一条新的。'),
+              const ChatMessage(
+                text:
+                    '对话这一路还没接：改流程现在改工作流目录里的 .yaml，'
+                    '或者 `workflow --new` 起一条新的。',
+              ),
               ChatMessage(text: '${workflow.name}：${workflow.summary}'),
             ],
           ),

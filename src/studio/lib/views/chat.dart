@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 /// 对话里的一条消息。
 class ChatMessage {
-  const ChatMessage({required this.text, this.fromUser = false, this.draft = false});
+  const ChatMessage({
+    required this.text,
+    this.fromUser = false,
+    this.draft = false,
+  });
 
   final String text;
   final bool fromUser;

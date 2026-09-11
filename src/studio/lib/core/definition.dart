@@ -1,4 +1,5 @@
 import 'fs/fs.dart';
+import 'outcome.dart';
 import 'yaml.dart';
 
 /// 工作流定义：一串有序的步骤。
@@ -217,6 +218,21 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
   final result = Outcome(true)
     ..columns = ['步骤', '谁执行', '怎么算完']
     ..lines.add('工作流：${flow.name}（${short(data, flow.file)}）');
+  outcomeData[result] = {
+    'name': flow.name,
+    'path': short(data, flow.file),
+    'description': flow.description,
+    'steps': [
+      for (final step in flow.steps)
+        {
+          'name': step.name,
+          'executor': step.executor,
+          'rule': step.rules.length,
+          'agent': step.agents.length,
+          'human': step.gates.length,
+        },
+    ],
+  };
   for (final step in flow.steps) {
     final counts =
         '${step.rules.length} rule / ${step.agents.length} agent / ${step.gates.length} human';

@@ -45,5 +45,66 @@
       "conclude",
       "✓"
     ]
-  ]
+  ],
+  "data": {
+    "name": "learn-task-create",
+    "start": "2026-09-11 20:28",
+    "workflow": "learn-task-create",
+    "description": "把一份学习任务书从个人档案送出去——先提交到 learn 的 profile（学习管理档案），再提交到 qtclass 仓的 site（量潮课堂站点内容），最后给 site 发一个新版本（推 site/* tag，触发 deploy-site 构建上传）。跨三个仓，工作区根是领域仓（quanttide-work）：learn 的档案与 qtclass 用相对路径 ../quanttide-learn/data/profile 与 ../qtclass，qtclass 需先在本地有工作副本（没克隆就先 git clone https://github.com/quanttide/qtclass.git ../qtclass）；发版走 qtcloud-devops release audit / publish。产物是本任务的报告，五节：档案 / 站点 / 预检 / 发布 / 结论。跑法：qtcloud-work task --new learn-task-create --workflow learn-task-create，再 --next 一条一条走。版本号一处都不能落：`src/site/package.json`、`src/site/CHANGELOG.md`、这条定义判据里写的 tag，三处同时改",
+    "steps": [
+      {
+        "name": "profile",
+        "done": true
+      },
+      {
+        "name": "site",
+        "done": true
+      },
+      {
+        "name": "audit",
+        "done": true
+      },
+      {
+        "name": "publish",
+        "done": true
+      },
+      {
+        "name": "conclude",
+        "done": true
+      }
+    ],
+    "state": "5 个步骤都走过了",
+    "products": {
+      "report": "artifacts/report/learn-task-create.md",
+      "journal": "artifacts/journal/learn-task-create.md",
+      "log": "tasks/learn-task-create.yaml"
+    },
+    "journal": [
+      {
+        "at": "2026-09-11 20:36",
+        "step": "audit",
+        "detail": "版本 0.1.2-beta.7（package.json 与 CHANGELOG 两处对齐）；qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交），提交 1280ead 后 7/7 全过；创始人放行"
+      },
+      {
+        "at": "2026-09-11 20:37",
+        "step": "audit",
+        "detail": "AI 执行：`src/site/package.json` 与 `src/site/CHANGELOG.md` 两处已同步在 `0.1.2-beta.7`（与站点发布提交"
+      },
+      {
+        "at": "2026-09-11 20:37",
+        "step": "audit·判",
+        "detail": "站点版本与变更记录两处对齐；预检全过；写进报告"
+      },
+      {
+        "at": "2026-09-11 20:39",
+        "step": "audit",
+        "detail": "版本 0.1.2-beta.7 两处对齐、提交 1280ead；发布前 qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交）、提交后 7/7 全过（输出见报告「预检」一节）；创始人放行"
+      },
+      {
+        "at": "2026-09-11 20:39",
+        "step": "conclude",
+        "detail": "结论三行 + 三件拿不准的已写进报告；剩：把试用邀请 issue #1 指向这份任务书"
+      }
+    ]
+  }
 }

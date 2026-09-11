@@ -65,7 +65,9 @@ class _WorkbenchState extends State<Workbench> {
     });
     try {
       final tasks = await widget.client.tasks();
-      final detail = tasks.isEmpty ? null : await widget.client.task(tasks.first.name);
+      final detail = tasks.isEmpty
+          ? null
+          : await widget.client.task(tasks.first.name);
       final workflows = await widget.client.workflows();
       final workflow = workflows.isEmpty
           ? null
@@ -104,11 +106,7 @@ class _WorkbenchState extends State<Workbench> {
     return Scaffold(
       body: Column(
         children: [
-          Topbar(
-            workspace: widget.workspace,
-            busy: _busy,
-            onRefresh: _reload,
-          ),
+          Topbar(workspace: widget.workspace, busy: _busy, onRefresh: _reload),
           Expanded(
             child: Row(
               children: [
@@ -154,7 +152,10 @@ class _WorkbenchState extends State<Workbench> {
                     value: workflow.name,
                     items: [
                       for (final item in _workflowList)
-                        DropdownMenuItem(value: item.name, child: Text(item.name)),
+                        DropdownMenuItem(
+                          value: item.name,
+                          child: Text(item.name),
+                        ),
                     ],
                     onChanged: (name) async {
                       if (name == null) return;
@@ -190,14 +191,20 @@ class _WorkbenchState extends State<Workbench> {
                     value: task.name,
                     items: [
                       for (final item in _tasks)
-                        DropdownMenuItem(value: item.name, child: Text(item.name)),
+                        DropdownMenuItem(
+                          value: item.name,
+                          child: Text(item.name),
+                        ),
                     ],
                     onChanged: (name) {
                       if (name != null) _openTask(name);
                     },
                   ),
                   const SizedBox(width: 12),
-                  Text('任务列表里有 ${_tasks.length} 件', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    '任务列表里有 ${_tasks.length} 件',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),

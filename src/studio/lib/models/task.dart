@@ -141,27 +141,32 @@ class TaskDetail {
   bool get finished => steps.isNotEmpty && doneCount == steps.length;
 
   factory TaskDetail.fromResult(TableResult result) {
-    final workflowLine = result.valueAfter('工作流：') ?? '';
-    final dash = workflowLine.indexOf('——');
+    final data = result.data;
+    final products =
+        (data['products'] as Map?)?.cast<String, Object?>() ?? const {};
     return TaskDetail(
-      name: result.valueAfter('任务：') ?? '',
-      start: result.valueAfter('开工：') ?? '',
-      workflowName: dash < 0 ? workflowLine : workflowLine.substring(0, dash),
-      workflowDescription: dash < 0
-          ? ''
-          : workflowLine.substring(dash + '——'.length),
-      steps: result.rows.map(TaskStep.fromRow).toList(growable: false),
-      stateLine: result.lines
-          .map((line) => line.trim())
-          .firstWhere(
-            (line) => line.contains('都走过了') || line.startsWith('下一步'),
-            orElse: () => '',
+      name: '${data['name'] ?? ''}',
+      start: '${data['start'] ?? ''}',
+      workflowName: '${data['workflow'] ?? ''}',
+      workflowDescription: '${data['description'] ?? ''}',
+      steps: [
+        for (final step in (data['steps'] as List? ?? const []).cast<Map>())
+          TaskStep(name: '${step['name'] ?? ''}', done: step['done'] == true),
+      ],
+      stateLine: '${data['state'] ?? ''}',
+      products: TaskProducts(
+        report: '${products['report'] ?? ''}',
+        journal: '${products['journal'] ?? ''}',
+        log: '${products['log'] ?? ''}',
+      ),
+      journal: [
+        for (final entry in (data['journal'] as List? ?? const []).cast<Map>())
+          JournalEntry(
+            at: '${entry['at'] ?? ''}',
+            step: '${entry['step'] ?? ''}',
+            detail: '${entry['detail'] ?? ''}',
           ),
-      products: TaskProducts.parse(result.valueAfter('产物：')),
-      journal: result
-          .linesAfter('流水（最近五条）：')
-          .map(JournalEntry.fromLine)
-          .toList(growable: false),
+      ],
     );
   }
 }

@@ -35,7 +35,7 @@ doc/                   原型与设计说明（screens / views / models 三轴�
 六个平台（android、ios、linux、macos、windows、web）的目录都已初始化；
 以后加平台或补平台文件，执行 `flutter create .` 即可。
 
-界面不自己读工作流与任务文件的原文：一律调 `qtcloud-work`，读它给的统一信封。
+界面跑的是 studio 自己那份实现（`lib/core/`，与命令行同一个结果）；命令行那份仍留着，两边各自都能把活干完。
 三处位置从环境读（`QTCLOUD_WORK_ROOT`／`QTCLOUD_WORK_DATA`／`QTCLOUD_WORK_WORKFLOWS`）。
 
 ## 校验

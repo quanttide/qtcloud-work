@@ -10,9 +10,8 @@ class CliFailure implements Exception {
 
   final TableResult result;
 
-  String get message => result.lines.isEmpty
-      ? '命令行没有成功，也没说为什么'
-      : result.lines.join('\n');
+  String get message =>
+      result.lines.isEmpty ? '命令行没有成功，也没说为什么' : result.lines.join('\n');
 
   @override
   String toString() => 'CliFailure: $message';
@@ -23,8 +22,11 @@ class CliFailure implements Exception {
 /// 只做一件事：把命令跑起来，把统一信封（`ok` / `columns` / `rows` / `lines`）读成模型。
 /// 界面不自己去读工作流与任务文件的原文——那是命令行的活。
 class QtcloudWork {
-  QtcloudWork({required this.workspace, Runner? runner, this.binary = 'qtcloud-work'})
-    : runner = runner ?? CoreRunner(workspace);
+  QtcloudWork({
+    required this.workspace,
+    Runner? runner,
+    this.binary = 'qtcloud-work',
+  }) : runner = runner ?? CoreRunner(workspace);
 
   final Workspace workspace;
   final Runner runner;
@@ -57,7 +59,13 @@ class QtcloudWork {
 
   /// 人为地记一步。
   Future<TableResult> done(String name, String step, {String note = ''}) =>
-      call(['task', name, '--done', step, if (note.isNotEmpty) ...['--note', note]]);
+      call([
+        'task',
+        name,
+        '--done',
+        step,
+        if (note.isNotEmpty) ...['--note', note],
+      ]);
 
   /// 日志收叙事。
   Future<TableResult> journal(String name, String text) =>
@@ -71,8 +79,7 @@ class QtcloudWork {
 
   Future<TableResult> workflowList() => call(['workflow', '--list']);
 
-  Future<List<WorkflowSummary>> workflows() async => (await workflowList())
-      .rows
+  Future<List<WorkflowSummary>> workflows() async => (await workflowList()).rows
       .map(WorkflowSummary.fromRow)
       .toList(growable: false);
 
