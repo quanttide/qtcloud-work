@@ -1,13 +1,13 @@
 //! 场景：起一件任务——任务、报告、日志三样落盘，运行上下文记进任务文件；工作流不在就挡。
 //!
 
-mod support;
+mod common;
 
-use support::{Fixture, 冒烟工作流};
+use common::{Fixture, 冒烟工作流};
 
 // 用例：一
 #[test]
-fn scenario_start_task_lays_down_files_and_context() {
+fn start_task_lays_down_files_and_context() {
     let fix = Fixture::new("start");
     fix.workflow("AI冒烟", 冒烟工作流);
     fix.pi("printf '你好\\n' > 问候.md\necho 通过");

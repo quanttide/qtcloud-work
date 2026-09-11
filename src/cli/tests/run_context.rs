@@ -2,13 +2,13 @@
 //! `--workflows` 也认得出定义在哪。
 //!
 
-mod support;
+mod common;
 
-use support::Fixture;
+use common::Fixture;
 
 // 用例：三
 #[test]
-fn scenario_three_ai_steps_with_recorded_context() {
+fn three_ai_steps_with_recorded_context() {
     let fix = Fixture::new("compare");
     fix.workflow(
         "compare-course-profile",

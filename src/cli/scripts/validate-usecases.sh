@@ -2,7 +2,7 @@
 # 用例对账：文档里的用例号与测试里的出处，两边集合必须相等。
 #
 #   文档：docs/user-guide/index.md   标题形如「## 用例 一、起一件任务并走一步」
-#   测试：tests/*.rs                   每条测试上面一行「// 用例：一」（support/ 里的夹具不算）
+#   测试：tests/*.rs                   每条测试上面一行「// 用例：一」（common/ 里的夹具不算）
 #
 # 从本脚本所在目录的上一级（cli 根）找这两份，对不上就报错退出 1。
 
@@ -17,7 +17,7 @@ tests="$cli/tests"
 [ -d "$tests" ] || { echo "找不到用例测试目录：$tests" >&2; exit 1; }
 
 doc_cases=$(grep -oE '^## 用例 [一二三四五六七八九十百零]+' "$doc" | sed 's/^## 用例 //' | sort -u)
-test_cases=$(find "$tests" -name '*.rs' -not -path '*/support/*' -exec grep -hoE '^// 用例：[一二三四五六七八九十百零]+' {} + | sed 's|^// 用例：||' | sort -u)
+test_cases=$(find "$tests" -name '*.rs' -not -path '*/common/*' -exec grep -hoE '^// 用例：[一二三四五六七八九十百零]+' {} + | sed 's|^// 用例：||' | sort -u)
 
 echo "文档里的用例号：$(printf '%s' "$doc_cases" | tr '\n' ' ')"
 echo "测试里的出处号：$(printf '%s' "$test_cases" | tr '\n' ' ')"

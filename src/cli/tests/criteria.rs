@@ -1,13 +1,13 @@
 //! 场景：一步挂三类判据——rule 当场核、agent 照说明审、human 原样进闸门，谁判就写谁。
 //!
 
-mod support;
+mod common;
 
-use support::Fixture;
+use common::Fixture;
 
 // 用例：二
 #[test]
-fn scenario_one_step_with_three_kinds_of_criteria() {
+fn one_step_with_three_kinds_of_criteria() {
     let fix = Fixture::new("criteria");
     fix.workflow(
         "三类判据",

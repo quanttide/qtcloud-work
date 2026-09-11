@@ -2,13 +2,13 @@
 //! 照常核 rule 判据、把闸门列进报告，`--note` 的原话进流水。
 //!
 
-mod support;
+mod common;
 
-use support::Fixture;
+use common::Fixture;
 
 // 用例：五
 #[test]
-fn scenario_human_step_recorded_by_hand() {
+fn human_step_recorded_by_hand() {
     let fix = Fixture::new("hand");
     fix.workflow(
         "数据归仓",

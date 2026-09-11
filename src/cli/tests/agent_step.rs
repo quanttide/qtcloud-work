@@ -2,13 +2,13 @@
 //! `pi` 没跑成那一次不算过。
 //!
 
-mod support;
+mod common;
 
-use support::{Fixture, 冒烟工作流};
+use common::{Fixture, 冒烟工作流};
 
 // 用例：一
 #[test]
-fn scenario_take_one_agent_step_through_pi() {
+fn take_one_agent_step_through_pi() {
     let fix = Fixture::new("step");
     fix.workflow("AI冒烟", 冒烟工作流);
     fix.pi("printf '你好\\n' > 问候.md\necho 通过");

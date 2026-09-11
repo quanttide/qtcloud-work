@@ -2,13 +2,13 @@
 //! 两道 human 闸门挂进报告。
 //!
 
-mod support;
+mod common;
 
-use support::Fixture;
+use common::Fixture;
 
 // 用例：四
 #[test]
-fn scenario_context_entries_into_material() {
+fn context_entries_into_material() {
     let fix = Fixture::new("material");
     fix.workflow(
         "context-to-profile",
