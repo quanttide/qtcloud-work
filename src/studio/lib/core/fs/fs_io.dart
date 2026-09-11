@@ -23,3 +23,5 @@ List<String> listDir(String path) {
 
 /// 各类动作的工作目录：进程当前目录。
 String currentDir() => Directory.current.path;
+
+String? env(String name) => Platform.environment[name];

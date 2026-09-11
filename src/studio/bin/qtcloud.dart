@@ -11,6 +11,7 @@ import 'dart:io';
 
 import 'package:qtcloud_work_studio/core/definition.dart';
 import 'package:qtcloud_work_studio/core/help.dart';
+import 'package:qtcloud_work_studio/core/task.dart';
 import 'package:qtcloud_work_studio/core/outcome.dart';
 
 void main(List<String> argv) {
@@ -62,6 +63,7 @@ Outcome dispatch(
     case 'help':
       return helpOf(tail.isEmpty ? null : tail.first);
     case 'task':
+      return _task(tail, data, root, workflows);
     case 'find':
     case 'catalog':
     case 'audit':
@@ -123,4 +125,31 @@ Outcome _workflow(
     return workflowExport(data, name, rest[rest.indexOf('--export') + 1], workflows);
   }
   return workflowShow(data, name, workflows);
+}
+
+Outcome _task(List<String> args, String data, String root, String? workflows) {
+  if (args.isEmpty) return Outcome.failed(['给一条子命令：--list / <名字> / --new …']);
+  final first = args.first;
+  if (first == '--list') return taskList(root, data, workflows);
+  if (first == '--new') {
+    var name = '';
+    var flow = '';
+    for (var i = 1; i < args.length; i++) {
+      if (args[i] == '--workflow') {
+        flow = args[++i];
+      } else {
+        name = args[i];
+      }
+    }
+    return taskNew(root, data, name, flow, workflows);
+  }
+  final name = first;
+  final rest = args.sublist(1);
+  if (rest.contains('--journal')) {
+    return taskJournal(root, data, name, rest[rest.indexOf('--journal') + 1], workflows);
+  }
+  if (rest.contains('--next') || rest.contains('--done')) {
+    return Outcome.failed(['还没搬：task --next / --done（要先把规则引擎那块搬过来）']);
+  }
+  return taskStatus(root, data, name, workflows);
 }

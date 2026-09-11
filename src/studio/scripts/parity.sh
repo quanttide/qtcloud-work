@@ -35,7 +35,13 @@ workflow $name
 workflow $name --check"
   done
   COMMANDS="$COMMANDS
-task --list
+task --list"
+  for task in "$DATA_DIR"/tasks/*.yaml; do
+    [ -e "$task" ] || continue
+    COMMANDS="$COMMANDS
+task $(basename "$task" .yaml)"
+  done
+  COMMANDS="$COMMANDS
 help"
 fi
 

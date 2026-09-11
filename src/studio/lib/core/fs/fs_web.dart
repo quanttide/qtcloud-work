@@ -18,3 +18,5 @@ void makeDir(String path) => _unsupported();
 List<String> listDir(String path) => const [];
 
 String currentDir() => _unsupported();
+
+String? env(String name) => null;
