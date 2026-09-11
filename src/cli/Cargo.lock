@@ -402,10 +402,20 @@ name = "qtcloud-work-cli"
 version = "0.1.0-beta.1"
 dependencies = [
  "clap",
+ "quanttide-work",
  "serde",
  "serde_json",
  "serde_yaml",
  "ureq",
+]
+
+[[package]]
+name = "quanttide-work"
+version = "0.1.0-alpha.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3da30e64fdddd76c906fea9663ade0cb9b92bb62849de96ac167c41c8fd9329b"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
