@@ -2,6 +2,27 @@
 
 本文件仅记录 **cli（量潮知识工作云 CLI，Rust，纯服务端客户端）** 的版本变更。
 
-## [Unreleased]
+## [0.1.0-alpha.1] - 2026-09-11
 
-- 初始化 CLI 骨架：全局 `--server` / `--json`，`health` 探活子命令。
+首个预发布。把实验室 `kg` 那套本地知识工作做法扶正为平台侧命令行，provider 探活 `health` 保留。
+
+### 新增
+
+- 工作流与任务两族动作：`workflow --list / --new / --export / --import / --check`，`task --list / --new / --next / --done / --journal`；定义写成 YAML，任务是一次执行实例，落在数据仓
+- `--next` 按执行者分派：`agent` 交给 `pi` 跑完自动核判据；`human` 不代做，用 `--done` 记一笔
+- 判据三类：`rule`（存在 / 不存在 / 含文 / 跑命令四种判法）、`agent`（照说明审）、`human`（进闸门）；一步算过＝rule 全过且 agent 全通过
+- 工作区四个只读动作：`find` / `catalog` / `audit` / `material`
+- 全局上下文 `--root` / `--data` / `--workflows` 随任务走；`--json` 与 `--out` 分家；写入型动作支持 `--dry-run`；退出码 0 / 1
+- 三部分文档（使用指南、开发指南、接口参考）与场景测试、用例对账脚本
+- provider 探活 `health`，仍带全局 `--server` / `--json`
+
+### 变更
+
+- 源码按「动作与对象同住」分模块：`cli` / `outcome` / `artifact` / `audit` / `catalog` / `material` / `workflow` / `task`
+- 任务与产物分家：程序不写产物，闸门项记在任务文件，产物落点由任务声明
+- 数据仓默认取当前目录下的 `data/`（开发环境，不进版本库），用哪个印到标准错误
+
+### 修复
+
+- 人的步骤挂 agent 判据时不再被挡住：没跑智能体算待判，进闸门项
+- 审查判 ✗ 时这一步不算走过；判定只看最近一次尝试
