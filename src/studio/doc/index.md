@@ -4,12 +4,14 @@ Flutter Web 客户端 `src/studio` 的界面参照，也是命令行 `qtcloud-wo
 
 一条底线：**界面上出现的东西，命令行里都做得到；命令行里没有的动作，这里也不出现。**
 
+导航里写「流程」（与「任务」「设置」各两字），命令行里这一侧叫「工作流」——两边指同一件事。
+
 ## 三页
 
 | 页 | 看什么 | 对应命令行 |
 |---|---|---|
 | 任务 | 一次执行实例：左边对话定目标，右边这次走成什么样 | `task --list`、`task --new`、`task <名字>` |
-| 工作流 | 一条定义：左边对话改流程，右边看步骤与判据 | `workflow --list`、`workflow <名字>`、`--check`、`--export`、`--import`、`--new` |
+| 流程 | 一条定义：左边对话改流程，右边看步骤与判据 | `workflow --list`、`workflow <名字>`、`--check`、`--export`、`--import`、`--new` |
 | 设置 | 三处位置与已部署 provider 的探活 | `--root`、`--data`、`--workflows`、`health` |
 
 ## 任务页
