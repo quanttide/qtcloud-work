@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:qtcloud_work_studio/core/definition.dart';
+import 'package:qtcloud_work_studio/core/help.dart';
 import 'package:qtcloud_work_studio/core/outcome.dart';
 
 void main(List<String> argv) {
@@ -59,14 +60,7 @@ Outcome dispatch(
     case 'workflow':
       return _workflow(tail, data, root, workflows);
     case 'help':
-      return Outcome(
-        true,
-        lines: const [
-          'studio 侧的命令面（与命令行一条一条对齐）',
-          '  已搬：workflow --list / <名字> / --new / --check / --export / --import',
-          '  没搬：task、find、catalog、audit、material、health',
-        ],
-      );
+      return helpOf(tail.isEmpty ? null : tail.first);
     case 'task':
     case 'find':
     case 'catalog':
