@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI 原生工作台 v3</title>
+<title>量潮工作云工作台（原型 · 对齐命令行现状）</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -466,28 +466,54 @@ body {
   align-items: center; justify-content: center;
   color: var(--muted); font-size: 13px;
 }
+
+/* ============ 对齐 CLI 现状后新增的几块 ============ */
+.page.active { display: flex; flex-direction: column; }
+.page-head {
+  flex: 0 0 44px; display: flex; align-items: center; gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border); background: var(--panel);
+}
+.draft-step {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 6px; font-size: 12.5px;
+}
+.idx { width: 14px; color: var(--muted); font-size: 11.5px; }
+.who {
+  margin-left: auto; font-size: 11px; padding: 1px 7px;
+  border-radius: 5px; border: 1px solid var(--border); color: var(--muted);
+}
+.who.agent { color: #b9b0ff; background: #201d33; border-color: #3a3550; }
+.who.rule  { color: #9fb0c8; background: #1b202a; border-color: #2b3341; }
+.who.human { color: #8fe0bb; background: #16261f; border-color: #26463a; }
+.crit { color: var(--muted); font-size: 11px; min-width: 34px; text-align: right; }
+.panel-block { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 12px; }
+.block-head { font-size: 11.5px; color: var(--muted); margin-bottom: 6px; }
+.gate-row { font-size: 12.5px; color: #8fe0bb; }
+.art-row, .log-row { font-size: 12px; color: var(--muted); padding: 2px 0; }
+.log-row .t { color: #6b7383; margin-right: 8px; }
+.log-row .s { color: #9db2ff; margin-right: 8px; }
+.crit-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
+.crit-row .who { margin-left: 0; }
+.settings { padding: 18px 20px; max-width: 640px; }
+.set-block { border-top: 1px solid var(--border); padding: 12px 0 4px; }
+.set-block:first-child { border-top: none; }
+.set-key { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.set-val { font-size: 13.5px; }
+.node-rule  { border-left-color: #6b7a91; }
+.node-human { border-left-color: var(--green); }
 </style>
 </head>
 <body>
 
 <div class="app">
-
-  <!-- ===== 顶栏：只有工作区切换 ===== -->
   <header class="topbar">
-    <div class="ws-switch">
-      <span class="ws-dot"></span>
-      <select>
-        <option>产品研发</option>
-        <option>知识工作</option>
-        <option>教学课堂</option>
-      </select>
-      <span class="ws-chevron"></span>
-    </div>
+    <button class="picker">产品研发 <span class="mini-chevron"></span></button>
+    <div class="spacer"></div>
+    <span class="hint">工作区 <code>--root</code></span>
   </header>
 
   <div class="body">
-
-    <!-- ===== 侧边导航 ===== -->
     <nav class="sidebar">
       <div class="nav-item active" data-page="task">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
@@ -498,363 +524,295 @@ body {
         工作流
       </div>
       <div class="nav-item" data-page="settings">
-        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2v.2a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00-1.2-2.9H3a2 2 0 110-4h.1A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2v.2a2 2 0 11-4 0v-.2a1.7 1.7 0 00-3-1.2l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.7 1.7 0 003 15v-.2a2 2 0 012-2 1.7 1.7 0 001.2-3l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 002.9-1.2V6a2 2 0 014 0v.2a1.7 1.7 0 003 1.2l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 001.2 3H21a2 2 0 012 2z"/></svg>
         设置
       </div>
     </nav>
 
     <main class="main">
-
       <!-- ============================================================
-           任务页
-           ============================================================ -->
+           任务页：一次执行实例。左边对话，右边这次走成什么样。
+           右边的每一块都能在命令行里查到同一件事。
+      ============================================================ -->
       <section class="page active" id="page-task">
+        <div class="page-head">
+          <button class="picker">devops-release <span class="mini-chevron"></span></button>
+          <button class="btn ghost">＋ 起一件任务</button>
+          <div class="spacer"></div>
+          <button class="btn ghost sm">任务列表</button>
+        </div>
         <div class="split">
-
-          <!-- 左：对话 -->
           <div class="col left">
             <div class="chat-body">
-
-              <div class="msg user">
-                <div class="bubble">帮我做一份竞品分析报告，聚焦 AI 编程工具。</div>
-              </div>
+              <div class="msg user"><div class="bubble">给 qtcloud-work 的命令行走一次预发布。</div></div>
 
               <div class="msg ai">
                 <div class="bubble">
-                  先出流程，确认后执行。
                   <div class="flow-draft">
                     <div class="flow-draft-head">
-                      <span class="dot"></span>
-                      竞品分析 v1.3
+                      先出流程，确认后执行。
+                      <span class="ver">devops-release</span>
                     </div>
-                    <ol>
-                      <li><span class="idx">1</span> 明确范围与维度 <span class="state">输入</span></li>
-                      <li><span class="idx">2</span> 资料检索（并行） <span class="state">AI 代理</span></li>
-                      <li><span class="idx">3</span> 竞品功能矩阵 <span class="state">AI 代理</span></li>
-                      <li><span class="idx">4</span> 差异化分析 <span class="state">条件</span></li>
-                      <li><span class="idx">5</span> 人工验收 <span class="state">审批</span></li>
-                      <li><span class="idx">6</span> 输出报告 <span class="state">输出</span></li>
-                    </ol>
+                    <div class="draft-step"><span class="idx">1</span>定版本<span class="who agent">AI</span><span class="crit">6 条判据</span></div>
+                    <div class="draft-step"><span class="idx">2</span>质量门禁<span class="who agent">AI</span><span class="crit">6 条判据</span></div>
+                    <div class="draft-step"><span class="idx">3</span>发布预检<span class="who agent">AI</span><span class="crit">2 条判据</span></div>
+                    <div class="draft-step"><span class="idx">4</span>预演<span class="who agent">AI</span><span class="crit">4 条判据</span></div>
+                    <div class="draft-step"><span class="idx">5</span>人点头<span class="who human">人</span><span class="crit">2 条判据</span></div>
+                    <div class="draft-step"><span class="idx">6</span>真发<span class="who agent">AI</span><span class="crit">5 条判据</span></div>
                   </div>
                 </div>
               </div>
 
-              <div class="msg user">
-                <div class="bubble">确认，开始。</div>
-              </div>
+              <div class="msg user"><div class="bubble">确认，开始。</div></div>
 
               <div class="msg ai">
                 <div class="bubble">
-                  已启动，正在执行第 3 / 6 步「竞品功能矩阵构建」。两个并行子代理已完成资料检索，回收 27 条结构化数据。
+                  version、gate 已过。现在在 audit：预检 7 项过了 6 项，卡在「工作区有未提交变更」——把版本与变更记录提交后再跑一次就齐了。
                 </div>
               </div>
-
             </div>
-
             <div class="chat-input">
               <div class="chat-input-box">
-                <textarea placeholder="输入目标，或对流程提出修改…"></textarea>
+                <textarea placeholder="说目标，或者对流程提修改…"></textarea>
                 <button class="btn primary">发送</button>
               </div>
             </div>
           </div>
 
-          <!-- 右：任务状态 -->
           <div class="col">
             <div class="status-panel">
-
               <div class="status-line">
                 <span class="pulse"></span>
                 <span class="state">运行中</span>
                 <span class="step">3 / 6</span>
               </div>
+              <div class="current-node">audit　·　发布预检</div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 50%"></div></div>
+              <div class="wf-link">devops-release <span class="arrow">↗</span></div>
 
-              <div class="current-node">竞品功能矩阵构建</div>
-
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 50%"></div>
+              <div class="panel-block">
+                <div class="block-head">闸门（留给人）</div>
+                <div class="gate-row">confirm　待人放行——创始人看版本号与变更范围</div>
               </div>
 
-              <div class="wf-link">
-                竞品分析 v1.3 <span class="arrow">↗</span>
+              <div class="panel-block">
+                <div class="block-head">产物</div>
+                <div class="art-row">报告　artifacts/report/devops-release.md</div>
+                <div class="art-row">日志　artifacts/journal/devops-release.md</div>
+                <div class="art-row">流水　tasks/devops-release.yaml</div>
+              </div>
+
+              <div class="panel-block">
+                <div class="block-head">流水（最近三条）</div>
+                <div class="log-row"><span class="t">20:31</span><span class="s">version</span>版本定到 0.1.0-beta.2</div>
+                <div class="log-row"><span class="t">20:33</span><span class="s">gate·判</span>格式、lint、测试、锁文件四条全过</div>
+                <div class="log-row"><span class="t">20:35</span><span class="s">audit</span>预检 6 / 7，待提交</div>
               </div>
 
               <div class="status-actions">
-                <button class="btn">暂停</button>
+                <button class="btn primary">走下一步</button>
+                <button class="btn">记一步</button>
                 <div class="spacer"></div>
                 <div class="menu-wrap">
                   <button class="btn icon" data-menu="task-menu">⋯</button>
                   <div class="menu" id="task-menu">
-                    <button>洗上下文</button>
-                    <button>快照</button>
-                    <button>重置上下文</button>
+                    <button>记日志</button>
+                    <button>导出结果</button>
+                    <button>看 JSON</button>
+                    <button>干跑</button>
                     <div class="sep"></div>
-                    <button>取消任务</button>
-                    <button>重试</button>
-                    <div class="sep"></div>
-                    <button>保存为工作流</button>
+                    <button>产物在哪</button>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
-
         </div>
       </section>
 
       <!-- ============================================================
-           工作流页
-           ============================================================ -->
+           工作流页：定义侧。步骤是有序的，一步接一步，不是随便连的图。
+      ============================================================ -->
       <section class="page" id="page-flow">
         <div class="split">
-
-          <!-- 左：对话 -->
           <div class="col left">
             <div class="chat-body">
-
-              <div class="msg user">
-                <div class="bubble">把资料检索拆成两个并行子代理，一个查官方文档，一个查社区评价。</div>
-              </div>
-
+              <div class="msg user"><div class="bubble">门禁那条要把锁文件同步也卡上，上次就是这里漏了。</div></div>
               <div class="msg ai">
                 <div class="bubble">
-                  已修改「资料检索」，拆为两个并行分支：官方文档检索、社区评价检索，输出统一汇入「竞品功能矩阵构建」。
+                  已给 gate 加了「锁文件与版本同步」一条，跑 <code>cargo metadata --locked</code>；命令与 CI 一字不差。
                 </div>
               </div>
-
-              <div class="msg user">
-                <div class="bubble">审批节点用哪个模型？</div>
-              </div>
-
+              <div class="msg user"><div class="bubble">判据里写的路径，怎么确认它还在？</div></div>
               <div class="msg ai">
                 <div class="bubble">
-                  人工审批不调用模型，只做人工验收；其上游两个节点分别使用轻量模型与主模型，平衡成本与效果。
+                  用 check：它会核对判据里的路径在不在、描述里提到的报告小节有没有判据覆盖，缺哪条列哪条。
                 </div>
               </div>
-
             </div>
-
             <div class="chat-input">
               <div class="chat-input-box">
-                <textarea placeholder="描述工作流需求，或对节点提出修改…"></textarea>
+                <textarea placeholder="说这条工作流该怎么走…"></textarea>
                 <button class="btn primary">发送</button>
               </div>
             </div>
           </div>
 
-          <!-- 右：可视化 -->
           <div class="col">
-
             <div class="viz-head">
-              <span class="name">竞品分析</span>
-              <span class="ver">v1.3</span>
+              <span class="name">devops-release</span>
+              <span class="ver">6 步 · 25 条判据</span>
               <div class="spacer"></div>
               <div class="tabs">
-                <button class="tab active" data-view="canvas">画布</button>
-                <button class="tab" data-view="code">代码</button>
+                <button class="tab active" data-view="canvas">步骤</button>
+                <button class="tab" data-view="code">定义</button>
               </div>
-              <button class="btn primary">运行</button>
+              <button class="btn primary">起一件任务</button>
               <div class="menu-wrap">
                 <button class="btn icon" data-menu="flow-menu">⋯</button>
                 <div class="menu down" id="flow-menu">
                   <button>新建工作流</button>
-                  <button>版本历史</button>
+                  <button>检查这条</button>
                   <div class="sep"></div>
-                    <button>切换工作流</button>
+                  <button>导出定义</button>
+                  <button>导入定义</button>
                   <div class="sep"></div>
-                  <button>发布</button>
+                  <button>工作流列表</button>
                 </div>
               </div>
             </div>
-
             <div class="viz-body">
               <div class="canvas-scroll" id="canvas-view">
                 <div class="canvas-inner">
-                  <svg id="edges" width="820" height="320"></svg>
+                  <svg id="edges" width="460" height="424"></svg>
                 </div>
               </div>
               <div class="code-view" id="code-view">
-<pre><span class="cmt"># 静态骨架（YAML）</span>
-<span class="key">name</span>: <span class="str">竞品分析</span>
-<span class="key">version</span>: <span class="str">1.3</span>
-<span class="key">inputs</span>:
-  <span class="key">topic</span>: <span class="str">string</span>
+<pre><span class="cmt"># 工作流＝一串有序的步骤；每步写着谁做、怎么算完</span>
+<span class="key">name</span>: <span class="str">devops-release</span>
+<span class="key">description</span>: <span class="str">给 qtcloud-work CLI 走一次预发布 ……</span>
 <span class="key">steps</span>:
-  - <span class="key">id</span>: <span class="str">input</span>            <span class="key">type</span>: <span class="str">input</span>
-  - <span class="key">id</span>: <span class="str">split</span>            <span class="key">type</span>: <span class="str">agent</span>      <span class="key">model</span>: <span class="str">light</span>
-  - <span class="key">id</span>: <span class="str">gate</span>             <span class="key">type</span>: <span class="str">condition</span>  <span class="key">expr</span>: <span class="str">complexity &gt; 3</span>
-  - <span class="key">id</span>: <span class="str">retrieve_docs</span>    <span class="key">type</span>: <span class="str">agent</span>      <span class="key">model</span>: <span class="str">light</span>
-  - <span class="key">id</span>: <span class="str">retrieve_reviews</span> <span class="key">type</span>: <span class="str">agent</span>      <span class="key">model</span>: <span class="str">light</span>
-  - <span class="key">id</span>: <span class="str">approve</span>          <span class="key">type</span>: <span class="str">human_approval</span>
-  - <span class="key">id</span>: <span class="str">output</span>           <span class="key">type</span>: <span class="str">output</span>     <span class="key">path</span>: <span class="str">report.md</span>
+- <span class="key">name</span>: <span class="str">version</span>          <span class="cmt"># 定版本</span>
+  <span class="key">executor</span>: <span class="str">agent</span>          <span class="cmt"># 这一步谁做</span>
+  <span class="key">criteria</span>:
+  - <span class="key">executor</span>: <span class="str">rule</span>
+    <span class="key">description</span>: <span class="str">版本文件在</span>
+    <span class="key">path</span>: <span class="str">apps/qtcloud-work/src/cli/Cargo.toml</span>
+  - <span class="key">executor</span>: <span class="str">rule</span>
+    <span class="key">description</span>: <span class="str">版本号写法在档位上</span>
+    <span class="key">run</span>: <span class="str">grep -qE '^version = ...' Cargo.toml</span>
+  - <span class="key">executor</span>: <span class="str">agent</span>
+    <span class="key">description</span>: <span class="str">版本号、CHANGELOG、Cargo.toml 三处一致</span>
 
-<span class="cmt"># 动态环节（JS DSL）</span>
-<span class="fn">parallel</span>([<span class="str">"retrieve_docs"</span>, <span class="str">"retrieve_reviews"</span>])
-  .<span class="fn">map</span>(<span class="fn">agent</span>({ <span class="key">schema</span>: <span class="str">Finding[]</span> }))
-  .<span class="fn">then</span>(<span class="fn">agent</span>(<span class="str">"build_matrix"</span>))
-  .<span class="fn">then</span>(<span class="fn">approve</span>({ <span class="key">owner</span>: <span class="str">"human"</span> }))
-  .<span class="fn">then</span>(<span class="fn">output</span>(<span class="str">"report.md"</span>))</pre>
+- <span class="key">name</span>: <span class="str">gate</span>            <span class="cmt"># 质量门禁，与 CI 同参数</span>
+  <span class="key">executor</span>: <span class="str">agent</span>
+  <span class="key">criteria</span>:
+  - { <span class="key">executor</span>: <span class="str">rule</span>, <span class="key">run</span>: <span class="str">cargo fmt --check</span> }
+  - { <span class="key">executor</span>: <span class="str">rule</span>, <span class="key">run</span>: <span class="str">cargo clippy --locked --all-targets -- -D warnings</span> }
+  - { <span class="key">executor</span>: <span class="str">rule</span>, <span class="key">run</span>: <span class="str">cargo test --locked</span> }
+
+- <span class="key">name</span>: <span class="str">confirm</span>         <span class="cmt"># 人点头：这一步的判据主要是人</span>
+  <span class="key">executor</span>: <span class="str">human</span>
+  <span class="key">criteria</span>:
+  - <span class="key">executor</span>: <span class="str">human</span>
+    <span class="key">description</span>: <span class="str">创始人确认版本号与变更范围，放行这次预发布</span>
+
+<span class="cmt"># 跑起来：qtcloud-work task --new devops-release --workflow devops-release，再 --next 一条一条走</span></pre>
               </div>
             </div>
-
-            <!-- 节点属性（精简） -->
             <div class="viz-props" id="props">
-              <div class="props-empty">选中节点查看属性</div>
+              <div class="props-empty">点一个步骤，看它谁做、判据有几条</div>
             </div>
-
           </div>
-
         </div>
       </section>
 
       <!-- ============================================================
-           设置页（占位）
-           ============================================================ -->
+           设置页：命令行里的三处位置，在这里就是指到哪
+      ============================================================ -->
       <section class="page" id="page-settings">
-        <div class="placeholder">设置</div>
+        <div class="settings">
+          <div class="set-block">
+            <div class="set-key">工作区（--root）</div>
+            <div class="set-val">产品研发　·　/home/iguo/repos/quanttide/domains/quanttide-work</div>
+          </div>
+          <div class="set-block">
+            <div class="set-key">数据仓（--data）</div>
+            <div class="set-val">data/context/qtcloud-work　（任务、流水、产物草稿）</div>
+          </div>
+          <div class="set-block">
+            <div class="set-key">工作流目录（--workflows）</div>
+            <div class="set-val">data/profile/quanttide/workflows</div>
+          </div>
+          <div class="set-block">
+            <div class="set-key">已部署的 provider</div>
+            <div class="set-val">探活（health）——逐个看能不能连上</div>
+          </div>
+        </div>
       </section>
-
     </main>
   </div>
 </div>
 
 <script>
-/* ============ 导航切换 ============ */
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-
-    const page = item.dataset.page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
-  });
-});
-
-/* ============ 下拉菜单 ============ */
-document.querySelectorAll('[data-menu]').forEach(btn => {
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    const menu = document.getElementById(btn.dataset.menu);
-    const isOpen = menu.classList.contains('open');
-    document.querySelectorAll('.menu').forEach(m => m.classList.remove('open'));
-    if (!isOpen) menu.classList.add('open');
-  });
-});
-document.addEventListener('click', () => {
-  document.querySelectorAll('.menu').forEach(m => m.classList.remove('open'));
-});
-
-/* ============ 工作流节点 ============ */
-const NODE_W = 120;
-const NODE_H = 48;
-
+/* 步骤：有序序列。画布竖着排，一步接一步。 */
+const NODE_W = 300, NODE_H = 44;
 const nodes = [
-  { id: 'n1', x: 20,  y: 30,  type: 'input',   label: '输入',     sub: '分析目标' },
-  { id: 'n2', x: 20,  y: 140, type: 'agent',   label: 'AI 代理',  sub: '拆解任务' },
-  { id: 'n3', x: 180, y: 140, type: 'cond',    label: '条件',     sub: '复杂度 > 3' },
-  { id: 'n4', x: 350, y: 55,  type: 'agent',   label: '并行 A',   sub: '官方文档检索' },
-  { id: 'n5', x: 350, y: 225, type: 'agent',   label: '并行 B',   sub: '社区评价检索' },
-  { id: 'n6', x: 520, y: 140, type: 'approve', label: '人工审批', sub: '验收要点' },
-  { id: 'n7', x: 680, y: 140, type: 'output',  label: '输出',     sub: '报告产物' }
+  { id: 's1', x: 24, y: 16,  type: 'agent', label: 'version　定版本',       sub: 'AI 执行 · 6 条判据', crit: [['rule','变更记录在'],['rule','版本文件在'],['rule','变更记录里有该版本条目'],['rule','tag 前缀与版本对得上'],['rule','版本号写法在档位上'],['agent','版本号、CHANGELOG、Cargo.toml 三处一致']] },
+  { id: 's2', x: 24, y: 82,  type: 'agent', label: 'gate　质量门禁',         sub: 'AI 执行 · 6 条判据', crit: [['rule','格式过关'],['rule','严格 lint 过关（与 CI 同参数）'],['rule','测试全绿（与 CI 同参数）'],['rule','锁文件与版本同步'],['rule','用例与测试的出处对得上'],['rule','门禁结果写进报告']] },
+  { id: 's3', x: 24, y: 148, type: 'agent', label: 'audit　发布预检',        sub: 'AI 执行 · 2 条判据', crit: [['rule','预检全过'],['rule','预检记录写进报告']] },
+  { id: 's4', x: 24, y: 214, type: 'agent', label: 'rehearse　预演',         sub: 'AI 执行 · 4 条判据', crit: [['rule','预演跑得通'],['rule','预演期间没有多出 tag'],['rule','预演记录写进报告'],['agent','说清了会建哪个 tag、发去哪']] },
+  { id: 's5', x: 24, y: 280, type: 'human', label: 'confirm　人点头',        sub: '人执行 · 2 条判据',   crit: [['rule','版本与放行写在报告的结论里'],['human','创始人确认版本号与变更范围，放行这次预发布']] },
+  { id: 's6', x: 24, y: 346, type: 'agent', label: 'publish　真发',          sub: 'AI 执行 · 5 条判据', crit: [['rule','发布跑完'],['rule','tag 已在远端'],['rule','发布记录写进报告'],['rule','Release 标成了预发布'],['agent','crates.io 上该版本已在']] }
 ];
-
-const edges = [
-  ['n1', 'n2'], ['n2', 'n3'],
-  ['n3', 'n4'], ['n3', 'n5'],
-  ['n4', 'n6'], ['n5', 'n6'],
-  ['n6', 'n7']
-];
+const edges = [['s1','s2'],['s2','s3'],['s3','s4'],['s4','s5'],['s5','s6']];
 
 const canvasInner = document.querySelector('.canvas-inner');
 const svg = document.getElementById('edges');
 const propsEl = document.getElementById('props');
-
+const TYPE_LABEL = { agent: 'AI 执行', rule: '机器判', human: '人' };
+const WHO_LABEL = { agent: 'AI', rule: '机器', human: '人' };
 const nodeMap = {};
 nodes.forEach(n => { nodeMap[n.id] = n; });
 
-/* --- 连线 --- */
 edges.forEach(([a, b]) => {
-  const na = nodeMap[a];
-  const nb = nodeMap[b];
-  const x1 = na.x + NODE_W / 2;
-  const y1 = na.y + NODE_H / 2;
-  const x2 = nb.x + NODE_W / 2;
-  const y2 = nb.y + NODE_H / 2;
-
-  let d;
-  if (Math.abs(x2 - x1) >= Math.abs(y2 - y1)) {
-    const dx = (x2 - x1) / 2;
-    d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
-  } else {
-    const dy = (y2 - y1) / 2;
-    d = `M${x1},${y1} C${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2}`;
-  }
-
+  const na = nodeMap[a], nb = nodeMap[b];
+  const x1 = na.x + NODE_W / 2, y1 = na.y + NODE_H;
+  const x2 = nb.x + NODE_W / 2, y2 = nb.y;
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', d);
+  path.setAttribute('d', `M${x1},${y1} L${x2},${y2}`);
   path.setAttribute('class', 'edge');
   svg.appendChild(path);
 });
 
-/* --- 节点 --- */
 nodes.forEach(n => {
   const el = document.createElement('div');
   el.className = 'node node-' + n.type;
   el.style.left = n.x + 'px';
   el.style.top = n.y + 'px';
-  el.innerHTML =
-    `<div class="node-label">${n.label}</div>` +
-    `<div class="node-sub">${n.sub}</div>`;
-
+  el.style.width = NODE_W + 'px';
+  el.innerHTML = `<div class="node-label">${n.label}</div><div class="node-sub">${n.sub}</div>`;
   el.addEventListener('click', () => selectNode(n, el));
   canvasInner.appendChild(el);
-  n.el = el;
 });
-
-/* --- 选中节点：精简属性 + 展开更多 --- */
-const TYPE_LABEL = {
-  input: '输入',
-  agent: 'AI 代理',
-  cond: '条件',
-  approve: '人工审批',
-  output: '输出'
-};
 
 function selectNode(node, el) {
   document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
   el.classList.add('selected');
-
+  const rows = node.crit.map(([who, text]) =>
+    `<div class="crit-row"><span class="who ${who}">${WHO_LABEL[who]}</span>${text}</div>`).join('');
+  const rules = node.crit.filter(c => c[0] === 'rule').length;
   propsEl.innerHTML = `
     <div class="props-head">
-      <span class="name">${node.label}</span>
+      <span class="name">${node.label.split('　')[0]}</span>
       <span class="type">${TYPE_LABEL[node.type]}</span>
       <div class="spacer"></div>
-      <button class="props-more" data-toggle="detail">展开更多</button>
+      <span class="type">${node.crit.length} 条判据（机器判 ${rules}）</span>
     </div>
-    <div class="props-row">
-      <div class="item"><span class="k">模型</span><span class="v">${node.type === 'agent' ? 'main' : '--'}</span></div>
-      <div class="item"><span class="k">输出</span><span class="v">${node.type === 'output' ? 'Report' : 'Finding[]'}</span></div>
-    </div>
-    <div class="props-detail" id="props-detail">
-      <div class="item"><span class="k">节点 ID</span><span class="v">${node.id}</span></div>
-      <div class="item"><span class="k">输入 Schema</span><span class="v">TaskContext</span></div>
-      <div class="item"><span class="k">超时</span><span class="v">120s</span></div>
-      <div class="item"><span class="k">重试</span><span class="v">2 次</span></div>
-      <div class="item"><span class="k">权限</span><span class="v">workspace</span></div>
-    </div>
-  `;
-
-  const moreBtn = propsEl.querySelector('[data-toggle="detail"]');
-  const detail = propsEl.querySelector('#props-detail');
-  moreBtn.addEventListener('click', () => {
-    const open = detail.classList.toggle('open');
-    moreBtn.textContent = open ? '收起' : '展开更多';
-  });
+    <div class="props-detail open">${rows}</div>`;
 }
 
-/* ============ 画布 / 代码 切换（v1、v2 那对按钮此前是死的） ============ */
+/* 步骤 / 定义 两态 */
 const canvasView = document.getElementById('canvas-view');
 const codeView = document.getElementById('code-view');
 document.querySelectorAll('.tab[data-view]').forEach(tab => {
@@ -866,7 +824,27 @@ document.querySelectorAll('.tab[data-view]').forEach(tab => {
     codeView.classList.toggle('active', isCode);
   });
 });
-</script>
 
+/* 侧栏切页 */
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('page-' + item.dataset.page).classList.add('active');
+  });
+});
+
+/* 下拉菜单 */
+document.querySelectorAll('[data-menu]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const menu = document.getElementById(btn.dataset.menu);
+    const open = menu.classList.toggle('open');
+    document.querySelectorAll('.menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+  });
+});
+document.addEventListener('click', () => document.querySelectorAll('.menu').forEach(m => m.classList.remove('open')));
+</script>
 </body>
 </html>
