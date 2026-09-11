@@ -1,6 +1,6 @@
 # 开发指南
 
-本文件讲程序怎么继续长。使用与命令看[使用指南](../user-guide/index.md)，字段与 schema 看[接口参考](../api-references/index.md)。
+本文件讲程序怎么继续长。使用与命令看[使用指南](../user-guide/index.md)，字段与 schema 看[接口参考](../api-references/index.md)（命令面 / 工作流 / 任务 / 工作区四篇）。
 
 ## 现状
 
