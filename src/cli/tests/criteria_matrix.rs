@@ -41,6 +41,12 @@ fn 谁执行乘怎么走() {
     fix.run_full(true, &["task", "--new", "试一条", "--workflow", "试一条"]);
     let stepped = fix.run_recorded(&["task", "试一条", "--next"]);
     assert!(!stepped.ok(), "rule 不过不该算过: {}", stepped.crop());
+    let view = fix.run_recorded(&["task", "试一条"]);
+    assert!(
+        view.crop().contains("下一步：一步"),
+        "rule 不过时下一步还是它: {}",
+        view.crop()
+    );
 
     // 四、人的步骤、人为地记一步：rule 过、agent 判据算待判，不挡
     let fix = Fixture::new("matrix-human");

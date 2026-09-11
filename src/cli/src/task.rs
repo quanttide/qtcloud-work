@@ -154,15 +154,17 @@ impl Task {
         for event in self.events() {
             let ok = event.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
             let raw = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
-            let reviewed = raw.ends_with("·审");
-            let step = raw.strip_suffix("·审").unwrap_or(raw).to_string();
+            let (step, extra) = match raw.split_once('·') {
+                Some((step, rest)) => (step.to_string(), Some(rest.to_string())),
+                None => (raw.to_string(), None),
+            };
             if !names.contains(&step) {
                 continue;
             }
             match verdict.iter_mut().find(|(name, _)| *name == step) {
                 Some((_, last)) => {
-                    if reviewed {
-                        *last = *last && ok;
+                    if extra.is_some() {
+                        *last = *last && ok; // 附加判定（审查、机器判据）都给这一步的结论投票
                     } else {
                         *last = ok; // 重新执行：这一步的判定从头算
                     }
@@ -730,6 +732,9 @@ pub fn execute(
     };
     if !(auto && !found.human()) {
         task.record(step, &detail, ok);
+    } else if !found.rules().is_empty() {
+        // 交给 AI 跑的步骤：机器判据这一半单独记一笔（审查那条只知道 agent 判据）。
+        task.record(&format!("{}·判", found.name()), &detail, rules_pass);
     }
     let mut gate_lines = gates.clone();
     gate_lines.extend(
