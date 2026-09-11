@@ -130,8 +130,7 @@ jobs:
           --repo "$GITHUB_REPOSITORY" --clobber
 
   publish-crate:
-    # 预发布（tag 里带 `-`，如 cli/v0.1.0-alpha.1）不推 crates.io：等正式版再发。
-    if: ${{ !contains(github.ref_name, '-') }}
+    # 预发布也推 crates.io（`0.1.0-alpha.N` 是合法的 crates.io 版本）。
     needs: [quality-gates, upload-release-assets]
     runs-on: ubuntu-latest
     defaults:
