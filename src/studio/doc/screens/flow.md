@@ -7,3 +7,5 @@
 - **右**：[步骤链](../views/step-chain.md) 或 [定义态](../views/definition-view.md)；下面是 [判据面板](../views/criteria-panel.md)
 
 这一屏没有「运行」「发布」「版本历史」：跑一条流程就是起一件任务，发布是某条流程里的一步。
+
+同目录的 `flow.html`：这一屏单独打开的样子（步骤态可点，定义态可切）。

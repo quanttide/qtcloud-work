@@ -1,0 +1,88 @@
+{
+  "name": "learn-task-create",
+  "start": "2026-09-11 20:28",
+  "workflow": "learn-task-create",
+  "root": "/home/iguo/repos/quanttide/domains/quanttide-work",
+  "data": "data/context/qtcloud-work",
+  "workflows": "data/profile/quanttide/workflows",
+  "log": [
+    {
+      "at": "2026-09-11 20:29",
+      "step": "profile",
+      "detail": "AI 执行：`profile` 步已完成并通过三条 rule 判据：任务书从本仓个人档案逐字复制到学习档案 `tasks/try-qtcloud-work-cli.md`（",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:29",
+      "step": "profile·审",
+      "detail": "AI 审查（同一模型）：放的分类对（学习任务归 tasks），文件与源文件内容一致，提交信息说清了这是哪份任务书→✓",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:34",
+      "step": "site",
+      "detail": "AI 执行：一句话：`site` 步的这份任务书已在 qtclass 仓提交推送、与学习档案逐字一致且已写入报告，本次核对确认全部判据通过、未作任何改动。",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:34",
+      "step": "site·审",
+      "detail": "AI 审查（同一模型）：落点照了 site 既有惯例（不是随便找个目录塞），站点里链得到、内容与档案那份一致→✓",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:34",
+      "step": "site·判",
+      "detail": "站点里那份与档案那份逐字相同；站点这份在 qtclass 仓里被跟踪；qtclass 那边工作区干净（改动已提交）；写进报告",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:36",
+      "step": "audit",
+      "detail": "版本 0.1.2-beta.7：package.json 与 CHANGELOG 两处对齐；qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交），提交 1280ead 后 7/7 全过——创始人放行",
+      "ok": false
+    },
+    {
+      "at": "2026-09-11 20:36",
+      "step": "publish",
+      "detail": "qtcloud-devops release publish -y -v site/v0.1.2-beta.7：tag 已推远端；Deploy Site run 34599410303 success（构建 → OSS 桶 qtclass-site → 刷 CDN）；首页 200、线上产物含任务书标题与摘要",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:36",
+      "step": "audit",
+      "detail": "版本 0.1.2-beta.7（package.json 与 CHANGELOG 两处对齐）；qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交），提交 1280ead 后 7/7 全过；创始人放行",
+      "ok": false
+    },
+    {
+      "at": "2026-09-11 20:37",
+      "step": "audit",
+      "detail": "AI 执行：`src/site/package.json` 与 `src/site/CHANGELOG.md` 两处已同步在 `0.1.2-beta.7`（与站点发布提交 ",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:37",
+      "step": "audit·判",
+      "detail": "站点版本与变更记录两处对齐；预检全过；写进报告",
+      "ok": false
+    },
+    {
+      "at": "2026-09-11 20:39",
+      "step": "audit",
+      "detail": "版本 0.1.2-beta.7 两处对齐、提交 1280ead；发布前 qtcloud-devops release audit -v site/v0.1.2-beta.7 首轮 6/7（工作区未提交）、提交后 7/7 全过（输出见报告「预检」一节）；创始人放行",
+      "ok": true
+    },
+    {
+      "at": "2026-09-11 20:39",
+      "step": "conclude",
+      "detail": "结论三行 + 三件拿不准的已写进报告；剩：把试用邀请 issue #1 指向这份任务书",
+      "ok": true
+    }
+  ],
+  "gates": [
+    "创始人放行这次 site 发布（版本号与内容都对过）",
+    "新 tag 与这次内容对应（不是旧 tag 充数）；deploy-site 工作流跑绿；站点上查得到这份任务书",
+    "三行说得清送到了哪、还差什么；拿不准的单列，不混在结论里"
+  ],
+  "products": {}
+}

@@ -33,3 +33,5 @@
 
 流程页的「步骤」态就是这个模型的可视化：一步一个节点，副标题写「执行者 · N 条判据」；
 点开一个节点，上面的 `criteria` 逐条列出来。「定义」态直接显示这份 YAML。
+
+同目录的 `workflow.json`：一份真实样例，从 `data/profile/quanttide/workflows/devops-release.yaml` 转来（6 步、25 条判据）。

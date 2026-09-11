@@ -1,0 +1,21 @@
+{
+  "工作区": {
+    "选项": "--root",
+    "路径": "/home/iguo/repos/quanttide/domains/quanttide-work",
+    "装什么": "文档与代码本体；判据里的相对路径从这算"
+  },
+  "数据仓": {
+    "选项": "--data",
+    "路径": "data/context/qtcloud-work",
+    "装什么": "任务、流水、产物草稿"
+  },
+  "工作流目录": {
+    "选项": "--workflows",
+    "路径": "data/profile/quanttide/workflows",
+    "装什么": "工作流定义（.yaml）"
+  },
+  "缺省": {
+    "数据仓": "当前目录下的 data/",
+    "工作流目录": "数据仓下的 workflows/"
+  }
+}

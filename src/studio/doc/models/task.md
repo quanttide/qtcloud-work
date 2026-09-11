@@ -41,3 +41,5 @@
 ## 界面上
 
 任务页右栏就是这个模型：状态与进度、闸门、产物、流水；动作只留 `--next` 与 `--done` 对应的两个。
+
+同目录的 `task.json`：一份真实样例，从 `data/context/qtcloud-work/tasks/learn-task-create.yaml` 转来（5 步走完、含 `·审` 与 `·判` 两条流水）。

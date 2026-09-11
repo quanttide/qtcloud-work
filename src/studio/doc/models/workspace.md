@@ -11,3 +11,5 @@
 缺省：数据仓取当前目录下的 `data/`，工作流目录取数据仓下的 `workflows/`。
 
 探活已部署的 provider：`health`。
+
+同目录的 `workspace.json`：三处位置的实际取值。

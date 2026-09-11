@@ -8,3 +8,5 @@
 - 已部署 provider 的探活（`health`）
 
 字段含义见 [模型：三处位置](../models/workspace.md)。
+
+同目录的 `settings.html`：这一屏单独打开的样子。

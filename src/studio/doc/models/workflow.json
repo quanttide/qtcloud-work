@@ -1,0 +1,174 @@
+{
+  "name": "devops-release",
+  "description": "给 qtcloud-work CLI 走一次预发布——定预发布版本号、把 CHANGELOG 的 Unreleased 收成版本条目、跑四道门禁、qtcloud-devops release audit 预检、--dry-run 预演、人点头、publish 真发、核 tag 已推。工作区根是领域仓（判据里的路径从仓根算）；产物是本任务的报告（缺省落草稿区，要进正式仓就在任务文件的 products.report 里写 data/report/iGuo/<名字>.md）。跑法：qtcloud-work task --new devops-release --workflow devops-release，再 --next 一条一条走",
+  "steps": [
+    {
+      "name": "version",
+      "description": "定版本。输入：`apps/qtcloud-work/src/cli/Cargo.toml` 里的现有版本、`apps/qtcloud-work/src/cli/CHANGELOG.md` 的 `[Unreleased]` 一节。过程：按三档推进版本号——`alpha`（能跑，会用的人先试）→ `beta`（功能齐，等反馈）→ `rc`（候选，只修阻塞）→ 正式版；同一档内 N 递增（`X.Y.Z-alpha.1`、`-alpha.2`…），跨档换名，走完三档才发 `X.Y.Z`。把 Unreleased 收成 `## [X.Y.Z-<档>.<N>]` 一节并把这次变更写进去，Cargo.toml 的 `version` 跟着改。输出：改好的 CHANGELOG.md 与 Cargo.toml。验收：见判据",
+      "executor": "agent",
+      "criteria": [
+        {
+          "executor": "rule",
+          "description": "变更记录在",
+          "path": "apps/qtcloud-work/src/cli/CHANGELOG.md"
+        },
+        {
+          "executor": "rule",
+          "description": "版本文件在",
+          "path": "apps/qtcloud-work/src/cli/Cargo.toml"
+        },
+        {
+          "executor": "rule",
+          "description": "变更记录里有 Cargo.toml 里那个版本的条目",
+          "run": "cd apps/qtcloud-work/src/cli && sh scripts/validate-changelog.sh \"$(sed -n 's/^version = \"\\(.*\\)\"/\\1/p' Cargo.toml | head -1)\""
+        },
+        {
+          "executor": "rule",
+          "description": "tag 前缀与版本对得上",
+          "run": "cd apps/qtcloud-work/src/cli && sh scripts/validate-version.sh \"cli/v$(sed -n 's/^version = \"\\(.*\\)\"/\\1/p' Cargo.toml | head -1)\""
+        },
+        {
+          "executor": "rule",
+          "description": "版本号写法在档位上（正式版 X.Y.Z，预发布 X.Y.Z-alpha|beta|rc.N）",
+          "run": "grep -qE '^version = \"[0-9]+\\.[0-9]+\\.[0-9]+(-(alpha|beta|rc)\\.[0-9]+)?\"$' apps/qtcloud-work/src/cli/Cargo.toml"
+        },
+        {
+          "executor": "agent",
+          "description": "版本号、CHANGELOG 条目、Cargo.toml 三处一致；档位与这次变更的性质对得上（alpha / beta / rc 各有各的门槛）；条目里写清了这次变更，不是空条目"
+        }
+      ]
+    },
+    {
+      "name": "gate",
+      "description": "质量门禁。输入：`apps/qtcloud-work/src/cli`。过程：逐道跑，**命令与 CI（release-cli）一字不差**——CI 跑的是 `--locked`，本地只跑不带 `--locked` 的版本会漏掉「锁文件与 Cargo.toml 不同步」这一类；红了就修到绿，修完从文档改起（要改行为先改文档与测试）。输出：门禁全绿的记录（写进报告的「门禁」一节）。验收：见判据",
+      "executor": "agent",
+      "criteria": [
+        {
+          "executor": "rule",
+          "description": "格式过关",
+          "run": "cd apps/qtcloud-work/src/cli && cargo fmt --check"
+        },
+        {
+          "executor": "rule",
+          "description": "严格 lint 过关（与 CI 同参数）",
+          "run": "cd apps/qtcloud-work/src/cli && cargo clippy --locked --all-targets -- -D warnings"
+        },
+        {
+          "executor": "rule",
+          "description": "测试全绿（与 CI 同参数）",
+          "run": "cd apps/qtcloud-work/src/cli && cargo test --locked --quiet"
+        },
+        {
+          "executor": "rule",
+          "description": "锁文件与版本同步（跟得上 Cargo.toml；CI 的 --locked 就卡这一处）",
+          "run": "cd apps/qtcloud-work/src/cli && cargo metadata --locked --format-version 1 > /dev/null"
+        },
+        {
+          "executor": "rule",
+          "description": "用例与测试的出处对得上",
+          "run": "cd apps/qtcloud-work/src/cli && sh scripts/validate-usecases.sh"
+        },
+        {
+          "executor": "rule",
+          "description": "门禁结果写进报告",
+          "file": "{{report}}",
+          "contains": "## 门禁"
+        }
+      ]
+    },
+    {
+      "name": "audit",
+      "description": "发布预检。输入：上面改好的版本与变更记录。过程：跑 `qtcloud-devops release audit`（版本号格式、配置文件一致性、CHANGELOG、工作区是否干净、标签冲突、远程可达、已有 Release），逐项清到全过；条款全过的输出抄进报告的「预检」一节。输出：预检记录。验收：见判据",
+      "executor": "agent",
+      "criteria": [
+        {
+          "executor": "rule",
+          "description": "预检全过",
+          "run": "cd apps/qtcloud-work/src/cli && qtcloud-devops release audit"
+        },
+        {
+          "executor": "rule",
+          "description": "预检记录写进报告",
+          "file": "{{report}}",
+          "contains": "## 预检"
+        }
+      ]
+    },
+    {
+      "name": "rehearse",
+      "description": "预演。输入：预检过的这一版。过程：跑 `qtcloud-devops release publish --dry-run`，看清它会建哪个 tag、推去哪、发到哪个仓；把预演输出抄进报告的「预演」一节。产出任何东西都算失败——预演不建 tag、不推、不发 Release。输出：预演记录。验收：见判据",
+      "executor": "agent",
+      "criteria": [
+        {
+          "executor": "rule",
+          "description": "预演跑得通",
+          "run": "cd apps/qtcloud-work/src/cli && qtcloud-devops release publish --dry-run"
+        },
+        {
+          "executor": "rule",
+          "description": "预演期间没有多出 tag",
+          "run": "test -z \"$(cd apps/qtcloud-work/src/cli && git tag -l \"cli/v$(sed -n 's/^version = \"\\(.*\\)\"/\\1/p' Cargo.toml | head -1)\")\""
+        },
+        {
+          "executor": "rule",
+          "description": "预演记录写进报告",
+          "file": "{{report}}",
+          "contains": "## 预演"
+        },
+        {
+          "executor": "agent",
+          "description": "预演输出说清了会建哪个 tag、发去哪、发布范围是哪几个提交"
+        }
+      ]
+    },
+    {
+      "name": "confirm",
+      "description": "人点头。输入：预演记录与报告里三节（门禁 / 预检 / 预演）。过程：创始人看一遍版本号、变更范围、将建的 tag，确认无误。输出：报告「结论」一节里写明「可以发布」与版本号。验收：见判据",
+      "executor": "human",
+      "criteria": [
+        {
+          "executor": "rule",
+          "description": "版本与放行写在报告的结论里",
+          "file": "{{report}}",
+          "contains": "## 结论"
+        },
+        {
+          "executor": "human",
+          "description": "创始人确认版本号与变更范围，放行这次预发布"
+        }
+      ]
+    },
+    {
+      "name": "publish",
+      "description": "真发。输入：人放行的那一版。过程：跑 `qtcloud-devops release publish -y`（校验 CHANGELOG → 建 tag → 推远端 → 建 GitHub Release）；把结果抄进报告的「发布」一节。输出：tag 与 Release 在远端。验收：见判据——tag 已推到远端才算过",
+      "executor": "agent",
+      "criteria": [
+        {
+          "executor": "rule",
+          "description": "发布跑完",
+          "run": "cd apps/qtcloud-work/src/cli && qtcloud-devops release publish -y"
+        },
+        {
+          "executor": "rule",
+          "description": "tag 已在远端",
+          "run": "test -n \"$(cd apps/qtcloud-work/src/cli && git ls-remote --tags origin \"cli/v$(sed -n 's/^version = \"\\(.*\\)\"/\\1/p' Cargo.toml | head -1)\")\""
+        },
+        {
+          "executor": "rule",
+          "description": "发布记录写进报告",
+          "file": "{{report}}",
+          "contains": "## 发布"
+        },
+        {
+          "executor": "rule",
+          "description": "Release 标成了预发布",
+          "run": "test \"$(gh release view \"cli/v$(cd apps/qtcloud-work/src/cli && sed -n 's/^version = \"\\(.*\\)\"/\\1/p' Cargo.toml | head -1)\" --repo quanttide/qtcloud-work --json isPrerelease --jq '.isPrerelease' 2>/dev/null)\" = \"true\""
+        },
+        {
+          "executor": "agent",
+          "description": "报告里写清了这次发布的 tag、Release 地址与它对应哪些变更；release-cli 工作流已跑完且全绿，crates.io 上该版本已在"
+        }
+      ]
+    }
+  ]
+}
