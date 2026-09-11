@@ -16,11 +16,28 @@ fn human_step_recorded_by_hand() {
     );
     fix.file("AGENTS.md", "# 约定\n");
     fix.file("目标.md", "# 目标\n");
-    fix.run_full(false, &["task", "--new", "数据归仓", "--workflow", "数据归仓"]);
+    fix.run_full(
+        false,
+        &["task", "--new", "数据归仓", "--workflow", "数据归仓"],
+    );
 
-    let first = fix.run_recorded(&["task", "数据归仓", "--done", "材料", "--note", "AGENTS.md、日志"]);
+    let first = fix.run_recorded(&[
+        "task",
+        "数据归仓",
+        "--done",
+        "材料",
+        "--note",
+        "AGENTS.md、日志",
+    ]);
     assert!(first.ok(), "--done 材料 没跑通: {}", first.crop());
-    let second = fix.run_recorded(&["task", "数据归仓", "--done", "指令", "--note", "目标/步骤/验收 已写"]);
+    let second = fix.run_recorded(&[
+        "task",
+        "数据归仓",
+        "--done",
+        "指令",
+        "--note",
+        "目标/步骤/验收 已写",
+    ]);
     assert!(second.ok(), "--done 指令 没跑通: {}", second.crop());
 
     let record = fix.task_yaml("数据归仓");
@@ -32,6 +49,12 @@ fn human_step_recorded_by_hand() {
         record.contains("step: 指令") && record.contains("目标/步骤/验收 已写"),
         "第二笔的 note 该进流水:\n{record}"
     );
-    assert!(!record.contains("ok: false"), "human 步骤按 note 记应算过:\n{record}");
-    assert!(fix.report("数据归仓").contains("创始人过目"), "human 闸门该列进报告");
+    assert!(
+        !record.contains("ok: false"),
+        "human 步骤按 note 记应算过:\n{record}"
+    );
+    assert!(
+        fix.report("数据归仓").contains("创始人过目"),
+        "human 闸门该列进报告"
+    );
 }

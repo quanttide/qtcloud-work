@@ -182,11 +182,19 @@ fn workspace_root(cli: &Cli) -> Result<PathBuf, String> {
     }
 }
 
-/// 数据仓：任务与产物草稿落在这里，必须显式给出。
+/// 数据仓：任务与产物草稿落在这里。
+///
+/// 不给 `--data` 就用当前目录下的 `data/`——开发环境的默认位置，不进版本库；
+/// 用哪个数据仓印到标准错误，免得结果落在哪里靠猜。
 fn data_dir(cli: &Cli) -> Result<PathBuf, String> {
-    cli.data
-        .clone()
-        .ok_or_else(|| "请给数据仓：--data <路径>（任务与产物草稿落在这里）".to_string())
+    if let Some(data) = cli.data.clone() {
+        return Ok(data);
+    }
+    let data = std::env::current_dir()
+        .map_err(|e| e.to_string())?
+        .join("data");
+    eprintln!("用的是数据仓：{}（没给 --data）", data.display());
+    Ok(data)
 }
 
 fn emit(result: report::Result, cli: &Cli) -> i32 {

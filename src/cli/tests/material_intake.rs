@@ -17,17 +17,32 @@ fn context_entries_into_material() {
     fix.pi(
         "printf '清单\\n' > pull.md\nprintf '分类\\n' > classify.md\nmkdir -p materials/课程\nprintf '粗加工\\n' > materials/课程/index.md\nprintf '迁出\\n' > move-out.md\nprintf '提交\\n' > commit.md\necho 通过",
     );
-    fix.run_full(true, &["task", "--new", "context-to-profile", "--workflow", "context-to-profile"]);
+    fix.run_full(
+        true,
+        &[
+            "task",
+            "--new",
+            "context-to-profile",
+            "--workflow",
+            "context-to-profile",
+        ],
+    );
 
     for step in ["pull", "classify", "coarsen", "move-out", "commit"] {
         let stepped = fix.run_recorded(&["task", "context-to-profile", "--next"]);
         assert!(stepped.ok(), "--next 走 {step} 没跑通: {}", stepped.crop());
     }
     assert!(
-        fix.task_yaml("context-to-profile").matches("ok: true").count() >= 5,
+        fix.task_yaml("context-to-profile")
+            .matches("ok: true")
+            .count()
+            >= 5,
         "五步都该记一笔"
     );
-    assert!(fix.root.join("materials/课程/index.md").is_file(), "粗加工的材料格没落盘");
+    assert!(
+        fix.root.join("materials/课程/index.md").is_file(),
+        "粗加工的材料格没落盘"
+    );
     let report = fix.report("context-to-profile");
     assert!(
         report.contains("分类裁决") && report.contains("创始人点头"),

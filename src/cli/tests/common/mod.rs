@@ -147,7 +147,12 @@ impl Fixture {
     }
 
     pub fn report(&self, name: &str) -> String {
-        read(&self.data.join("artifacts/report").join(format!("{name}.md")))
+        read(
+            &self
+                .data
+                .join("artifacts/report")
+                .join(format!("{name}.md")),
+        )
     }
 }
 
