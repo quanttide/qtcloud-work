@@ -146,6 +146,29 @@ impl Fixture {
         read(&self.data.join("tasks").join(format!("{name}.yaml")))
     }
 
+    /// 直接写一件任务（给定流水），用来摆状态：真值表靠它。
+    pub fn task_with(&self, name: &str, workflow: &str, log: &[(&str, bool)]) {
+        let flows = self
+            .flows
+            .strip_prefix(&self.root)
+            .map(|p| p.display().to_string())
+            .unwrap_or_default();
+        let mut body = format!(
+            "name: {name}\nstart: 2026-09-11 10:00\nworkflow: {workflow}\nroot: {}\ndata: data/context/qtcloud-work\nworkflows: {flows}\nlog:\n",
+            self.root.display()
+        );
+        for (step, ok) in log {
+            body.push_str(&format!(
+                "- at: 2026-09-11 10:00\n  step: {step}\n  detail: 试\n  ok: {ok}\n"
+            ));
+        }
+        body.push_str("gates: []\nproducts: {}\n");
+        self.file(
+            &format!("data/context/qtcloud-work/tasks/{name}.yaml"),
+            &body,
+        );
+    }
+
     /// 闸门项：记在任务文件里，不在产物里。
     pub fn gates(&self, name: &str) -> String {
         self.task_yaml(name)

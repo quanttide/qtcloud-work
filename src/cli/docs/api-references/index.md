@@ -103,6 +103,14 @@ qtcloud-work workflow <名字>
 
 看这条工作流的步骤、谁执行、各有几条 rule / agent / human。
 
+### workflow <名字> --check
+
+```bash
+qtcloud-work workflow <名字> --check
+```
+
+核对这条定义的声明与判据对不对得上：判据里的路径（`path` / `file`）在不在工作区里；描述里提到的报告小节（`## 名字` 或「名字」一节）有没有判据覆盖。按任务落点的占位（`{{report}}` / `{{journal}}` / `{{log}}`）在定义这一层核不了，跳过。有一件对不上就退出码 1。
+
 ### workflow <名字> --export <文件>
 
 ```bash

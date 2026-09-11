@@ -92,6 +92,9 @@ enum Command {
         /// 存成一份可带走的文件
         #[arg(long)]
         export: Option<PathBuf>,
+        /// 核对这条定义：判据里的路径在不在、描述里提到的小节有没有判据
+        #[arg(long)]
+        check: bool,
         /// 导进来一份工作流文件
         #[arg(long = "import")]
         import_from: Option<PathBuf>,
@@ -283,12 +286,25 @@ fn run(cli: &Cli) -> i32 {
             note,
             export,
             import_from,
+            check,
             as_name,
         } => {
             let data = data_dir(cli).unwrap_or_else(|e| fail(&e));
             let workflows = cli.workflows.as_deref();
             if *list {
                 return emit(workflow::workflow_list(&data, workflows), cli);
+            }
+            if *check {
+                let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
+                return emit(
+                    workflow::workflow_check(
+                        &data,
+                        name.as_deref().unwrap_or(""),
+                        &root,
+                        workflows,
+                    ),
+                    cli,
+                );
             }
             if *new {
                 if cli.dry_run {

@@ -574,3 +574,156 @@ pub fn workflow_list(data: &Path, workflows: Option<&Path>) -> Result {
 }
 
 // ---- 任务 ----
+
+// ---- 定义核对：声明与判据对不对得上 ----
+
+/// 一条定义核对出来的一件事。
+pub struct Finding {
+    pub where_: String,
+    pub what: String,
+    pub ok: bool,
+}
+
+/// 核对一条工作流：
+///
+/// 一、判据里写到的路径（`path` / `file`，`{{…}}` 先按数据仓展开）在不在；
+/// 二、description 里提到的报告小节（`## 名字`）有没有判据覆盖（至少一条 `contains` 写它）。
+///
+/// 目的是把「约定」变成当场能红的核对：路径一搬家、小节一漏，立刻看得见。
+pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
+    let mut found: Vec<Finding> = Vec::new();
+    for step in flow.steps() {
+        for criterion in step.rules() {
+            let literal = criterion
+                .get("path")
+                .or_else(|| criterion.get("file"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            if literal.is_empty() {
+                continue;
+            }
+            // 按任务落点的占位（{{report}} 一类）在定义这一层核不了，跳过。
+            if literal.contains("{{report}}")
+                || literal.contains("{{journal}}")
+                || literal.contains("{{log}}")
+            {
+                continue;
+            }
+            let written = expand_placeholders(literal, data);
+            let target = if Path::new(&written).is_absolute() {
+                PathBuf::from(&written)
+            } else {
+                root.join(&written)
+            };
+            found.push(Finding {
+                where_: format!("{}·{}", step.name(), literal),
+                what: format!("判据里的路径在不在：{written}"),
+                ok: target.exists(),
+            });
+        }
+    }
+
+    let covered: Vec<String> = flow
+        .steps()
+        .into_iter()
+        .flat_map(|step| step.rules())
+        .filter_map(|criterion| {
+            criterion
+                .get("contains")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+        })
+        .collect();
+    let mut mentioned: Vec<String> = Vec::new();
+    for step in flow.steps() {
+        let text: String = step.description();
+        // 两种写法都认：`## 名字` 与 「名字」一节 / 「名字」节
+        for piece in text.split("## ").skip(1) {
+            let name = piece
+                .split(|ch: char| ch.is_whitespace() || ch == '`' || ch == '」')
+                .next()
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            if !name.is_empty() && !mentioned.contains(&name) {
+                mentioned.push(name);
+            }
+        }
+        let mut rest: &str = text.as_str();
+        while let Some(at) = rest.find('「') {
+            let after = &rest[at + '「'.len_utf8()..];
+            let Some(end) = after.find('」') else { break };
+            let name = after[..end].trim().to_string();
+            let tail = after[end + '」'.len_utf8()..].trim_start();
+            let is_section =
+                tail.starts_with("一节") || tail.starts_with("节") || tail.starts_with("两节");
+            if is_section && !name.is_empty() && !name.contains(' ') && !mentioned.contains(&name) {
+                mentioned.push(name);
+            }
+            rest = &after[end + '」'.len_utf8()..];
+        }
+    }
+    for name in mentioned {
+        found.push(Finding {
+            where_: "description".to_string(),
+            what: format!("description 提到的报告小节有没有判据覆盖：{name}"),
+            ok: covered.iter().any(|value| value.contains(&name)),
+        });
+    }
+    found
+}
+
+/// 判据里的占位先按数据仓展开（够核对用：`{{report}}` 一类指到本仓的产物路径）。
+fn expand_placeholders(value: &str, data: &Path) -> String {
+    value
+        .replace("{{artifacts}}", &data.join("artifacts").to_string_lossy())
+        .replace(
+            "{{report}}",
+            &data.join("artifacts/report").to_string_lossy(),
+        )
+        .replace(
+            "{{journal}}",
+            &data.join("artifacts/journal").to_string_lossy(),
+        )
+        .replace("{{log}}", &data.join("tasks").to_string_lossy())
+}
+
+/// 核对结果写成人读的一段。
+pub fn describe(found: &[Finding]) -> Vec<String> {
+    let mut lines = vec![format!("核对 {} 件事", found.len())];
+    for item in found {
+        let mark = if item.ok { "✓" } else { "✗" };
+        lines.push(format!("  {mark} {}——{}", item.where_, item.what));
+    }
+    if found.is_empty() {
+        lines.push("  （这条定义里没有可核对的路径与小节）".to_string());
+    }
+    lines
+}
+
+pub fn all_ok(found: &[Finding]) -> bool {
+    found.iter().all(|item| item.ok)
+}
+
+/// 核对一条工作流的声明与判据对不对得上，结果印给人。
+pub fn workflow_check(data: &Path, name: &str, root: &Path, workflows: Option<&Path>) -> Result {
+    let flow = open_workflow(data, name, workflows);
+    if !flow.exists() {
+        return Result::lines(
+            false,
+            vec![format!("没有这条工作流：{}", short(data, &flow.file()))],
+        );
+    }
+    let found = check(&flow, root, data);
+    let ok = all_ok(&found);
+    let mut result = Result::new(ok);
+    result.lines = vec![format!(
+        "工作流：{}",
+        flow.file()
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+    )];
+    result.lines.extend(describe(&found));
+    result
+}
