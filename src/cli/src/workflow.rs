@@ -9,22 +9,13 @@ use serde_yaml::{Mapping, Value};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
-pub const AGENT: &str = "agent";
-pub const HUMAN: &str = "human";
-pub const RULE: &str = "rule";
-pub const EXECUTORS: [&str; 2] = [AGENT, HUMAN];
-pub const TYPES: [&str; 3] = [RULE, AGENT, HUMAN];
-pub const TOP_FIELDS: [&str; 3] = ["name", "description", "steps"];
-pub const STEP_FIELDS: [&str; 4] = ["name", "description", "executor", "criteria"];
-pub const CRITERION_FIELDS: [&str; 7] = [
-    "executor",
-    "description",
-    "path",
-    "absent",
-    "file",
-    "contains",
-    "run",
-];
+// 字段表与取值：一处定义、两侧共用（工具箱 `quanttide-work`）。
+pub use quanttide_work::definition::{AGENT, HUMAN, RULE};
+
+/// YAML → JSON：工具箱的模型吃 `serde_json::Value`，命令行这边解析出来的是 YAML。
+pub fn yaml_to_json(value: &Value) -> serde_json::Value {
+    serde_json::to_value(value).unwrap_or(serde_json::Value::Null)
+}
 
 /// 这份文件不像一份工作流。
 #[derive(Debug)]
@@ -42,16 +33,10 @@ fn dump(value: &Value) -> String {
     serde_yaml::to_string(value).unwrap_or_default()
 }
 
-fn unknown_fields(mapping: &Mapping, allowed: &[&str]) -> Vec<String> {
-    mapping
-        .keys()
-        .filter_map(|k| k.as_str())
-        .filter(|k| !allowed.contains(k))
-        .map(|k| k.to_string())
-        .collect()
-}
-
 /// 读一份定义：不是映射、缺字段、取值不对，当场报错。
+///
+/// 校验的规矩在工具箱里（`quanttide_work::definition::validate`）——两侧共用一份，
+/// 报错文字也一字不差。
 pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
     let file = path
         .file_name()
@@ -61,127 +46,8 @@ pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
         std::fs::read_to_string(path).map_err(|e| WorkflowError(format!("{file} 读不了：{e}")))?;
     let payload: Value = serde_yaml::from_str(&text)
         .map_err(|e| WorkflowError(format!("{file} 不是合法的 YAML：{e}")))?;
-    let top = payload
-        .as_mapping()
-        .ok_or_else(|| WorkflowError(format!("{file} 的顶层不是映射（name / steps）")))?;
-    if text_of(&payload, "name").is_empty() {
-        return Err(WorkflowError(format!("{file} 少了 name")));
-    }
-    let steps = payload
-        .get("steps")
-        .and_then(|v| v.as_sequence())
-        .filter(|s| !s.is_empty())
-        .ok_or_else(|| WorkflowError(format!("{file} 少了 steps（至少一个步骤）")))?;
-    let unknown = unknown_fields(top, &TOP_FIELDS);
-    if !unknown.is_empty() {
-        return Err(WorkflowError(format!(
-            "{file} 顶层有不认识的字段：{}（只认 {}）",
-            unknown.join("、"),
-            TOP_FIELDS.join("、")
-        )));
-    }
-    for (index, step) in steps.iter().enumerate() {
-        let index = index + 1;
-        let step_map = step
-            .as_mapping()
-            .ok_or_else(|| WorkflowError(format!("{file} 第 {index} 个步骤少了 name")))?;
-        if text_of(step, "name").is_empty() {
-            return Err(WorkflowError(format!("{file} 第 {index} 个步骤少了 name")));
-        }
-        let extra = unknown_fields(step_map, &STEP_FIELDS);
-        if !extra.is_empty() {
-            return Err(WorkflowError(format!(
-                "{file} 第 {index} 个步骤有不认识的字段：{}（只认 {}）",
-                extra.join("、"),
-                STEP_FIELDS.join("、")
-            )));
-        }
-        let executor = text_of(step, "executor");
-        let executor = if executor.is_empty() {
-            AGENT.to_string()
-        } else {
-            executor
-        };
-        if !EXECUTORS.contains(&executor.as_str()) {
-            return Err(WorkflowError(format!(
-                "{file} 第 {index} 个步骤的 executor 只能是 {}，实得 {executor}",
-                EXECUTORS.join(" 或 ")
-            )));
-        }
-        let criteria = match step.get("criteria") {
-            None | Some(Value::Null) => &[][..],
-            Some(Value::Sequence(items)) => items.as_slice(),
-            Some(_) => {
-                return Err(WorkflowError(format!(
-                    "{file} 第 {index} 个步骤的 criteria 应当是列表"
-                )));
-            }
-        };
-        for (order, criterion) in criteria.iter().enumerate() {
-            let order = order + 1;
-            let where_ = format!("第 {index} 个步骤第 {order} 条判据");
-            let kind = text_of(criterion, "executor");
-            if !TYPES.contains(&kind.as_str()) {
-                return Err(WorkflowError(format!(
-                    "{file} {where_}的 executor 只能是 {}（谁判：规则引擎 / 智能体 / 人）",
-                    TYPES.join(" / ")
-                )));
-            }
-            let criterion_map = criterion
-                .as_mapping()
-                .ok_or_else(|| WorkflowError(format!("{file} {where_}不是映射")))?;
-            let odd = unknown_fields(criterion_map, &CRITERION_FIELDS);
-            if !odd.is_empty() {
-                return Err(WorkflowError(format!(
-                    "{file} {where_}有不认识的字段：{}（只认 {}）",
-                    odd.join("、"),
-                    CRITERION_FIELDS.join("、")
-                )));
-            }
-            let given: Vec<&str> = ["path", "absent", "file", "contains", "run"]
-                .into_iter()
-                .filter(|name| criterion.get(*name).is_some())
-                .collect();
-            if kind == RULE {
-                if given.is_empty() {
-                    return Err(WorkflowError(format!(
-                        "{file} {where_}是 rule，得写一条判法（path / absent / file+contains / run）"
-                    )));
-                }
-                if given.contains(&"contains") && !given.contains(&"file") {
-                    return Err(WorkflowError(format!(
-                        "{file} {where_}写了 contains，还得写 file"
-                    )));
-                }
-                if given.contains(&"file") && !given.contains(&"contains") {
-                    return Err(WorkflowError(format!(
-                        "{file} {where_}写了 file，还得写 contains"
-                    )));
-                }
-                let others: Vec<&str> = given
-                    .iter()
-                    .copied()
-                    .filter(|n| *n != "file" && *n != "contains")
-                    .collect();
-                if others.len() > 1 || (!others.is_empty() && given.contains(&"file")) {
-                    return Err(WorkflowError(format!(
-                        "{file} {where_}的判法只能一种：path / absent / file+contains / run"
-                    )));
-                }
-            } else {
-                if text_of(criterion, "description").is_empty() {
-                    return Err(WorkflowError(format!(
-                        "{file} {where_}是 {kind}，必须写 description（判准 / 要人拍板的事）"
-                    )));
-                }
-                if !given.is_empty() {
-                    return Err(WorkflowError(format!(
-                        "{file} {where_}是 {kind}，不该带 {}（那是 rule 的字段）",
-                        given.join("、")
-                    )));
-                }
-            }
-        }
+    if let Err(error) = quanttide_work::definition::validate(&yaml_to_json(&payload), &file) {
+        return Err(WorkflowError(error.0));
     }
     Ok(payload)
 }
@@ -577,145 +443,34 @@ pub fn workflow_list(data: &Path, workflows: Option<&Path>) -> Result {
 
 // ---- 定义核对：声明与判据对不对得上 ----
 
-/// 一条定义核对出来的一件事。
-pub struct Finding {
-    pub where_: String,
-    pub what: String,
-    pub ok: bool,
-}
+/// 一条定义核对出来的一件事（工具箱那份）。
+pub use quanttide_work::definition::Finding;
 
-/// 核对一条工作流：
+/// 核对一条工作流：判据里的路径在不在；描述里提到的报告小节有没有判据覆盖。
 ///
-/// 一、判据里写到的路径（`path` / `file`，`{{…}}` 先按数据仓展开）在不在；
-/// 二、description 里提到的报告小节（`## 名字`）有没有判据覆盖（至少一条 `contains` 写它）。
-///
-/// 目的是把「约定」变成当场能红的核对：路径一搬家、小节一漏，立刻看得见。
+/// 规矩在工具箱里；这里只把命令行这边的 YAML 转成它吃的 JSON，并把「路径在不在」
+/// 用工作区根包一层。
 pub fn check(flow: &Workflow, root: &Path, data: &Path) -> Vec<Finding> {
-    let mut found: Vec<Finding> = Vec::new();
-    for step in flow.steps() {
-        for criterion in step.rules() {
-            let literal = criterion
-                .get("path")
-                .or_else(|| criterion.get("file"))
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
-            if literal.is_empty() {
-                continue;
-            }
-            // 按任务落点的占位（{{report}} 一类）在定义这一层核不了，跳过。
-            if literal.contains("{{report}}")
-                || literal.contains("{{journal}}")
-                || literal.contains("{{log}}")
-            {
-                continue;
-            }
-            let written = expand_placeholders(literal, data);
-            let target = if Path::new(&written).is_absolute() {
-                PathBuf::from(&written)
-            } else {
-                root.join(&written)
-            };
-            found.push(Finding {
-                where_: format!("{}·{}", step.name(), literal),
-                what: format!("判据里的路径在不在：{written}"),
-                ok: target.exists(),
-            });
-        }
-    }
-
-    let covered: Vec<String> = flow
-        .steps()
-        .into_iter()
-        .flat_map(|step| step.rules())
-        .filter_map(|criterion| {
-            criterion
-                .get("contains")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-        })
-        .collect();
-    let mut mentioned: Vec<String> = Vec::new();
-    for step in flow.steps() {
-        let text: String = step.description();
-        // 两种写法都认：`## 名字` 与 「名字」一节 / 「名字」节
-        for piece in text.split("## ").skip(1) {
-            let name = piece
-                .split(|ch: char| ch.is_whitespace() || ch == '`' || ch == '」')
-                .next()
-                .unwrap_or("")
-                .trim()
-                .to_string();
-            if looks_like_section(&name) && !mentioned.contains(&name) {
-                mentioned.push(name);
-            }
-        }
-        let mut rest: &str = text.as_str();
-        while let Some(at) = rest.find('「') {
-            let after = &rest[at + '「'.len_utf8()..];
-            let Some(end) = after.find('」') else { break };
-            let name = after[..end].trim().to_string();
-            let tail = after[end + '」'.len_utf8()..].trim_start();
-            let is_section =
-                tail.starts_with("一节") || tail.starts_with("节") || tail.starts_with("两节");
-            if is_section && looks_like_section(&name) && !mentioned.contains(&name) {
-                mentioned.push(name);
-            }
-            rest = &after[end + '」'.len_utf8()..];
-        }
-    }
-    for name in mentioned {
-        found.push(Finding {
-            where_: "description".to_string(),
-            what: format!("description 提到的报告小节有没有判据覆盖：{name}"),
-            ok: covered.iter().any(|value| value.contains(&name)),
-        });
-    }
-    found
-}
-
-/// 像不像报告小节的名字：中文短词。版本号写法（`## [X.Y.Z-pre.N]`）、占位、路径都不算。
-fn looks_like_section(name: &str) -> bool {
-    !name.is_empty()
-        && name.chars().count() <= 12
-        && !name.contains(|ch: char| {
-            ch.is_ascii_digit()
-                || matches!(
-                    ch,
-                    '[' | ']' | '{' | '}' | '.' | '/' | '`' | '<' | '>' | '-' | '_'
-                )
-        })
-}
-
-/// 判据里的占位先按数据仓展开（够核对用：`{{report}}` 一类指到本仓的产物路径）。
-fn expand_placeholders(value: &str, data: &Path) -> String {
-    value
-        .replace("{{artifacts}}", &data.join("artifacts").to_string_lossy())
-        .replace(
-            "{{report}}",
-            &data.join("artifacts/report").to_string_lossy(),
-        )
-        .replace(
-            "{{journal}}",
-            &data.join("artifacts/journal").to_string_lossy(),
-        )
-        .replace("{{log}}", &data.join("tasks").to_string_lossy())
+    let payload = yaml_to_json(&flow.payload);
+    let shared = quanttide_work::definition::Workflow::new(&flow.name, payload);
+    quanttide_work::definition::check(&shared, &data.to_string_lossy(), |written| {
+        let path = Path::new(written);
+        let target = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            root.join(path)
+        };
+        target.exists()
+    })
 }
 
 /// 核对结果写成人读的一段。
 pub fn describe(found: &[Finding]) -> Vec<String> {
-    let mut lines = vec![format!("核对 {} 件事", found.len())];
-    for item in found {
-        let mark = if item.ok { "✓" } else { "✗" };
-        lines.push(format!("  {mark} {}——{}", item.where_, item.what));
-    }
-    if found.is_empty() {
-        lines.push("  （这条定义里没有可核对的路径与小节）".to_string());
-    }
-    lines
+    quanttide_work::definition::describe(found)
 }
 
 pub fn all_ok(found: &[Finding]) -> bool {
-    found.iter().all(|item| item.ok)
+    quanttide_work::definition::all_ok(found)
 }
 
 /// 核对一条工作流的声明与判据对不对得上，结果印给人。
