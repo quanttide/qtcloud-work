@@ -67,6 +67,24 @@ fn 导览列出全部命令() {
     assert!(!bad.ok(), "认不出的名字该报错: {}", bad.crop());
 }
 
+/// 每条命令的帮助里要有例子：加命令忘了写例子，这条会红。
+#[test]
+fn 每条命令的帮助都有例子() {
+    let fix = Fixture::new("help-examples");
+    for name in [
+        "find", "catalog", "audit", "material", "workflow", "task", "help", "health",
+    ] {
+        let out = fix.run(false, &[name, "--help"]);
+        assert!(out.ok(), "{name} --help 没跑通: {}", out.crop());
+        let shown = format!("{}{}", out.crop(), out.crop());
+        assert!(
+            shown.contains("例子：") && shown.contains("qtcloud-work"),
+            "{name} 的帮助里没有例子: {}",
+            out.crop()
+        );
+    }
+}
+
 /// --json 的字段是脚本依赖的契约，只加不改。
 #[test]
 fn json字段是契约() {
