@@ -640,7 +640,10 @@ pub fn execute(
         })
         .collect();
     let rules_pass = results.iter().all(|(_, passed, _)| *passed);
-    let judged_pass = judged.iter().all(|(_, verdict, _)| verdict == "✓");
+    // 待判（人为地记一步、没跑智能体）不挡这一步，原样进闸门项。
+    let judged_pass = judged
+        .iter()
+        .all(|(_, verdict, _)| verdict == "✓" || verdict == "待判");
     let ok = rules_pass && judged_pass;
     let detail = if !note.trim().is_empty() {
         note.trim().to_string()
