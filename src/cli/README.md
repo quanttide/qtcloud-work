@@ -19,6 +19,7 @@ qtcloud-work --help
 | 工作区 | `find` `catalog` `audit` `material` | 按名找文档、列目录、审计资产、看材料四字段 |
 | 工作流 | `workflow --list / --new / <名字> / --check / --export / --import` | 定义是 YAML；`--check` 核对判据里的路径与描述提到的小节 |
 | 任务 | `task --new / <名字> / --next / --done / --journal / --list` | 走一步、人为记一步、写日志 |
+| 导览 | `help [<话题>]` | 按用途列出命令；给了话题说那一条要点 |
 | 探活 | `health` | `GET /health`，`--json` 透传服务端响应 |
 
 全局三处位置：`--root` 工作区、`--data` 数据仓（任务与产物草稿，缺省当前目录下的 `data/`）、`--workflows` 工作流目录（缺省跟在数据仓里）。写动作支持 `--dry-run`；每个动作支持 `--json` 与 `--out <文件>`。

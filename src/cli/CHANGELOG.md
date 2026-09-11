@@ -2,6 +2,11 @@
 
 本文件仅记录 **cli（量潮知识工作云 CLI，Rust，纯服务端客户端）** 的版本变更。
 
+## [Unreleased]
+
+- 新增 `help` 导览（按用途列命令，`help <话题>` 说一条要点）与 `src/help.rs`。
+- 文档：接口参考以 API 为单位重排（一个 API 一篇）；使用指南删去过时的用例篇。
+
 ## [0.1.0-alpha.4] - 2026-09-11
 
 - CI（`release-cli`）：crates.io 预检带上 User-Agent（不带会被 403 挡回，与 token 无关）；token 同时认 `CRATES_API_TOKEN` 与 `CARGO_REGISTRY_TOKEN` 两个名字。
