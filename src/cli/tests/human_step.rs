@@ -54,7 +54,7 @@ fn human_step_recorded_by_hand() {
         "human 步骤按 note 记应算过:\n{record}"
     );
     assert!(
-        fix.report("数据归仓").contains("创始人过目"),
-        "human 闸门该列进报告"
+        fix.gates("数据归仓").contains("创始人过目"),
+        "human 闸门该记在任务文件里"
     );
 }

@@ -3,7 +3,7 @@
 //! `<数据仓>/tasks/<任务>.yaml` 是一次执行：跑哪条工作流 + 自带的运行上下文
 //! （`root` / `data` / `workflows`）+ 流水；产物落在 `artifacts/` 下。
 //!
-//! 走一步：执行者是 AI 的交给 `pi` 跑，然后程序自己判机械判据、把闸门项列给人，
+//! 走一步：执行者是 AI 的交给 `pi` 跑，然后程序自己判机械判据、把闸门项记进任务文件，
 //! 事实记进流水与报告。
 
 use crate::workflow::{self, Step, Workflow};
@@ -41,10 +41,59 @@ impl Task {
         self.data.join("artifacts")
     }
 
-    /// 流水就在任务文件里（`{{log}}` 指它），产物按类型进 `artifacts/`。
+    /// 这次执行往哪写产物（任务是运行数据，产物与它没有从属关系）。
+    pub fn products(&self) -> std::collections::BTreeMap<String, String> {
+        let mut found = std::collections::BTreeMap::new();
+        if let Some(mapping) = self.payload().get("products").and_then(|v| v.as_mapping()) {
+            for (key, value) in mapping {
+                if let (Some(key), Some(value)) = (key.as_str(), value.as_str()) {
+                    found.insert(key.to_string(), value.to_string());
+                }
+            }
+        }
+        found
+    }
+
+    /// 闸门项：等人拍板的事项，记在任务文件里。
+    pub fn gates(&self) -> Vec<String> {
+        self.payload()
+            .get("gates")
+            .and_then(|v| v.as_sequence())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    pub fn set_gates(&self, notes: &[String]) {
+        let mut payload = self.payload();
+        if let Value::Mapping(ref mut mapping) = payload {
+            mapping.insert(
+                Value::String("gates".into()),
+                Value::Sequence(notes.iter().map(|n| Value::String(n.clone())).collect()),
+            );
+        }
+        let text = serde_yaml::to_string(&payload).unwrap_or_default();
+        let _ = std::fs::write(self.file(), text);
+    }
+
+    /// 流水就在任务文件里（`{{log}}` 指它）；产物路径先看声明，没声明就落草稿区。
     pub fn artifact(&self, kind: &str) -> PathBuf {
         if kind == LOG {
             return self.file();
+        }
+        if let Some(written) = self.products().get(kind)
+            && !written.trim().is_empty()
+        {
+            let path = PathBuf::from(written.trim());
+            return if path.is_absolute() {
+                path
+            } else {
+                self.root.join(path)
+            };
         }
         self.artifacts_dir()
             .join(kind)
@@ -179,12 +228,6 @@ pub fn create(
     if let Some(parent) = task.file().parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    let _ = std::fs::create_dir_all(task.artifacts_dir());
-    for kind in [REPORT, JOURNAL] {
-        if let Some(parent) = task.artifact(kind).parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-    }
     if !task.file().is_file() {
         let mut payload = Mapping::new();
         payload.insert(
@@ -196,6 +239,9 @@ pub fn create(
             Value::String("workflow".into()),
             Value::String(workflow_name.to_string()),
         );
+        payload.insert("log".into(), Value::Sequence(Vec::new()));
+        payload.insert("gates".into(), Value::Sequence(Vec::new()));
+        payload.insert("products".into(), Value::Mapping(Mapping::new()));
         for (key, value) in context(root, data, workflows) {
             payload.insert(Value::String(key), Value::String(value));
         }
@@ -205,11 +251,17 @@ pub fn create(
             serde_yaml::to_string(&Value::Mapping(payload)).unwrap_or_default(),
         );
     }
-    if !task.artifact(REPORT).is_file() {
-        let _ = std::fs::write(task.artifact(REPORT), report_template(name));
-    }
-    if !task.artifact(JOURNAL).is_file() {
-        let _ = std::fs::write(task.artifact(JOURNAL), journal_template(name));
+    for kind in [REPORT, JOURNAL] {
+        let declared = task
+            .products()
+            .get(kind)
+            .is_some_and(|v| !v.trim().is_empty());
+        if declared && !task.artifact(kind).is_file() {
+            if let Some(parent) = task.artifact(kind).parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            let _ = std::fs::write(task.artifact(kind), format!("# {kind}：{name}\n"));
+        }
     }
     task
 }
@@ -321,7 +373,7 @@ pub fn prompt_for(task: &Task, step: &Step) -> String {
          做什么：\n{what}\n\n\
          判据（程序随后自己核对，你不能改判据、也不许改判据文件）：\n{criteria}\n\n\
          本任务的三样东西（报告与日志是产物，流水是执行痕迹）：\n\
-           报告：{report}（程序只维护「执行记录」与「闸门项」两节，其余节归你写）\n\
+           产物：{report}（程序不碰产物内容，谁写谁定；闸门项记在任务文件里）\n\
            日志：{journal}\n\
            流水：{log}（就在任务文件里）\n\
          工作流里用 {{{{report}}}} / {{{{journal}}}} / {{{{log}}}} 指这三样；工作内容写进报告，别动程序那两节。\n\
@@ -591,7 +643,7 @@ pub fn execute(
         ));
         task.record(&found.name(), &format!("AI 执行：{one}"), ran);
         if !ran {
-            write_report(task, &[]);
+            write_gates(task, &[]);
             lines.push("  （AI 没跑成，这一步不算过；修好再来）".to_string());
             return (false, lines, Vec::new());
         }
@@ -666,7 +718,7 @@ pub fn execute(
             .filter(|(_, verdict, _)| verdict != "✓")
             .map(|(note, _, _)| note.clone()),
     );
-    write_report(task, &gate_lines);
+    write_gates(task, &gate_lines);
     lines.push(format!(
         "{} {}：{}",
         if ok { "✓" } else { "✗" },
@@ -709,77 +761,22 @@ pub fn execute(
     (ok, lines, rows)
 }
 
-/// 报告：程序只动「执行记录」与「闸门项」两节，其余节（产物内容）保留。
-pub fn write_report(task: &Task, gates: &[String]) -> PathBuf {
-    let path = task.artifact(REPORT);
-    if let Some(parent) = path.parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-    let mut text = std::fs::read_to_string(&path).unwrap_or_default();
-    if text.trim().is_empty() {
-        text = format!("# 报告：{}\n", task.name);
-    }
-    let records: Vec<String> = task
-        .events()
-        .iter()
-        .map(|event| {
-            let at = event.get("at").and_then(|v| v.as_str()).unwrap_or("");
-            let step = event.get("step").and_then(|v| v.as_str()).unwrap_or("");
-            let detail = event.get("detail").and_then(|v| v.as_str()).unwrap_or("");
-            let ok = event.get("ok").and_then(|v| v.as_bool()).unwrap_or(false);
-            format!("- {} {at}　{step}　{detail}", if ok { "✓" } else { "✗" })
-        })
-        .collect();
-    let gate_lines: Vec<String> = {
-        let mut notes = existing_gates(&text);
-        for note in gates {
-            if !notes.iter().any(|existing| existing == note) {
-                notes.push(note.clone());
-            }
-        }
-        if notes.is_empty() {
-            vec!["- （暂无）".to_string()]
-        } else {
-            notes
-                .iter()
-                .map(|note| format!("- ⧗ {note}（留给人 / 待判）"))
-                .collect()
-        }
-    };
-    text = replace_section(&text, "执行记录", &records);
-    text = replace_section(&text, "闸门项", &gate_lines);
-    let _ = std::fs::write(&path, text);
-    path
-}
-
-/// 报告里已经挂着的闸门项：走一步就累着写，后面的步骤不把前面的盖掉。
-fn existing_gates(text: &str) -> Vec<String> {
-    let mut notes = Vec::new();
-    let mut in_section = false;
-    for line in text.lines() {
-        if line.starts_with("## ") {
-            in_section = line.trim() == "## 闸门项";
-            continue;
-        }
-        if !in_section {
-            continue;
-        }
-        let stripped = line.trim();
-        let Some(rest) = stripped.strip_prefix("- ⧗ ") else {
-            continue;
-        };
-        let note = rest.split("（留给人").next().unwrap_or(rest).trim();
-        if !note.is_empty() {
-            notes.push(note.to_string());
+/// 闸门项是任务的状态，记进任务文件；产物一个字都不碰。
+pub fn write_gates(task: &Task, gates: &[String]) {
+    let mut notes = task.gates();
+    for note in gates {
+        if !notes.iter().any(|existing| existing == note) {
+            notes.push(note.clone());
         }
     }
-    notes
+    task.set_gates(&notes);
 }
 
 /// 日志收叙事：一段一段往下写。
 pub fn narrate(task: &Task, words: &str) {
     let path = task.artifact(JOURNAL);
-    let mut text = std::fs::read_to_string(&path).unwrap_or_else(|_| journal_template(&task.name));
+    let mut text =
+        std::fs::read_to_string(&path).unwrap_or_else(|_| format!("# 日志：{}\n", task.name));
     text = text
         .lines()
         .filter(|line| {
@@ -1036,41 +1033,3 @@ pub fn task_journal(
 }
 
 // ---- 记录的段位与骨架：报告两节与日志模板 ----
-
-/// 日志模板里的占位行，收叙事时先去掉它。
-pub const JOURNAL_PLACEHOLDER: &str = "（这个任务的来龙去脉，你写）";
-
-pub fn report_template(title: &str) -> String {
-    let title = if title.is_empty() {
-        "<任务的名字>"
-    } else {
-        title
-    };
-    format!("# 报告：{title}\n\n## 执行记录\n\n## 闸门项\n")
-}
-
-pub fn journal_template(title: &str) -> String {
-    let title = if title.is_empty() {
-        "<任务的名字>"
-    } else {
-        title
-    };
-    format!("# 日志：{title}\n\n{JOURNAL_PLACEHOLDER}\n")
-}
-
-/// 把某一节的正文换掉，其它节原样保留；没有这一节就补在后面。
-pub fn replace_section(text: &str, title: &str, body: &[String]) -> String {
-    let marker = format!("## {title}");
-    let block = format!("## {title}\n\n{}\n", body.join("\n"));
-    match text.find(&marker) {
-        None => format!("{}\n\n{}", text.trim_end(), block),
-        Some(at) => {
-            let head = &text[..at];
-            let tail = &text[at + marker.len()..];
-            match tail.find("## ") {
-                None => format!("{head}{block}"),
-                Some(next) => format!("{head}{block}\n{}", &tail[next..]),
-            }
-        }
-    }
-}

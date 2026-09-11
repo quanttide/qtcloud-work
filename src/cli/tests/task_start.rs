@@ -19,12 +19,8 @@ fn start_task_lays_down_files_and_context() {
         "任务文件没落盘"
     );
     assert!(
-        fix.data.join("artifacts/report/AI冒烟.md").is_file(),
-        "报告没备好"
-    );
-    assert!(
-        fix.data.join("artifacts/journal/AI冒烟.md").is_file(),
-        "日志没备好"
+        !fix.data.join("artifacts/report/AI冒烟.md").exists(),
+        "程序不建产物：没声明落点就不该有报告"
     );
 
     let record = fix.task_yaml("AI冒烟");
@@ -38,6 +34,10 @@ fn start_task_lays_down_files_and_context() {
         "工作流目录没随任务记:\n{record}"
     );
     assert!(record.contains("log:"), "流水没开:\n{record}");
+    assert!(record.contains("gates:"), "闸门项没有落处:\n{record}");
+    assert!(record.contains("products:"), "产物落点没有落处:\n{record}");
+    assert!(record.contains("gates:"), "闸门项没开:\n{record}");
+    assert!(record.contains("products:"), "产物落点没开:\n{record}");
 
     let missing = fix.run_full(
         true,

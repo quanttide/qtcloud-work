@@ -43,9 +43,9 @@ fn context_entries_into_material() {
         fix.root.join("materials/课程/index.md").is_file(),
         "粗加工的材料格没落盘"
     );
-    let report = fix.report("context-to-profile");
+    let gates = fix.gates("context-to-profile");
     assert!(
-        report.contains("分类裁决") && report.contains("创始人点头"),
-        "两道 human 闸门该挂进报告:\n{report}"
+        gates.contains("分类裁决") && gates.contains("创始人点头"),
+        "两道 human 闸门该留在任务文件里:\n{gates}"
     );
 }

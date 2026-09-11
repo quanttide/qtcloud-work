@@ -146,13 +146,9 @@ impl Fixture {
         read(&self.data.join("tasks").join(format!("{name}.yaml")))
     }
 
-    pub fn report(&self, name: &str) -> String {
-        read(
-            &self
-                .data
-                .join("artifacts/report")
-                .join(format!("{name}.md")),
-        )
+    /// 闸门项：记在任务文件里，不在产物里。
+    pub fn gates(&self, name: &str) -> String {
+        self.task_yaml(name)
     }
 }
 

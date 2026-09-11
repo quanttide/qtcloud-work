@@ -26,13 +26,9 @@ fn one_step_with_three_kinds_of_criteria() {
         record.contains("step: 写一句") && record.contains("ok: true"),
         "rule 与 agent 都过了才算这一步过:\n{record}"
     );
-    let report = fix.report("三类判据");
+    let gates = fix.gates("三类判据");
     assert!(
-        report.contains("创始人认可"),
-        "human 判据该原样进闸门:\n{report}"
-    );
-    assert!(
-        report.contains("闸门") || report.contains("⧗"),
-        "闸门项没列出来:\n{report}"
+        gates.contains("创始人认可"),
+        "human 判据该原样进闸门:\n{gates}"
     );
 }

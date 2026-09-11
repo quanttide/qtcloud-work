@@ -19,7 +19,10 @@ fn take_one_agent_step_through_pi() {
     let record = fix.task_yaml("AI冒烟");
     assert!(record.contains("step: 问候"), "流水没记这一步:\n{record}");
     assert!(record.contains("ok: true"), "这一步没算过:\n{record}");
-    assert!(fix.report("AI冒烟").contains("问候"), "报告没写这一步");
+    assert!(
+        !fix.data.join("artifacts/report/AI冒烟.md").exists(),
+        "程序不写产物：这一步的报告该由写它的人来写"
+    );
 
     // 同类场景的另一半：pi 失败 → 这一步不算过，流水留 ✗。
     let broken = Fixture::new("step-fail");
