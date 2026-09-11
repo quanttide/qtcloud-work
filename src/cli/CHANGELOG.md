@@ -1,6 +1,6 @@
 # Changelog
 
-本文件仅记录 **cli（量潮知识工作云 CLI，Rust，纯服务端客户端）** 的版本变更。
+本文件仅记录 **cli（量潮知识工作云 CLI，Rust）** 的版本变更。
 
 ## [Unreleased]
 
