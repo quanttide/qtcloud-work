@@ -79,7 +79,9 @@ void main() {
           write('d.yaml', 'name: demo\nsteps:\n- name: 甲\n  executor: robot\n'),
         ),
         throwsA(
-          predicate((e) => '$e'.contains('executor 只能是 agent 或 human，实得 robot')),
+          predicate(
+            (e) => '$e'.contains('executor 只能是 agent 或 human，实得 robot'),
+          ),
         ),
       );
     });
@@ -99,7 +101,10 @@ void main() {
     test('rule 得写一条判法', () {
       expect(
         () => loadDefinition(
-          write('f.yaml', 'name: demo\nsteps:\n- name: 甲\n  criteria:\n  - executor: rule\n'),
+          write(
+            'f.yaml',
+            'name: demo\nsteps:\n- name: 甲\n  criteria:\n  - executor: rule\n',
+          ),
         ),
         throwsA(predicate((e) => '$e'.contains('得写一条判法'))),
       );
@@ -126,7 +131,10 @@ void main() {
       );
       expect(
         () => loadDefinition(
-          write('i.yaml', 'name: demo\nsteps:\n- name: 甲\n  criteria:\n  - executor: rule\n    file: a.md\n'),
+          write(
+            'i.yaml',
+            'name: demo\nsteps:\n- name: 甲\n  criteria:\n  - executor: rule\n    file: a.md\n',
+          ),
         ),
         throwsA(predicate((e) => '$e'.contains('还得写 contains'))),
       );
@@ -238,7 +246,9 @@ void main() {
       write('demo.yaml', good);
       final checked = workflowCheck(tmp.path, 'demo', tmp.path);
       expect(
-        checked.lines.any((line) => line.contains('✓ 甲·data/journal/README.md')),
+        checked.lines.any(
+          (line) => line.contains('✓ 甲·data/journal/README.md'),
+        ),
         isTrue,
       );
     });
@@ -267,12 +277,18 @@ void main() {
     test('覆盖上了就绿', () {
       Directory('${tmp.path}/data/journal').createSync(recursive: true);
       File('${tmp.path}/data/journal/README.md').writeAsStringSync('# 日志\n');
-      write('demo.yaml', good.replaceFirst(
-        'path: data/journal/README.md',
-        'path: data/journal/README.md\n  - executor: rule\n    file: data/journal/README.md\n    contains: "## 收尾"',
-      ));
+      write(
+        'demo.yaml',
+        good.replaceFirst(
+          'path: data/journal/README.md',
+          'path: data/journal/README.md\n  - executor: rule\n    file: data/journal/README.md\n    contains: "## 收尾"',
+        ),
+      );
       final checked = workflowCheck(tmp.path, 'demo', tmp.path);
-      expect(checked.lines.any((line) => line.contains('✓ description')), isTrue);
+      expect(
+        checked.lines.any((line) => line.contains('✓ description')),
+        isTrue,
+      );
       expect(checked.ok, isTrue);
     });
 
@@ -284,7 +300,10 @@ void main() {
     });
 
     test('占位按数据仓展开', () {
-      expect(expandPlaceholders('{{report}}/x.md', '/d'), '/d/artifacts/report/x.md');
+      expect(
+        expandPlaceholders('{{report}}/x.md', '/d'),
+        '/d/artifacts/report/x.md',
+      );
       expect(expandPlaceholders('{{log}}', '/d'), '/d/tasks');
     });
   });

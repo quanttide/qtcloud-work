@@ -22,7 +22,10 @@ void main() {
     for (final step in workflow.steps) {
       expect(find.text(step.name), findsOneWidget);
     }
-    expect(find.text('AI 执行 · 4 条判据'), findsNWidgets(2)); // profile 与 audit 都是 4 条
+    expect(
+      find.text('AI 执行 · 4 条判据'),
+      findsNWidgets(2),
+    ); // profile 与 audit 都是 4 条
     expect(find.text('AI 执行 · 5 条判据'), findsOneWidget);
   });
 
@@ -31,7 +34,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StepChain(workflow: workflow, onSelect: (index) => picked = index),
+          body: StepChain(
+            workflow: workflow,
+            onSelect: (index) => picked = index,
+          ),
         ),
       ),
     );

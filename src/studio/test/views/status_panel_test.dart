@@ -52,8 +52,14 @@ void main() {
 
   testWidgets('产物三个落点都在', (tester) async {
     await pump(tester);
-    expect(find.textContaining('artifacts/report/learn-task-create.md'), findsOneWidget);
-    expect(find.textContaining('artifacts/journal/learn-task-create.md'), findsOneWidget);
+    expect(
+      find.textContaining('artifacts/report/learn-task-create.md'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('artifacts/journal/learn-task-create.md'),
+      findsOneWidget,
+    );
     expect(find.textContaining('tasks/learn-task-create.yaml'), findsOneWidget);
   });
 
@@ -66,10 +72,7 @@ void main() {
   testWidgets('走完了就不给再走', (tester) async {
     await pump(tester);
     final button = tester.widget<FilledButton>(
-      find.ancestor(
-        of: find.text('走下一步'),
-        matching: find.byType(FilledButton),
-      ),
+      find.ancestor(of: find.text('走下一步'), matching: find.byType(FilledButton)),
     );
     expect(button.onPressed, isNull);
   });

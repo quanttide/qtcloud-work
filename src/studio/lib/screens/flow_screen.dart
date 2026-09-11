@@ -9,10 +9,18 @@ import '../views/step_chain.dart';
 
 /// 流程页：一条定义。左边对话，右边两态（步骤 / 定义）。（见 doc/screens/flow.md）
 class FlowScreen extends StatefulWidget {
-  const FlowScreen({super.key, required this.client, required this.workflow});
+  const FlowScreen({
+    super.key,
+    required this.client,
+    required this.workflow,
+    this.onCreated,
+  });
 
   final QtcloudWork client;
   final WorkflowDetail workflow;
+
+  /// 起了一件任务之后通知外面（刷新列表、去打开它）。
+  final Future<void> Function(String name)? onCreated;
 
   @override
   State<FlowScreen> createState() => _FlowScreenState();
@@ -20,7 +28,90 @@ class FlowScreen extends StatefulWidget {
 
 class _FlowScreenState extends State<FlowScreen> {
   bool _definition = false;
+  bool _busy = false;
   int? _selected;
+
+  void _tell(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  /// 起一件任务：`task --new <名字> --workflow <这条>`。
+  Future<void> _create() async {
+    final name = await _askName();
+    if (name == null || name.trim().isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      final result = await widget.client.create(
+        name.trim(),
+        widget.workflow.name,
+      );
+      if (!mounted) return;
+      if (result.ok) {
+        _tell('已起任务：${name.trim()}');
+        await widget.onCreated?.call(name.trim());
+      } else {
+        _tell(result.lines.join('　'));
+      }
+    } catch (error) {
+      if (mounted) _tell('$error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<String?> _askName() {
+    final field = TextEditingController(text: widget.workflow.name);
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('起一件任务'),
+        content: TextField(
+          controller: field,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: '任务名'),
+          onSubmitted: (value) => Navigator.of(context).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(field.text),
+            child: const Text('起'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 核对定义：`workflow <名字> --check`。
+  Future<void> _check() async {
+    setState(() => _busy = true);
+    try {
+      final result = await widget.client.workflowCheck(widget.workflow.name);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(result.ok ? '定义没问题' : '定义有几处要改'),
+          content: SingleChildScrollView(
+            child: SelectableText(result.lines.join('\n')),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('知道了'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      if (mounted) _tell('$error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +152,24 @@ class _FlowScreenState extends State<FlowScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    PopupMenuButton<String>(
+                      enabled: !_busy,
+                      tooltip: '更多',
+                      onSelected: (value) {
+                        if (value == 'check') _check();
+                        if (value == 'new') _create();
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(value: 'new', child: Text('起一件任务')),
+                        PopupMenuItem(value: 'check', child: Text('检查定义')),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
                     SegmentedButton<bool>(
+                      style: SegmentedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                      ),
                       segments: const [
                         ButtonSegment(value: false, label: Text('步骤')),
                         ButtonSegment(value: true, label: Text('定义')),
@@ -76,7 +184,10 @@ class _FlowScreenState extends State<FlowScreen> {
               const Divider(height: 1),
               Expanded(
                 child: _definition
-                    ? DefinitionView(workflow: workflow.path)
+                    ? DefinitionView(
+                        workflow: workflow.yaml,
+                        path: workflow.path,
+                      )
                     : StepChain(
                         workflow: workflow,
                         selected: _selected,

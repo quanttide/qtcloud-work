@@ -222,6 +222,7 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
     'name': flow.name,
     'path': short(data, flow.file),
     'description': flow.description,
+    'yaml': flow.exists ? readText(flow.file) : '',
     'steps': [
       for (final step in flow.steps)
         {
@@ -230,6 +231,13 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
           'rule': step.rules.length,
           'agent': step.agents.length,
           'human': step.gates.length,
+          'criteria': [
+            for (final criterion in step.criteria)
+              {
+                'executor': '${criterion['executor'] ?? 'agent'}',
+                'text': descriptionOf(criterion),
+              },
+          ],
         },
     ],
   };

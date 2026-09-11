@@ -2,7 +2,7 @@
 
 一条定义。左边对话，右边两态。
 
-- **页头**：流程名 + `N 步 · M 条判据`、`步骤`／`定义` 切换、`起一件任务`（`task --new --workflow <这条>`）、⋯（新建／检查／导出／导入／列表）
+- **页头**：流程名 + `N 步 · M 条判据`、`步骤`／`定义` 切换、⋯（`起一件任务`＝`task --new --workflow <这条>`、`检查定义`＝`--check`；新建／导出／导入／列表还没接）
 - **左**：[对话](../views/chat.md)
 - **右**：[步骤链](../views/step-chain.md) 或 [定义态](../views/definition-view.md)；下面是 [判据面板](../views/criteria-panel.md)
 

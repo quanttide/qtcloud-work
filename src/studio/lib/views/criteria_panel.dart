@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../models/executor.dart';
 import '../models/workflow.dart';
 
-/// 判据面板：点一个步骤，看它谁做、判据有几条。（见 doc/views/criteria-panel.md）
+/// 判据面板：点一个步骤，下面列出这一步的全部判据。（见 doc/views/criteria-panel.md）
 class CriteriaPanel extends StatelessWidget {
   const CriteriaPanel({super.key, this.step});
 
@@ -40,26 +39,34 @@ class CriteriaPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          for (final entry in [
-            (Executor.rule, current.criteria.rule),
-            (Executor.agent, current.criteria.agent),
-            (Executor.human, current.criteria.human),
-          ])
-            if (entry.$2 > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(
-                  '${entry.$1.criterionLabel}　${entry.$2} 条',
-                  style: theme.textTheme.bodySmall,
-                ),
+          for (final item in current.items)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 64,
+                    child: Text(
+                      item.executor.criterionLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(item.text, style: theme.textTheme.bodySmall),
+                  ),
+                ],
               ),
-          const SizedBox(height: 8),
-          Text(
-            '判据的逐条文字在定义文件里；这一屏现在只显示条数（与命令行显示的一致）。',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.disabledColor,
             ),
-          ),
+          if (current.items.isEmpty)
+            Text(
+              '这一步的判据没有逐条文字（定义文件里没写 `description`，也没写路径类的字段）。',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.disabledColor,
+              ),
+            ),
         ],
       ),
     );

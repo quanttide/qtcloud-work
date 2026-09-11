@@ -18,14 +18,18 @@ void main() {
     expect(find.text('点一个步骤，看它谁做、判据有几条'), findsOneWidget);
   });
 
-  testWidgets('选了就列出谁判、几条', (tester) async {
+  testWidgets('选了就列出表头与逐条判据', (tester) async {
     final audit = workflow.steps.firstWhere((step) => step.name == 'audit');
     await tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: CriteriaPanel(step: audit))),
+      MaterialApp(
+        home: Scaffold(body: CriteriaPanel(step: audit)),
+      ),
     );
     expect(find.text('audit'), findsOneWidget);
     expect(find.text('4 条判据（机器判 3）'), findsOneWidget);
-    expect(find.text('机器　3 条'), findsOneWidget);
-    expect(find.text('人　1 条'), findsOneWidget);
+    // 逐条列出来：谁判 + 那句话（照定义文件里写的）
+    expect(find.text('机器'), findsNWidgets(3));
+    expect(find.text('人'), findsOneWidget);
+    expect(find.text('站点版本与变更记录两处对齐'), findsOneWidget);
   });
 }

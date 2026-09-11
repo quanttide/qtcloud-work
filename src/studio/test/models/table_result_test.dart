@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/models/table_result.dart';
 
-String fixture(String name) => File('test/fixtures/$name.json').readAsStringSync();
+String fixture(String name) =>
+    File('test/fixtures/$name.json').readAsStringSync();
 
 void main() {
   group('统一信封', () {

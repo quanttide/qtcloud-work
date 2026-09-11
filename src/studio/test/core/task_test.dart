@@ -31,7 +31,8 @@ void main() {
   });
   tearDown(() => tmp.deleteSync(recursive: true));
 
-  Task makeTask() => createTask(tmp.path, tmp.path, 'demo', 'demo', '${tmp.path}/workflows');
+  Task makeTask() =>
+      createTask(tmp.path, tmp.path, 'demo', 'demo', '${tmp.path}/workflows');
 
   group('流水怎么算走过', () {
     test('执行 ok 才算', () {
@@ -118,10 +119,18 @@ void main() {
     test('状态：行是「步骤 / 状态」，末了还有指令与产物', () {
       final task = makeTask();
       task.record('甲', '走了一遍', true);
-      final shown = taskStatus(tmp.path, tmp.path, 'demo', '${tmp.path}/workflows');
+      final shown = taskStatus(
+        tmp.path,
+        tmp.path,
+        'demo',
+        '${tmp.path}/workflows',
+      );
       expect(shown.ok, isTrue);
       expect(shown.columns, ['步骤', '状态']);
-      expect(shown.rows, [['甲', '✓'], ['乙', '—']]);
+      expect(shown.rows, [
+        ['甲', '✓'],
+        ['乙', '—'],
+      ]);
       expect(shown.lines.first, '任务：demo');
       expect(shown.lines, contains('  工作流：demo——走一遍给我看'));
       expect(shown.lines, contains('下一步：乙'));
@@ -133,7 +142,9 @@ void main() {
       final task = makeTask();
       final listed = taskList(tmp.path, tmp.path, '${tmp.path}/workflows');
       expect(listed.columns, ['任务', '工作流', '下一步']);
-      expect(listed.rows, [['demo', 'demo', '甲']]);
+      expect(listed.rows, [
+        ['demo', 'demo', '甲'],
+      ]);
       task.record('甲', '走了一遍', true);
       task.record('乙', '人拍板', true);
       expect(taskList(tmp.path, tmp.path, '${tmp.path}/workflows').rows, [
@@ -143,13 +154,25 @@ void main() {
 
     test('同一件任务不覆盖', () {
       makeTask();
-      final again = taskNew(tmp.path, tmp.path, 'demo', 'demo', '${tmp.path}/workflows');
+      final again = taskNew(
+        tmp.path,
+        tmp.path,
+        'demo',
+        'demo',
+        '${tmp.path}/workflows',
+      );
       expect(again.ok, isFalse);
       expect(again.lines.first, contains('已经有这件任务'));
     });
 
     test('没有这条工作流就不给起', () {
-      final bad = taskNew(tmp.path, tmp.path, 'x', 'nope', '${tmp.path}/workflows');
+      final bad = taskNew(
+        tmp.path,
+        tmp.path,
+        'x',
+        'nope',
+        '${tmp.path}/workflows',
+      );
       expect(bad.ok, isFalse);
       expect(bad.lines.first, contains('没有这条工作流'));
     });
@@ -169,7 +192,13 @@ void main() {
 
     test('空话不给记', () {
       makeTask();
-      final result = taskJournal(tmp.path, tmp.path, 'demo', '   ', '${tmp.path}/workflows');
+      final result = taskJournal(
+        tmp.path,
+        tmp.path,
+        'demo',
+        '   ',
+        '${tmp.path}/workflows',
+      );
       expect(result.ok, isFalse);
       expect(result.lines.first, contains('日志要人来写'));
     });

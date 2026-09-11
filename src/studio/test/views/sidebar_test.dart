@@ -3,14 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/views/sidebar.dart';
 
 void main() {
-  Future<void> pump(WidgetTester tester, {required void Function(String) onSelect}) {
+  Future<void> pump(
+    WidgetTester tester, {
+    required void Function(String) onSelect,
+  }) {
     return tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: Row(
-            children: [
-              Sidebar(current: 'task', onSelect: onSelect),
-            ],
+            children: [Sidebar(current: 'task', onSelect: onSelect)],
           ),
         ),
       ),

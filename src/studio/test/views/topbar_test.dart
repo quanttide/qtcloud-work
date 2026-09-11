@@ -4,7 +4,6 @@ import 'package:qtcloud_work_studio/views/topbar.dart';
 
 import 'package:qtcloud_work_studio/models/workspace.dart';
 
-
 void main() {
   testWidgets('只有工作区，并说明它是 --root', (tester) async {
     await tester.pumpWidget(

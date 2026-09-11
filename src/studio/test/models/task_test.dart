@@ -16,7 +16,9 @@ void main() {
     });
 
     test('去掉后缀就是那一步', () {
-      final entry = JournalEntry.fromLine('2026-09-11 20:37\u3000audit·判\u3000站点版本与变更记录两处对齐');
+      final entry = JournalEntry.fromLine(
+        '2026-09-11 20:37\u3000audit·判\u3000站点版本与变更记录两处对齐',
+      );
       expect(entry.baseStep, 'audit');
       expect(entry.kind, JournalKind.machineJudge);
       expect(entry.at, '2026-09-11 20:37');
@@ -24,7 +26,9 @@ void main() {
     });
 
     test('正文里还有分隔符也不丢', () {
-      final entry = JournalEntry.fromLine('20:39\u3000conclude\u3000一句话\u3000又一句话');
+      final entry = JournalEntry.fromLine(
+        '20:39\u3000conclude\u3000一句话\u3000又一句话',
+      );
       expect(entry.detail, '一句话\u3000又一句话');
     });
   });
@@ -54,7 +58,10 @@ void main() {
     test('流水取最近五条，按时序', () {
       final task = TaskDetail.fromResult(fixture('task_detail'));
       expect(task.journal.length, 5);
-      expect(task.journal.first.at.compareTo(task.journal.last.at) <= 0, isTrue);
+      expect(
+        task.journal.first.at.compareTo(task.journal.last.at) <= 0,
+        isTrue,
+      );
     });
 
     test('没走到的步骤标成 —，当前步骤取第一个没走的', () {

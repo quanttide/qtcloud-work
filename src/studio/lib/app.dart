@@ -87,6 +87,14 @@ class _WorkbenchState extends State<Workbench> {
     }
   }
 
+  /// 起了一件任务：刷新列表、换到任务页、打开刚起的那件。
+  Future<void> _created(String name) async {
+    await _reload();
+    if (!mounted) return;
+    setState(() => _page = 'task');
+    await _openTask(name);
+  }
+
   Future<void> _openTask(String name) async {
     setState(() => _busy = true);
     try {
@@ -168,7 +176,11 @@ class _WorkbenchState extends State<Workbench> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: FlowScreen(client: widget.client, workflow: workflow),
+              child: FlowScreen(
+                client: widget.client,
+                workflow: workflow,
+                onCreated: _created,
+              ),
             ),
           ],
         );

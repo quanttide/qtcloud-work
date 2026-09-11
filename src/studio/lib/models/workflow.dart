@@ -37,17 +37,29 @@ class CriteriaCounts {
   String toString() => '$rule rule / $agent agent / $human human';
 }
 
+/// 一条判据：谁判 + 那句话。
+class Criterion {
+  const Criterion({required this.executor, required this.text});
+
+  final Executor executor;
+  final String text;
+}
+
 /// 工作流里的一步。
 class WorkflowStep {
   const WorkflowStep({
     required this.name,
     required this.executor,
     required this.criteria,
+    this.items = const [],
   });
 
   final String name;
   final Executor executor;
   final CriteriaCounts criteria;
+
+  /// 逐条判据的文字（定义里怎么写的就怎么列）。
+  final List<Criterion> items;
 }
 
 /// 一条定义：一串有序的步骤。
@@ -56,11 +68,15 @@ class WorkflowDetail {
     required this.name,
     required this.path,
     required this.steps,
+    this.yaml = '',
   });
 
   final String name;
   final String path;
   final List<WorkflowStep> steps;
+
+  /// 定义文件的原文。
+  final String yaml;
 
   CriteriaCounts get criteria => steps.fold(
     const CriteriaCounts(),
@@ -79,6 +95,7 @@ class WorkflowDetail {
     return WorkflowDetail(
       name: '${data['name'] ?? ''}',
       path: '${data['path'] ?? ''}',
+      yaml: '${data['yaml'] ?? ''}',
       steps: [
         for (final step in (data['steps'] as List? ?? const []).cast<Map>())
           WorkflowStep(
@@ -89,6 +106,14 @@ class WorkflowDetail {
               agent: (step['agent'] as num?)?.toInt() ?? 0,
               human: (step['human'] as num?)?.toInt() ?? 0,
             ),
+            items: [
+              for (final item
+                  in (step['criteria'] as List? ?? const []).cast<Map>())
+                Criterion(
+                  executor: Executor.parse('${item['executor'] ?? ''}'),
+                  text: '${item['text'] ?? ''}',
+                ),
+            ],
           ),
       ],
     );

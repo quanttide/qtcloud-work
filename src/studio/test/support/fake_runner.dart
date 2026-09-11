@@ -10,7 +10,8 @@ const testWorkspace = Workspace(
   workflows: '/w/data/profile/quanttide/workflows',
 );
 
-String fixture(String name) => File('test/fixtures/$name.json').readAsStringSync();
+String fixture(String name) =>
+    File('test/fixtures/$name.json').readAsStringSync();
 
 /// 假的 runner：记下每次调用的参数，按关键字回话。
 class FakeRunner implements Runner {

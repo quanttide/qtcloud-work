@@ -3,17 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/views/definition_view.dart';
 
 void main() {
-  testWidgets('定义态给位置，并说明原文在文件里', (tester) async {
+  testWidgets('定义态给原文，也标出它是哪个文件', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
           body: DefinitionView(
-            workflow: '/w/data/profile/quanttide/workflows/devops-release.yaml',
+            workflow: 'name: devops-release\nsteps:\n  - name: version\n',
+            path: '/w/data/profile/quanttide/workflows/devops-release.yaml',
           ),
         ),
       ),
     );
     expect(find.textContaining('devops-release.yaml'), findsOneWidget);
-    expect(find.textContaining('定义原文是工作流目录里的那个 .yaml'), findsOneWidget);
+    expect(find.textContaining('name: devops-release'), findsOneWidget);
   });
 }
