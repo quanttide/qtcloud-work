@@ -18,8 +18,8 @@ class DefinitionView extends StatelessWidget {
           SelectableText(workflow, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           Text(
-            '定义原文是命令行的工作流目录里的那个 .yaml。'
-            '命令行现在不给原文，只给位置（`workflow <名字>` 的第一行）。',
+            '定义原文是工作流目录里的那个 .yaml；这一屏现在只显示它的位置'
+            '（命令行也一样，只给位置）。',
             style: theme.textTheme.bodySmall,
           ),
         ],

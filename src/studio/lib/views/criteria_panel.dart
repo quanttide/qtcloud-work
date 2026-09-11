@@ -52,8 +52,7 @@ class CriteriaPanel extends StatelessWidget {
               ),
           const SizedBox(height: 8),
           Text(
-            '判据的逐条文字命令行还没给（现在只给条数），'
-            '要显示每一条得让 `workflow <名字>` 把它放进 rows。',
+            '判据的逐条文字在定义文件里；这一屏现在只显示条数（与命令行显示的一致）。',
             style: theme.textTheme.bodySmall?.copyWith(color: theme.disabledColor),
           ),
         ],

@@ -24,7 +24,7 @@ class CliFailure implements Exception {
 /// 界面不自己去读工作流与任务文件的原文——那是命令行的活。
 class QtcloudWork {
   QtcloudWork({required this.workspace, Runner? runner, this.binary = 'qtcloud-work'})
-    : runner = runner ?? const ProcessRunner();
+    : runner = runner ?? CoreRunner(workspace);
 
   final Workspace workspace;
   final Runner runner;

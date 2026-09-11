@@ -24,7 +24,7 @@ class ChatPanel extends StatelessWidget {
   final List<ChatMessage> messages;
   final String placeholder;
 
-  /// 命令行还没有对话这一路，先摆出来但不可用。
+  /// 对话这一路还没接（谁跟谁说话、话记在哪得先定），先摆出来但不可用。
   final bool enabled;
   final ValueChanged<String>? onSend;
 

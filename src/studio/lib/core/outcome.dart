@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// 动作结果：命令行与窗口共用的一份算出来的东西。
 ///
 /// `ok` 定退出码，`lines` 给命令行印，`columns` 与 `rows` 给窗口画；
@@ -44,4 +46,10 @@ String short(String root, String path) {
     return path.substring(normalizedRoot.length);
   }
   return path;
+}
+
+/// 把结果编成命令行那一种输出（`--json` 时是信封，否则一行一行）。
+String encodeOutcome(Outcome outcome, {bool asJson = true}) {
+  if (asJson) return jsonEncode(outcome.toJson());
+  return '${outcome.lines.join('\n')}\n';
 }

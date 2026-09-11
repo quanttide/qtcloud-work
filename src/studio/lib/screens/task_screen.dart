@@ -101,7 +101,7 @@ class _TaskScreenState extends State<TaskScreen> {
           child: ChatPanel(
             placeholder: '说目标，或者对流程提修改…',
             messages: [
-              const ChatMessage(text: '命令行还没有对话这一路：目标与修改现在走命令与工作流文件。'),
+              const ChatMessage(text: '对话这一路还没接：目标与修改现在走命令与工作流文件。'),
               ChatMessage(text: '这次跑的是 ${widget.task.workflowName}。'),
             ],
           ),

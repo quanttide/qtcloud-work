@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/views/definition_view.dart';
 
 void main() {
-  testWidgets('定义态给位置，并说明命令行还没给原文', (tester) async {
+  testWidgets('定义态给位置，并说明原文在文件里', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -14,6 +14,6 @@ void main() {
       ),
     );
     expect(find.textContaining('devops-release.yaml'), findsOneWidget);
-    expect(find.textContaining('命令行现在不给原文'), findsOneWidget);
+    expect(find.textContaining('定义原文是工作流目录里的那个 .yaml'), findsOneWidget);
   });
 }
