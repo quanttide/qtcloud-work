@@ -23,9 +23,14 @@ use std::path::{Path, PathBuf};
     name = "qtcloud-work",
     version,
     about = "量潮知识工作云 CLI：知识工作与知识工作云服务入口",
-    disable_help_subcommand = true
+    disable_help_subcommand = true,
+    disable_help_flag = true
 )]
 struct Cli {
+    /// 看帮助：当前命令的选项与例子
+    #[arg(short = 'h', long = "help", action = clap::ArgAction::Help, global = true)]
+    help: Option<bool>,
+
     /// 工作区根；任务上的动作不写时用任务里记的，工作区上的动作不写时用当前目录
     #[arg(long, global = true)]
     root: Option<PathBuf>,
