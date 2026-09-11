@@ -4,6 +4,7 @@ mod artifact;
 mod audit;
 mod catalog;
 mod cli;
+mod help;
 mod material;
 mod outcome;
 mod task;

@@ -6,6 +6,7 @@
 src/
 ├── main.rs      入口：只有一行——把命令行交给 cli 模块
 ├── cli.rs       入口模块：clap 定义、定位工作区与数据仓、调动作层、打印结果
+├── help.rs      导览：按用途分组的命令清单与话题要点
 ├── outcome.rs   动作结果：Result（ok / lines / columns / rows）与 JSON 化
 ├── artifact.rs  资产表：二十格与落点规则
 ├── audit.rs     判据的机械核对：四种 rule 判法

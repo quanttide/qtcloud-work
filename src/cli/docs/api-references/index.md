@@ -12,6 +12,7 @@
 | [material](material.md) | 材料的四字段与阶段 |
 | [workflow](workflow.md) | 工作流的定义与六个动作 |
 | [task](task.md) | 任务的一次执行与六个动作 |
+| [help](help.md) | 导览：按用途列出命令 |
 | [health](health.md) | provider 探活 |
 
 落点与资产表在[工作区](workspace.md)。

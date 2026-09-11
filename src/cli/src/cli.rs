@@ -7,6 +7,7 @@
 use crate::artifact;
 use crate::audit;
 use crate::catalog;
+use crate::help;
 use crate::material;
 use crate::task;
 use crate::workflow;
@@ -21,7 +22,8 @@ use std::path::{Path, PathBuf};
 #[command(
     name = "qtcloud-work",
     version,
-    about = "量潮知识工作云 CLI：知识工作与知识工作云服务入口"
+    about = "量潮知识工作云 CLI：知识工作与知识工作云服务入口",
+    disable_help_subcommand = true
 )]
 struct Cli {
     /// 工作区根；任务上的动作不写时用任务里记的，工作区上的动作不写时用当前目录
@@ -129,6 +131,12 @@ enum Command {
         journal: Option<String>,
     },
     /// 探活（GET /health）
+    /// 导览：按用途列出命令；给了话题就说那一条的要点
+    Help {
+        /// 要看要点的话题（命令名）
+        topic: Option<String>,
+    },
+    /// 探活已部署的 provider
     Health,
 }
 
@@ -227,6 +235,22 @@ pub fn run_from_env() -> i32 {
 
 fn run(cli: &Cli) -> i32 {
     match &cli.command {
+        Command::Help { topic } => match topic {
+            Some(name) => match help::topic(name) {
+                Some(lines) => emit(crate::outcome::Result::lines(true, lines), cli),
+                None => emit(
+                    crate::outcome::Result::lines(
+                        false,
+                        vec![format!(
+                            "没有这条命令：{name}（`qtcloud-work help` 看全部）"
+                        )],
+                    ),
+                    cli,
+                ),
+            },
+            None => emit(help::guide(), cli),
+        },
+
         Command::Health => {
             health(&resolve_base(&cli.server), cli.json);
             0

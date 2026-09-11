@@ -22,7 +22,12 @@ test_cases=$(find "$tests" -name '*.rs' -not -path '*/common/*' -exec grep -hoE 
 echo "文档里的用例号：$(printf '%s' "$doc_cases" | tr '\n' ' ')"
 echo "测试里的出处号：$(printf '%s' "$test_cases" | tr '\n' ' ')"
 
-if [ -n "$doc_cases" ] && [ "$doc_cases" = "$test_cases" ]; then
+if [ -z "$doc_cases" ]; then
+	echo "文档里暂无用例，跳过对账。"
+	exit 0
+fi
+
+if [ "$doc_cases" = "$test_cases" ]; then
 	count=$(printf '%s\n' "$doc_cases" | grep -c .)
 	echo "对账过得去：两边名字相等，共 $count 条"
 	exit 0

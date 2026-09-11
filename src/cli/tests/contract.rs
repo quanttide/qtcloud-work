@@ -52,6 +52,21 @@ fn 子命令清单是契约() {
     );
 }
 
+/// 导览（`help`）列出全部命令：加命令忘了写进导览，这条会红。
+#[test]
+fn 导览列出全部命令() {
+    let fix = Fixture::new("help");
+    let out = fix.run(false, &["help"]);
+    assert!(out.ok(), "help 没跑通: {}", out.crop());
+    for name in [
+        "find", "catalog", "audit", "material", "workflow", "task", "health", "help",
+    ] {
+        assert!(out.crop().contains(name), "导览少了 {name}: {}", out.crop());
+    }
+    let bad = fix.run(false, &["help", "查无此命令"]);
+    assert!(!bad.ok(), "认不出的名字该报错: {}", bad.crop());
+}
+
 /// --json 的字段是脚本依赖的契约，只加不改。
 #[test]
 fn json字段是契约() {
