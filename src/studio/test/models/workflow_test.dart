@@ -6,9 +6,9 @@
 ///   `docs/specification/process/workflow.md`·语法定义。正向用例覆盖合法定义的读入与展示、
 ///   四个动作（新建、导出、导入、核对）的结果；反向用例覆盖非法输入的报错：
 ///   字段缺失、字段冗余、取值越界、rule 判据缺少判法。
-/// - **视图层**：`WorkflowDetail` / `CriteriaCounts`，输入为信封的 `data` 字段，
-///   不读取面向人的 `lines`。期望值取自 `test/fixtures/workflow_detail.json`
-///   （命令行的真实输出），不使用手工构造的样例。
+/// - **模型层**：`WorkflowDetail` / `CriteriaCounts`（`lib/models/`，界面背后的数据），
+///   输入为信封的 `data` 字段，不读取面向人的 `lines`。期望值取自
+///   `test/fixtures/workflow_detail.json`（命令行的真实输出），不使用手工构造的样例。
 ///
 /// 规格或真实输出与实现不一致时，先修订文档，再更新测试。
 ///
