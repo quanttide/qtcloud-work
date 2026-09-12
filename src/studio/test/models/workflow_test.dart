@@ -60,22 +60,6 @@ void main() {
   setUp(() => tmp = Directory.systemTemp.createTempSync('definition'));
   tearDown(() => tmp.deleteSync(recursive: true));
 
-  group('判据计数', () {
-    test('读命令行写的那一行', () {
-      final counts = CriteriaCounts.parse('3 rule / 1 agent / 0 human');
-      expect(counts.rule, 3);
-      expect(counts.agent, 1);
-      expect(counts.human, 0);
-      expect(counts.total, 4);
-      expect(counts.of(Executor.rule), 3);
-    });
-
-    test('缺项当零', () {
-      expect(CriteriaCounts.parse('2 agent').total, 2);
-      expect(CriteriaCounts.parse('').total, 0);
-    });
-  });
-
   group('工作流详情', () {
     test('从真实输出读出名字、位置、步骤与判据', () {
       final workflow = WorkflowDetail.fromResult(fixture('workflow_detail'));

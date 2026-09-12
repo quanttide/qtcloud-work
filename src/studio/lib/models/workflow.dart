@@ -17,22 +17,6 @@ class CriteriaCounts {
     Executor.human => human,
   };
 
-  /// 命令行写的是 `3 rule / 1 agent / 0 human`。
-  static CriteriaCounts parse(String text) {
-    final counts = <String, int>{};
-    for (final part in text.split('/')) {
-      final bits = part.trim().split(RegExp(r'\s+'));
-      if (bits.length == 2) {
-        counts[bits[1]] = int.tryParse(bits[0]) ?? 0;
-      }
-    }
-    return CriteriaCounts(
-      rule: counts['rule'] ?? 0,
-      agent: counts['agent'] ?? 0,
-      human: counts['human'] ?? 0,
-    );
-  }
-
   @override
   String toString() => '$rule rule / $agent agent / $human human';
 }
