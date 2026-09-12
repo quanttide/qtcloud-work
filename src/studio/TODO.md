@@ -21,6 +21,12 @@ sh scripts/parity.sh          # 24 条必须仍一致
 
 **1.2** 把文件头注释里「命令行那份仍留着」的说法改掉（与段三同批做，见 3.1）
 
+**1.3** 命令改名：`find` → `search`（判据：它带 `--show`，承诺的是"给你要找的东西"，不是"报位置"）
+
+- 改：CLI `src/cli.rs` 分发、`src/catalog.rs` 的 `find()` 与 `help.rs`「工作区」组那条；studio `dispatch.dart` 的 `case 'find'`；两边 doc 里的命令参考（`docs/api-references`）、README；本仓 ROADMAP/TODO 里的模块名
+- 判据：`grep -rn "\bfind\b" apps/qtcloud-work/src/studio/lib apps/qtcloud-work/src/cli/src/deliverable` 里只剩 Flutter/Dart 的 `find` 语义；`help` 那页写着 `search`
+- 注意：命令面是对外承诺，`cli/v*` 发布线已开 → 属破坏性变更，走版本号与 CHANGELOG；studio 侧还没搬，现在改最便宜
+
 ## 段二 · 清混用（结构契约的硬禁）
 
 **2.1** `lib/repositories/local/` 不再同层并存「聚合名」与「职能名」
@@ -48,10 +54,11 @@ sh scripts/parity.sh          # 24 条必须仍一致
 
 触发已命中两条：单文件行数越界、目录混用。
 
-**4.1** 拆长文件，按聚合重排 `local/`——靶子目录（见 ROADMAP「交付哪些聚合」）：`workflow/`、`task/`、`material/`、`catalog/`、`audit/`、`find/`、`workspace/` + 职能一处 `platform/`
+**4.1** 拆长文件，重排 `local/`——靶子目录（见 ROADMAP「交付哪些模块」）：聚合 `workflow/`、`task/`、`material/`、`workspace/`；领域服务 `search/`、`catalog/`、`audit/`；适配一处 `platform/`
 
-- `tasks.dart` 378 行、`workflows.dart` 316 行、`task_run.dart` 279 行——拆进各自聚合目录，单文件降到 **≤250 行**
-- 判据：上述七个聚合目录 + `platform/` 都在；`local/*.dart` 下不再有散落单件；`find lib -name "*.dart" | xargs wc -l | awk '$1>250'` 为空；通用判据全绿（**行为不变**是硬要求）
+- 聚合名用业务名词，服务名用能力名（名动同形，`search/` 而不是 `searcher/`——`-er` 是类名惯例，不是目录名惯例）
+- `tasks.dart` 378 行、`workflows.dart` 316 行、`task_run.dart` 279 行——拆进各自目录，单文件降到 **≤250 行**
+- 判据：上述目录都在；`local/*.dart` 下不再有散落单件；`find lib -name "*.dart" | xargs wc -l | awk '$1>250'` 为空；通用判据全绿（**行为不变**是硬要求）
 
 **4.2** `states/workbench_bloc.dart` 349 行——按 Bloc 家法拆（bloc / event / state）或按聚合拆
 
