@@ -1,7 +1,7 @@
-# find
+# search
 
 ```bash
-qtcloud-work find <名字> [--show]
+qtcloud-work search <名字> [--show]
 ```
 
 按名找文档，认文件名与篇内一级标题。先精确匹配，不中再模糊兜底。`--show` 连正文一起打印；命中目录则列目录下的条目。找不到返回失败。

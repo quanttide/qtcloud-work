@@ -4,12 +4,14 @@ mod artifact;
 mod audit;
 mod catalog;
 mod cli;
+mod health;
 mod help;
 mod material;
-mod paths;
 mod prompts;
+mod search;
 mod task;
 mod workflow;
+mod workspace;
 
 fn main() {
     std::process::exit(cli::run_from_env());

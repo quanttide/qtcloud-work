@@ -37,7 +37,7 @@ fn 子命令清单是契约() {
         }
     }
     let want = [
-        "find", "catalog", "audit", "material", "workflow", "task", "health", "help",
+        "search", "catalog", "audit", "material", "workflow", "task", "health", "help",
     ];
     for name in want {
         assert!(
@@ -59,7 +59,7 @@ fn 导览列出全部命令() {
     let out = fix.run(false, &["help"]);
     assert!(out.ok(), "help 没跑通: {}", out.crop());
     for name in [
-        "find", "catalog", "audit", "material", "workflow", "task", "health", "help",
+        "search", "catalog", "audit", "material", "workflow", "task", "health", "help",
     ] {
         assert!(out.crop().contains(name), "导览少了 {name}: {}", out.crop());
     }
@@ -72,7 +72,7 @@ fn 导览列出全部命令() {
 fn 每条命令的帮助都有例子() {
     let fix = Fixture::new("help-examples");
     for name in [
-        "find", "catalog", "audit", "material", "workflow", "task", "help", "health",
+        "search", "catalog", "audit", "material", "workflow", "task", "help", "health",
     ] {
         let out = fix.run(false, &[name, "--help"]);
         assert!(out.ok(), "{name} --help 没跑通: {}", out.crop());
@@ -121,24 +121,34 @@ fn json字段是契约() {
     }
 }
 
-/// 依赖方向：动作层不依赖入口层（重构搬家时最容易被顺手破坏的一条）。
+/// 依赖方向：聚合与服务不依赖入口层（重构搬家时最容易被顺手破坏的一条）。
 #[test]
 fn 动作层不依赖入口层() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let layers = [
-        "paths.rs",
-        "artifact.rs",
-        "audit.rs",
-        "catalog.rs",
-        "material.rs",
-        "workflow.rs",
-        "task.rs",
+        "workspace/mod.rs",
+        "search/mod.rs",
+        "health.rs",
+        "artifact/mod.rs",
+        "audit/mod.rs",
+        "catalog/mod.rs",
+        "material/mod.rs",
+        "workflow/mod.rs",
+        "workflow/yaml.rs",
+        "workflow/check.rs",
+        "workflow/actions.rs",
+        "task/mod.rs",
+        "task/state.rs",
+        "task/journal.rs",
+        "task/ai.rs",
+        "task/execute.rs",
+        "task/report.rs",
     ];
     for file in layers {
         let text = std::fs::read_to_string(src.join(file)).expect("读源码");
         assert!(
             !text.contains("crate::cli"),
-            "{file} 不该依赖入口模块 cli（动作层与入口层要分开）"
+            "{file} 不该依赖入口模块 cli（聚合与服务要和入口层分开）"
         );
     }
 }

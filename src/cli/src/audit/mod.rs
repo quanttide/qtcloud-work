@@ -90,7 +90,7 @@ use serde_json::json;
 // ---- 动作 ----
 
 use crate::catalog;
-use crate::paths::short;
+use crate::workspace::short;
 use quanttide_work::outcome::Outcome;
 
 pub fn audit(root: &Path, make: bool) -> Outcome {

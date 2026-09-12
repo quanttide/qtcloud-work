@@ -11,7 +11,7 @@ fn 三处位置缺省各是什么行为() {
     // 一、工作区动作不写 --root：用当前目录，并把用的是哪个根印出来
     let fix = Fixture::new("defaults");
     fix.file("data/insight/试.md", "# 试\n");
-    let found = fix.run(false, &["find", "试"]);
+    let found = fix.run(false, &["search", "试"]);
     assert!(found.ok(), "缺省该用当前目录: {}", found.crop());
     assert!(
         found.crop().contains(&fix.root.display().to_string()),
@@ -25,7 +25,10 @@ fn 三处位置缺省各是什么行为() {
     std::fs::create_dir_all(&other).expect("建别的根");
     std::fs::create_dir_all(other.join("data/insight")).expect("建目录");
     std::fs::write(other.join("data/insight/别的.md"), "# 别的\n").expect("写文档");
-    let explicit = fix.run(false, &["--root", other.to_str().unwrap(), "find", "别的"]);
+    let explicit = fix.run(
+        false,
+        &["--root", other.to_str().unwrap(), "search", "别的"],
+    );
     assert!(explicit.ok(), "显式给就该用它: {}", explicit.crop());
     assert!(
         explicit.crop().contains("别的根"),

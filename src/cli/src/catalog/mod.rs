@@ -39,31 +39,6 @@ impl Catalog {
         });
     }
 
-    pub fn find(&self, query: &str) -> Vec<Entry> {
-        let q = query.trim().trim_end_matches('/').to_lowercase();
-        let hits = |entry: &Entry| -> BTreeSet<String> {
-            entry.names.iter().map(|n| n.to_lowercase()).collect()
-        };
-        let exact: Vec<Entry> = self
-            .entries
-            .iter()
-            .filter(|e| hits(e).contains(&q))
-            .cloned()
-            .collect();
-        if !exact.is_empty() {
-            return exact;
-        }
-        self.entries
-            .iter()
-            .filter(|e| {
-                hits(e)
-                    .iter()
-                    .any(|n| q.contains(n.as_str()) || n.contains(q.as_str()))
-            })
-            .cloned()
-            .collect()
-    }
-
     /// 目录有而契约无：未登记在资产表里的顶层子目录。
     pub fn unregistered(&self, root: &Path) -> Vec<PathBuf> {
         let known: BTreeSet<PathBuf> = crate::artifact::assets()
@@ -214,7 +189,7 @@ pub fn build(root: &Path) -> Catalog {
     catalog
 }
 
-// ---- 动作（按名找文档、看目录）----
+// ---- 动作（看目录）----
 
 use quanttide_work::outcome::Outcome;
 
@@ -231,46 +206,5 @@ pub fn catalog(root: &Path) -> Outcome {
         result.rows.push(vec![entry.kind.clone(), rel]);
     }
     result.data = Some(payload(root, &found));
-    result
-}
-
-pub fn find(root: &Path, name: &str, show: bool) -> Outcome {
-    if name.trim().is_empty() {
-        return Outcome::lines(false, vec!["请填要找的名字".to_string()]);
-    }
-    let matches = build(root).find(name);
-    if matches.is_empty() {
-        return Outcome::lines(false, vec![format!("未找到：{name}")]);
-    }
-    let mut result = Outcome::new(true);
-    for entry in matches {
-        let rel = short(root, &entry.path);
-        result.lines.push(format!("[{}] {rel}", entry.kind));
-        result.rows.push(vec![entry.kind.clone(), rel]);
-        if show {
-            if entry.path.is_dir() {
-                let listed: Vec<String> = std::fs::read_dir(&entry.path)
-                    .map(|entries| {
-                        entries
-                            .flatten()
-                            .map(|e| e.file_name().to_string_lossy().to_string())
-                            .filter(|n| !n.starts_with('.'))
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                result
-                    .lines
-                    .push(format!("  （目录）{}", listed.join("、")));
-            } else {
-                result.lines.push(
-                    std::fs::read_to_string(&entry.path)
-                        .unwrap_or_default()
-                        .trim_end()
-                        .to_string(),
-                );
-            }
-        }
-    }
-    result.columns = vec!["种类".to_string(), "路径".to_string()];
     result
 }

@@ -2,7 +2,7 @@
 
 工作区层面的四个只读动作：
 
-- `qtcloud-work find <名字> [--show]` 按名找文档，认文件名与篇内一级标题，精确不中模糊兜底，`--show` 连正文一起看；
+- `qtcloud-work search <名字> [--show]` 按名找文档，认文件名与篇内一级标题，精确不中模糊兜底，`--show` 连正文一起看；
 - `qtcloud-work catalog [--json] [--out 文件]` 按资产种类列出全部条目，`--out` 落一份 `{root, count, entries}`；
 - `qtcloud-work audit [--json] [--out 文件] [--make]` 审计「资产表有而工作区无」与「工作区有而未登记」，`--make` 补建缺的文档格，独立仓库那三格不凭空建；
 - `qtcloud-work material [路径…] [--json] [--out 文件]` 列材料的四字段与阶段，不给路径就扫 `data/journal` 与 `data/profile` 下的 md。

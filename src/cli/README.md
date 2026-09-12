@@ -16,7 +16,7 @@ qtcloud-work --help
 
 | 组 | 命令 | 说明 |
 | :-- | :-- | :-- |
-| 工作区 | `find` `catalog` `audit` `material` | 按名找文档、列目录、审计资产、看材料四字段 |
+| 工作区 | `search` `catalog` `audit` `material` | 按名找文档、列目录、审计资产、看材料四字段 |
 | 工作流 | `workflow --list / --new / <名字> / --check / --export / --import` | 定义是 YAML；`--check` 核对判据里的路径与描述提到的小节 |
 | 任务 | `task --new / <名字> / --next / --done / --journal / --list` | 走一步、人为记一步、写日志 |
 | 导览 | `help [<话题>]` | 按用途列出命令；给了话题说那一条要点 |

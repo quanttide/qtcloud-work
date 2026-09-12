@@ -1,21 +1,16 @@
-//! 量潮知识工作云 CLI —— 本地知识工作做法（实验室 kg 的等价物）加 provider 探活。
+//! 量潮知识工作云 CLI —— 入口与发射。
 //!
-//! 命令行只解析参数、定位工作区与数据仓、把动作层算出的结果印出来；
-//! 算法都在动作层，动作与它操作的对象住同一个模块（workflow.rs / task.rs / catalog.rs /
-//! audit.rs / material.rs），结果都走工具箱那一层（`quanttide_work::outcome`），命令行与窗口共用。
+//! 这一层只做三件事：clap 定义、定位（工作区 / 数据仓 / 工作流目录）、把结果发射出去。
+//! 参数分派与业务调用下移到 `handlers`；算法都在聚合与服务里，结果都走工具箱那一层
+//! （`quanttide_work::outcome`），命令行与窗口共用。
 
-use crate::artifact;
-use crate::audit;
-use crate::catalog;
-use crate::help;
-use crate::material;
-use crate::task;
-use crate::workflow;
-use quanttide_work::outcome::Outcome;
-use serde_json::Value as Json;
+mod emit;
+mod handlers;
 
 use clap::{Parser, Subcommand};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+pub(crate) use emit::emit;
 
 /// 量潮知识工作云 CLI —— 本地知识工作与知识工作云 API 的辅助入口（主要供 AI 使用）。
 ///
@@ -28,44 +23,44 @@ use std::path::{Path, PathBuf};
     disable_help_subcommand = true,
     disable_help_flag = true
 )]
-struct Cli {
+pub(crate) struct Cli {
     /// 看帮助：当前命令的选项与例子
     #[arg(short = 'h', long = "help", action = clap::ArgAction::Help, global = true)]
     help: Option<bool>,
 
     /// 工作区根；任务上的动作不写时用任务里记的，工作区上的动作不写时用当前目录
     #[arg(long, global = true)]
-    root: Option<PathBuf>,
+    pub(crate) root: Option<PathBuf>,
     /// 数据仓（任务与产物草稿）
     #[arg(long, global = true)]
-    data: Option<PathBuf>,
+    pub(crate) data: Option<PathBuf>,
     /// 工作流目录，默认 <数据仓>/workflows/
     #[arg(long, global = true)]
-    workflows: Option<PathBuf>,
+    pub(crate) workflows: Option<PathBuf>,
     /// 以 JSON 输出到标准输出
     #[arg(long, global = true)]
-    json: bool,
+    pub(crate) json: bool,
     /// 结果另存一份到文件
     #[arg(long, global = true)]
-    out: Option<PathBuf>,
+    pub(crate) out: Option<PathBuf>,
     /// 预演：只说要写什么，不落盘
     #[arg(long = "dry-run", global = true)]
-    dry_run: bool,
+    pub(crate) dry_run: bool,
     /// API 基地址覆盖（provider 探活用）
     #[arg(long, global = true)]
-    server: Option<String>,
+    pub(crate) server: Option<String>,
 
     #[command(subcommand)]
-    command: Command,
+    pub(crate) command: Command,
 }
 
 #[derive(Subcommand)]
-enum Command {
+pub(crate) enum Command {
     /// 按名找文档
     #[command(
-        after_help = "例子：\n  qtcloud-work find 材料\n  qtcloud-work find 材料 --show\n细节看 docs/api-references/find.md"
+        after_help = "例子：\n  qtcloud-work search 材料\n  qtcloud-work search 材料 --show\n细节看 docs/api-references/search.md"
     )]
-    Find {
+    Search {
         /// 要找的名字
         name: String,
         /// 连正文一起打印
@@ -170,184 +165,28 @@ enum Command {
     Health,
 }
 
-const DEFAULT_API_BASE: &str = "https://api.quanttide.com/qtcloud-work";
-
-/// 解析 API 基地址：--server 参数 > 环境变量 QTCLOUD_WORK_API_BASE_URL > 默认网关
-fn resolve_base(cli_server: &Option<String>) -> String {
-    if let Some(s) = cli_server
-        && !s.trim().is_empty()
-    {
-        return s.trim_end_matches('/').to_string();
-    }
-    match std::env::var("QTCLOUD_WORK_API_BASE_URL") {
-        Ok(s) if !s.trim().is_empty() => s.trim_end_matches('/').to_string(),
-        _ => DEFAULT_API_BASE.to_string(),
-    }
-}
-
-fn health(base: &str, json: bool) {
-    let url = format!("{base}/health");
-    let resp = ureq::get(&url).call().map_err(|e| match e {
-        ureq::Error::Status(code, r) => {
-            format!("HTTP {code}: {}", r.into_string().unwrap_or_default())
-        }
-        other => format!("请求 {url} 失败: {other}"),
-    });
-    let resp = match resp {
-        Ok(r) => r,
-        Err(e) => {
-            eprintln!("错误: {e}");
-            std::process::exit(1);
-        }
-    };
-    let text = resp.into_string().unwrap_or_default();
-    if json {
-        match serde_json::from_str::<serde_json::Value>(&text) {
-            Ok(v) => println!("{}", serde_json::to_string(&v).unwrap()),
-            Err(_) => println!("{}", serde_json::json!({ "raw": text })),
-        }
-        return;
-    }
-    println!("✓ qtcloud-work 可用 @ {base}");
-    if !text.trim().is_empty() {
-        println!("{text}");
-    }
-}
-
-/// 工作区根：给了就用给的，没给就用当前目录。
-fn workspace_root(cli: &Cli) -> std::result::Result<PathBuf, String> {
-    match &cli.root {
-        Some(root) => Ok(root.clone()),
-        None => std::env::current_dir().map_err(|e| e.to_string()),
-    }
-}
-
-/// 数据仓：任务与产物草稿落在这里。
-///
-/// 不给 `--data` 就用当前目录下的 `data/`——开发环境的默认位置，不进版本库；
-/// 用哪个数据仓印到标准错误，免得结果落在哪里靠猜。
-fn data_dir(cli: &Cli) -> std::result::Result<PathBuf, String> {
-    if let Some(data) = cli.data.clone() {
-        return Ok(data);
-    }
-    let data = std::env::current_dir()
-        .map_err(|e| e.to_string())?
-        .join("data");
-    eprintln!("用的是数据仓：{}（没给 --data）", data.display());
-    Ok(data)
-}
-
-fn emit(result: Outcome, cli: &Cli) -> i32 {
-    if let Some(out) = &cli.out {
-        // `--out` 落的是原文那一栏（`--json` 的四样里那一栏的内容）。
-        catalog::write_json(out, &result.data_json());
-    }
-    if cli.json {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&envelope_json(&result)).unwrap_or_default()
-        );
-    } else {
-        for line in &result.lines {
-            println!("{line}");
-        }
-        if !result.ok {
-            eprintln!("下一步：看 `qtcloud-work <子命令> --help`，或先补齐上面缺的东西");
-        }
-    }
-    if result.ok { 0 } else { 1 }
-}
-
-/// 信封 + 旧键留一轮。
-///
-/// `--json` 的字段是脚本依赖的契约，只加不改：原文摊在 `data` 里是一轮，
-/// 原来的顶层键（`count` / `entries` / `result` …）再留一轮，下一轮删。
-fn envelope_json(result: &Outcome) -> Json {
-    let mut envelope = result.to_json();
-    let (Some(Json::Object(data)), Json::Object(top)) = (&result.data, &mut envelope) else {
-        return envelope;
-    };
-    for (key, value) in data {
-        top.entry(key.clone()).or_insert_with(|| value.clone());
-    }
-    envelope
-}
-
 /// 入口：解析环境里的参数、跑一遍、把退出码交出去（`main.rs` 只有一行调它）。
 pub fn run_from_env() -> i32 {
     let cli = Cli::parse();
     run(&cli)
 }
 
+pub(crate) fn fail(message: &str) -> ! {
+    eprintln!("错误：{message}");
+    std::process::exit(1);
+}
+
 fn run(cli: &Cli) -> i32 {
     match &cli.command {
-        Command::Help { topic } => match topic {
-            Some(name) => match help::topic(name) {
-                Some(lines) => emit(Outcome::lines(true, lines), cli),
-                None => emit(
-                    Outcome::lines(
-                        false,
-                        vec![format!(
-                            "没有这条命令：{name}（`qtcloud-work help` 看全部）"
-                        )],
-                    ),
-                    cli,
-                ),
-            },
-            None => emit(help::guide(), cli),
-        },
-
+        Command::Help { topic } => handlers::help(topic.as_deref(), cli),
         Command::Health => {
-            health(&resolve_base(&cli.server), cli.json);
+            handlers::health(cli);
             0
         }
-
-        Command::Find { name, show } => {
-            let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
-            let result =
-                catalog::find(&root, name, *show).with_first(format!("工作区：{}", root.display()));
-            emit(result, cli)
-        }
-        Command::Catalog => {
-            let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
-            emit(
-                catalog::catalog(&root).with_first(format!("工作区：{}", root.display())),
-                cli,
-            )
-        }
-        Command::Audit { make } => {
-            let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
-            if cli.dry_run {
-                let missing = artifact::missing(&root);
-                let mut lines = vec![
-                    format!("工作区：{}", root.display()),
-                    "预演：不落盘".to_string(),
-                ];
-                lines.extend(
-                    missing
-                        .iter()
-                        .map(|a| format!("会补建：{}（{}）", a.kind, a.name)),
-                );
-                return emit(Outcome::lines(true, lines), cli);
-            }
-            emit(
-                audit::audit(&root, *make).with_first(format!("工作区：{}", root.display())),
-                cli,
-            )
-        }
-        Command::Material { paths } => {
-            let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
-            let paths = if paths.is_empty() {
-                None
-            } else {
-                Some(paths.as_slice())
-            };
-            emit(
-                material::material(&root, paths).with_first(format!("工作区：{}", root.display())),
-                cli,
-            )
-        }
-
+        Command::Search { name, show } => handlers::search(name, *show, cli),
+        Command::Catalog => handlers::catalog(cli),
+        Command::Audit { make } => handlers::audit(*make, cli),
+        Command::Material { paths } => handlers::material(paths, cli),
         Command::Workflow {
             name,
             list,
@@ -358,89 +197,20 @@ fn run(cli: &Cli) -> i32 {
             import_from,
             check,
             as_name,
-        } => {
-            let data = data_dir(cli).unwrap_or_else(|e| fail(&e));
-            let workflows = cli.workflows.as_deref();
-            if *list {
-                return emit(workflow::workflow_list(&data, workflows), cli);
-            }
-            if *check {
-                let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
-                return emit(
-                    workflow::workflow_check(
-                        &data,
-                        name.as_deref().unwrap_or(""),
-                        &root,
-                        workflows,
-                    ),
-                    cli,
-                );
-            }
-            if *new {
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(
-                            true,
-                            vec![format!("预演：会写 {},{}", data.display(), steps)],
-                        ),
-                        cli,
-                    );
-                }
-                let steps: Vec<String> = steps
-                    .split(',')
-                    .map(|s| s.trim().to_string())
-                    .filter(|s| !s.is_empty())
-                    .collect();
-                return emit(
-                    workflow::workflow_new(
-                        &data,
-                        name.as_deref().unwrap_or(""),
-                        &steps,
-                        note,
-                        workflows,
-                    ),
-                    cli,
-                );
-            }
-            if let Some(source) = import_from {
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(true, vec![format!("预演：会导入 {}", source.display())]),
-                        cli,
-                    );
-                }
-                return emit(
-                    workflow::workflow_import(&data, source, as_name, workflows),
-                    cli,
-                );
-            }
-            let Some(name) = name else {
-                return emit(
-                    Outcome::lines(
-                        false,
-                        vec![
-                            "用法：qtcloud-work workflow <名字>，或 --list / --new / --import"
-                                .to_string(),
-                        ],
-                    ),
-                    cli,
-                );
-            };
-            if let Some(target) = export {
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(true, vec![format!("预演：会导出到 {}", target.display())]),
-                        cli,
-                    );
-                }
-                return emit(
-                    workflow::workflow_export(&data, name, target, workflows),
-                    cli,
-                );
-            }
-            emit(workflow::workflow_show(&data, name, workflows), cli)
-        }
-
+        } => handlers::workflow(
+            handlers::WorkflowArgs {
+                name: name.as_deref(),
+                list: *list,
+                new: *new,
+                steps,
+                note,
+                export: export.as_deref(),
+                import_from: import_from.as_deref(),
+                check: *check,
+                as_name,
+            },
+            cli,
+        ),
         Command::Task {
             name,
             list,
@@ -450,92 +220,18 @@ fn run(cli: &Cli) -> i32 {
             done,
             note,
             journal,
-        } => {
-            let data = data_dir(cli).unwrap_or_else(|e| fail(&e));
-            let root = cli.root.as_deref();
-            let workflows = cli.workflows.as_deref();
-            if *list {
-                return emit(task::task_list(root, &data, workflows), cli);
-            }
-            if *new {
-                let Some(name) = name else {
-                    return emit(
-                        Outcome::lines(
-                            false,
-                            vec![
-                                "用法：qtcloud-work task --new <名字> --workflow <工作流>"
-                                    .to_string(),
-                            ],
-                        ),
-                        cli,
-                    );
-                };
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(
-                            true,
-                            vec![format!(
-                                "预演：会起任务 {name}（数据仓 {}）",
-                                data.display()
-                            )],
-                        ),
-                        cli,
-                    );
-                }
-                let root = workspace_root(cli).unwrap_or_else(|e| fail(&e));
-                return emit(task::task_new(&root, &data, name, workflow, workflows), cli);
-            }
-            let Some(name) = name else {
-                return emit(
-                    Outcome::lines(false, vec!["用法：qtcloud-work task <名字>，或 task --list / --new <名字> --workflow <工作流>".to_string()]),
-                    cli,
-                );
-            };
-            if let Some(words) = journal {
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(true, vec![format!("预演：会给 {name} 记日志")]),
-                        cli,
-                    );
-                }
-                return emit(task::task_journal(root, &data, name, words, workflows), cli);
-            }
-            if *next {
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(true, vec![format!("预演：会走 {name} 的下一步")]),
-                        cli,
-                    );
-                }
-                return emit(
-                    task::task_step(root, &data, name, "", note, true, workflows),
-                    cli,
-                );
-            }
-            if let Some(step) = done {
-                if cli.dry_run {
-                    return emit(
-                        Outcome::lines(true, vec![format!("预演：会记 {name} 的 {step}")]),
-                        cli,
-                    );
-                }
-                return emit(
-                    task::task_step(root, &data, name, step, note, false, workflows),
-                    cli,
-                );
-            }
-            emit(task::task_status(root, &data, name, workflows), cli)
-        }
+        } => handlers::task(
+            handlers::TaskArgs {
+                name: name.as_deref(),
+                list: *list,
+                new: *new,
+                workflow,
+                next: *next,
+                done: done.as_deref(),
+                note,
+                journal: journal.as_deref(),
+            },
+            cli,
+        ),
     }
-}
-
-fn fail(message: &str) -> ! {
-    eprintln!("错误：{message}");
-    std::process::exit(1);
-}
-
-/// `find` 等动作在 `report` 里需要 `Path` 判断，这里留个引用以免警告。
-#[allow(dead_code)]
-fn _path_kind(path: &Path) -> bool {
-    path.is_dir()
 }

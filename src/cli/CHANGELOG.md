@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 命令 `find` 改名 `search`（按名找文档）：命令面、导览、README 与接口参考（`docs/api-references/search.md`）同步；命令面已发布，属破坏性变更，随版本号走。
 - 结果改用工具箱 `quanttide_work::outcome::Outcome`（规范「过程 / 结果」那一节结成的模型）；本地的 `outcome.rs` 只留「路径怎么显示给人看」，改成 `paths.rs`
 - `--json` 一律是这个结果：`ok` / `lines` / `columns` / `rows` 四样，原文托在 `data` 里（原先 `audit` / `catalog` / `material` 吐的是裸原文）；旧键按「只加不改」在顶层再留一轮，下一轮删
 - `task <名字>` 与 `workflow <名字>` 的结果补上 `data`：任务原文与三样产物的落点、定义原文与其位置——窗口从这一栏装领域对象
