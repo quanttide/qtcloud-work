@@ -7,7 +7,7 @@ import 'host/host.dart';
 /// `file` + `contains` 含这段文字、`run` 这条命令退出码为零。路径相对工作区根。
 // 判据的翻译（说明怎么写、四种判法怎么认）在工具箱里；这里只剩「真去跑」。
 export 'package:quanttide_work/quanttide_work.dart'
-    show RuleKind, RuleItem, descriptionOf, itemsOf;
+    show RuleKind, RuleItem, itemsOf;
 
 import 'package:quanttide_work/quanttide_work.dart';
 

@@ -64,12 +64,12 @@ String oneLine(String text, int limit) {
 List<(String, String, String)> judgeByAi(
   Task task,
   Step step,
-  List<Map> criteria,
+  List<qt.Criterion> criteria,
 ) {
   final run = runPi(qt.judgePrompt(factsOf(task, step), criteria), task.root);
   final rows = <(String, String, String)>[];
   for (var i = 0; i < criteria.length; i++) {
-    final note = '${criteria[i]['description'] ?? ''}'.trim();
+    final note = criteria[i].text.trim();
     if (!run.ran) {
       rows.add((note, '待判', '智能体没跑成：${oneLine(run.out, 80)}'));
       continue;
@@ -124,17 +124,15 @@ String expand(Task task, String value) {
 String relativeToRoot(Task task, String path) => short(task.root, path);
 
 /// 判据里的占位先换成本次任务的真实路径，再去跑。
-List<Map> expandedCriteria(Task task, List<Map> criteria) {
+List<qt.Criterion> expandedCriteria(Task task, List<qt.Criterion> criteria) {
   return criteria.map((criterion) {
     final out = <String, Object?>{};
-    criterion.forEach((key, value) {
-      if (value is String && value.contains('{{')) {
-        out['$key'] = expand(task, value);
-      } else {
-        out['$key'] = value;
-      }
+    criterion.toMap().forEach((key, value) {
+      out[key] = (value is String && value.contains('{{'))
+          ? expand(task, value)
+          : value;
     });
-    return out;
+    return qt.Criterion.fromMap(out);
   }).toList();
 }
 
@@ -188,14 +186,14 @@ StepResult execute(
       : agents
             .map(
               (criterion) => (
-                '${criterion['description'] ?? ''}'.trim(),
+                criterion.text.trim(),
                 '待判',
                 '没跑智能体（人为地记一步）',
               ),
             )
             .toList();
   final gates = found.gates
-      .map((criterion) => '${criterion['description'] ?? ''}'.trim())
+      .map((criterion) => criterion.text.trim())
       .toList();
 
   final rulesPass = results.every((row) => row.$2);

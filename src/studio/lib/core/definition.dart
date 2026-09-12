@@ -85,7 +85,7 @@ class WorkflowFile {
   }
 
   /// 内容那一层交给工具箱。
-  Workflow get shared => Workflow(name: name, payload: payload);
+  Workflow get shared => Workflow.of(name, payload);
 
   String get description => shared.description;
 
@@ -234,8 +234,8 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
           'criteria': [
             for (final criterion in step.criteria)
               {
-                'executor': '${criterion['executor'] ?? 'agent'}',
-                'text': descriptionOf(criterion),
+                'executor': criterion.executor,
+                'text': criterion.text,
               },
           ],
         },

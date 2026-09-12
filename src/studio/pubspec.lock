@@ -143,10 +143,10 @@ packages:
     dependency: "direct main"
     description:
       name: quanttide_work
-      sha256: f5deb2f8cbddfadd8c01b4e88dda830b3dc2db4119def5805637fbedc45597df
+      sha256: d633b89d74a3e0b4714ffdb10ce524be97170dd6ac549cfc938b11b400ff56b5
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.1.0-alpha.10"
+    version: "0.1.0-beta.1"
   sky_engine:
     dependency: transitive
     description: flutter
