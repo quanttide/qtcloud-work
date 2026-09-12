@@ -25,10 +25,11 @@ lib/
 ├── models/            界面背后的数据：工作流定义、任务记录、三处位置
 └── cli/               命令行客户端：起子进程、读统一信封（ok / columns / rows / lines）
 test/
-├── models/            模型的读法与算法
-├── cli/               命令怎么拼、信封怎么读（用假 runner，不起子进程）
+├── models/            模型与领域实现（工作流、任务、三处位置、信封）
+├── cli/               命令怎么拼、信封怎么读、导览（用假 runner，不起子进程）
+├── views/ screens/    界面块与三个页面
 ├── fixtures/          真实输出，从命令行抓下来的
-└── widget_test.dart   任务页冒烟
+└── widget_test.dart   工作台冒烟
 doc/                   原型与设计说明（screens / views / models 三轴）
 ```
 
