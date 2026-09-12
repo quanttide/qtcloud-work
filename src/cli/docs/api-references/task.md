@@ -65,6 +65,6 @@ qtcloud-work task <名字> --journal <一段话>
 | `data` / `workflows` | 数据仓与工作流目录，能相对工作区根就相对 |
 | `log` | 流水，只增不改 |
 | `gates` | 闸门项：等人拍板的事项，走一步累着写 |
-| `products` | 这次执行往哪写产物（`report:` / `journal:` 各一条路径，可省） |
+| `artifacts` | 这次执行往哪写产物（`report:` / `journal:` 各一条路径，可省） |
 
 流水一条四项：`at` 时刻、`step` 步骤名、`detail` 一句话、`ok` 是否成功。状态从流水推出来：流水里 `ok` 为真且步骤名在定义里的，算走过的步骤；第一个没走过的就是下一步。

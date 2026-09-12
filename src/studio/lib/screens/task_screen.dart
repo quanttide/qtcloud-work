@@ -12,7 +12,7 @@ class TaskScreen extends StatelessWidget {
     super.key,
     required this.task,
     required this.workflow,
-    required this.products,
+    required this.artifacts,
     required this.workspace,
     required this.busy,
     required this.onNext,
@@ -26,7 +26,7 @@ class TaskScreen extends StatelessWidget {
   final qt.Workflow? workflow;
 
   /// 三样产物的落点（按工作区算好的）。
-  final Map<String, String> products;
+  final Map<String, String> artifacts;
   final qt.RunContext workspace;
   final bool busy;
   final VoidCallback onNext;
@@ -40,7 +40,7 @@ class TaskScreen extends StatelessWidget {
       '你在量潮工作云工作台里，看的是任务「${task.name}」（跑的是工作流 ${task.workflowName}）。',
       '开工：${task.start}',
       '当前状态：${flow == null ? '定义取不到' : task.stateLine(flow)}',
-      '产物落点：报告 ${products['report'] ?? ''}／流水 ${products['journal'] ?? ''}／日志 ${products['log'] ?? ''}',
+      '产物落点：报告 ${artifacts['report'] ?? ''}／流水 ${artifacts['journal'] ?? ''}／日志 ${artifacts['log'] ?? ''}',
       '任务文件：${workspace.data}/tasks/${task.name}.yaml',
       '工作流定义：${workspace.workflows}/${task.workflowName}.yaml',
     ];
@@ -111,7 +111,7 @@ class TaskScreen extends StatelessWidget {
           child: StatusPanel(
             task: task,
             workflow: flow,
-            products: products,
+            artifacts: artifacts,
             busy: busy,
             onNext: onNext,
             onDone: onDone,

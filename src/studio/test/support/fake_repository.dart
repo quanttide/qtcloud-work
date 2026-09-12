@@ -42,12 +42,12 @@ class FakeRepository implements StudioRepository {
   }
 
   @override
-  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
+  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> artifacts})>
   task(String name) async => (
     task: _task,
     workflow: _workflow,
-    products: Map<String, String>.from(
-      (fixtureData('task_detail')['products'] as Map?) ?? const {},
+    artifacts: Map<String, String>.from(
+      (fixtureData('task_detail')['artifacts'] as Map?) ?? const {},
     ),
   );
 

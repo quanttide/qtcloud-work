@@ -44,9 +44,9 @@ impl Task {
     }
 
     /// 这次执行往哪写产物（任务是运行数据，产物与它没有从属关系）。
-    pub fn products(&self) -> std::collections::BTreeMap<String, String> {
+    pub fn artifacts(&self) -> std::collections::BTreeMap<String, String> {
         let mut found = std::collections::BTreeMap::new();
-        if let Some(mapping) = self.payload().get("products").and_then(|v| v.as_mapping()) {
+        if let Some(mapping) = self.payload().get("artifacts").and_then(|v| v.as_mapping()) {
             for (key, value) in mapping {
                 if let (Some(key), Some(value)) = (key.as_str(), value.as_str()) {
                     found.insert(key.to_string(), value.to_string());
@@ -54,6 +54,19 @@ impl Task {
             }
         }
         found
+    }
+
+    /// 这次执行的三处位置（落点按它算）。
+    pub fn context(&self) -> quanttide_work::task::RunContext {
+        quanttide_work::task::RunContext {
+            root: self.root.display().to_string(),
+            data: self.data.display().to_string(),
+            workflows: self
+                .workflows
+                .as_ref()
+                .map(|path| path.display().to_string())
+                .unwrap_or_default(),
+        }
     }
 
     /// 闸门项：等人拍板的事项，记在任务文件里。
@@ -82,24 +95,9 @@ impl Task {
         let _ = std::fs::write(self.file(), text);
     }
 
-    /// 流水就在任务文件里（`{{log}}` 指它）；产物路径先看声明，没声明就落草稿区。
+    /// 这次执行往哪写这种产物——落点在工具箱里（规范「任务 / 语法」）。
     pub fn artifact(&self, kind: &str) -> PathBuf {
-        if kind == LOG {
-            return self.file();
-        }
-        if let Some(written) = self.products().get(kind)
-            && !written.trim().is_empty()
-        {
-            let path = PathBuf::from(written.trim());
-            return if path.is_absolute() {
-                path
-            } else {
-                self.root.join(path)
-            };
-        }
-        self.artifacts_dir()
-            .join(kind)
-            .join(format!("{}.md", self.name))
+        PathBuf::from(self.shared().artifact(kind, &self.context()))
     }
 
     pub fn exists(&self) -> bool {
@@ -242,7 +240,7 @@ pub fn create(
         );
         payload.insert("log".into(), Value::Sequence(Vec::new()));
         payload.insert("gates".into(), Value::Sequence(Vec::new()));
-        payload.insert("products".into(), Value::Mapping(Mapping::new()));
+        payload.insert("artifacts".into(), Value::Mapping(Mapping::new()));
         for (key, value) in context(root, data, workflows) {
             payload.insert(Value::String(key), Value::String(value));
         }
@@ -254,7 +252,7 @@ pub fn create(
     }
     for kind in [REPORT, JOURNAL] {
         let declared = task
-            .products()
+            .artifacts()
             .get(kind)
             .is_some_and(|v| !v.trim().is_empty());
         if declared && !task.artifact(kind).is_file() {
@@ -814,7 +812,7 @@ pub fn task_status(
     // 给窗口的那一栏：任务原文（装成领域对象要用）+ 三样产物的落点。
     result.data = Some(json!({
         "payload": to_json(&task.payload()),
-        "products": {
+        "artifacts": {
             REPORT: short(data, &task.artifact(REPORT)),
             JOURNAL: short(data, &task.artifact(JOURNAL)),
             LOG: short(data, &task.artifact(LOG)),

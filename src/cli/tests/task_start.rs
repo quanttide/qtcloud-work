@@ -35,9 +35,9 @@ fn start_task_lays_down_files_and_context() {
     );
     assert!(record.contains("log:"), "流水没开:\n{record}");
     assert!(record.contains("gates:"), "闸门项没有落处:\n{record}");
-    assert!(record.contains("products:"), "产物落点没有落处:\n{record}");
+    assert!(record.contains("artifacts:"), "产物落点没有落处:\n{record}");
     assert!(record.contains("gates:"), "闸门项没开:\n{record}");
-    assert!(record.contains("products:"), "产物落点没开:\n{record}");
+    assert!(record.contains("artifacts:"), "产物落点没开:\n{record}");
 
     let missing = fix.run_full(
         true,

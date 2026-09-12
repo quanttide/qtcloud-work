@@ -58,17 +58,17 @@ class LocalRepository implements StudioRepository {
   }
 
   @override
-  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
+  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> artifacts})>
   task(String name) async {
     final data = _data(['task', name]);
     final task = qt.Task.of(name, _payload(data));
-    final products = Map<String, String>.from(
-      (data['products'] as Map?) ?? const <String, Object?>{},
+    final artifacts = Map<String, String>.from(
+      (data['artifacts'] as Map?) ?? const <String, Object?>{},
     );
     return (
       task: task,
       workflow: (await workflow(task.workflowName)).workflow,
-      products: products,
+      artifacts: artifacts,
     );
   }
 

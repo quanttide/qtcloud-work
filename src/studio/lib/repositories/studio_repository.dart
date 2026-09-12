@@ -19,7 +19,7 @@ abstract class StudioRepository {
 
   /// 打开一件任务：任务本身 + 它跑的那条定义（算下一步要用）+ 三样产物的落点
   /// （落点要按工作区算，所以是这边算好递出来，相对数据仓）。
-  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
+  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> artifacts})>
   task(String name);
 
   /// 走下一步。这一步多半交给 AI 跑，会慢。

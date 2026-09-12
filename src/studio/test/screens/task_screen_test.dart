@@ -22,8 +22,8 @@ void main() {
       TaskScreen(
         task: task,
         workflow: workflow,
-        products: Map<String, String>.from(
-          (fixtureData('task_detail')['products'] as Map?) ?? const {},
+        artifacts: Map<String, String>.from(
+          (fixtureData('task_detail')['artifacts'] as Map?) ?? const {},
         ),
         workspace: _workspace,
         busy: false,

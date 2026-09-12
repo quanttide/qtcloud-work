@@ -9,7 +9,7 @@ class StatusPanel extends StatelessWidget {
     super.key,
     required this.task,
     required this.workflow,
-    required this.products,
+    required this.artifacts,
     required this.busy,
     required this.onNext,
     required this.onDone,
@@ -20,7 +20,7 @@ class StatusPanel extends StatelessWidget {
   final qt.Workflow? workflow;
 
   /// 三样产物的落点（按工作区算好的，相对数据仓）。
-  final Map<String, String> products;
+  final Map<String, String> artifacts;
   final bool busy;
   final VoidCallback onNext;
   final VoidCallback onDone;
@@ -75,9 +75,9 @@ class StatusPanel extends StatelessWidget {
           for (final gate in _gates) '${gate.name}　待人放行',
         ]),
         _block(theme, '产物', [
-          '报告　${products['report'] ?? ''}',
-          '日志　${products['journal'] ?? ''}',
-          '流水　${products['log'] ?? ''}',
+          '报告　${artifacts['report'] ?? ''}',
+          '日志　${artifacts['journal'] ?? ''}',
+          '流水　${artifacts['log'] ?? ''}',
         ]),
         _block(theme, '流水（最近几条）', [
           if (recent.isEmpty) '还没有流水',

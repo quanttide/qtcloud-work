@@ -55,8 +55,8 @@ class Task {
   void save(Map payload) => fs.writeText(file, dumpYaml(payload));
 
   /// 这次执行往哪写产物（任务是运行数据，产物与它没有从属关系）。
-  Map<String, String> products() {
-    final raw = payload()['products'];
+  Map<String, String> artifacts() {
+    final raw = payload()['artifacts'];
     if (raw is! Map) return <String, String>{};
     final found = <String, String>{};
     raw.forEach((key, value) {
@@ -75,16 +75,11 @@ class Task {
     save(body);
   }
 
-  /// 产物路径先看声明，没声明就落草稿区；流水就在任务文件里。
-  String artifact(String kind) {
-    if (kind == logKind) return file;
-    final written = products()[kind];
-    if (written != null && written.trim().isNotEmpty) {
-      final path = written.trim();
-      return path.startsWith('/') ? path : '$root/$path';
-    }
-    return '$artifactsDir/$kind/$name.md';
-  }
+  /// 这次执行往哪写产物——落点在工具箱里（规范「任务 / 语法」）。
+  String artifact(String kind) => shared.artifact(
+    kind,
+    qt.RunContext(root: root, data: data, workflows: workflows ?? ''),
+  );
 
   String get start => textOf(payload(), 'start');
 
@@ -139,13 +134,13 @@ Task createTask(
       'workflow': workflowName,
       'log': <Object?>[],
       'gates': <Object?>[],
-      'products': <String, Object?>{},
+      'artifacts': <String, Object?>{},
       ...taskContext(root, data, workflows),
     };
     task.save(payload);
   }
   for (final kind in [reportKind, journalKind]) {
-    final declared = (task.products()[kind] ?? '').trim().isNotEmpty;
+    final declared = (task.artifacts()[kind] ?? '').trim().isNotEmpty;
     if (declared && !fs.fileExists(task.artifact(kind))) {
       fs.writeText(task.artifact(kind), '# $kind：$name\n');
     }
@@ -302,7 +297,7 @@ Outcome taskStatus(String? root, String data, String name, String? workflows) {
   final tail = events.length <= 5 ? events : events.sublist(events.length - 5);
   result.data = {
     'payload': task.payload(),
-    'products': {
+    'artifacts': {
       'report': short(data, task.artifact(reportKind)),
       'journal': short(data, task.artifact(journalKind)),
       'log': short(data, task.artifact(logKind)),

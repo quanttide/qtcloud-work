@@ -162,7 +162,7 @@ impl Fixture {
                 "- at: 2026-09-11 10:00\n  step: {step}\n  detail: 试\n  ok: {ok}\n"
             ));
         }
-        body.push_str("gates: []\nproducts: {}\n");
+        body.push_str("gates: []\nartifacts: {}\n");
         self.file(
             &format!("data/context/qtcloud-work/tasks/{name}.yaml"),
             &body,

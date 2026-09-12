@@ -11,6 +11,7 @@
 - 定义核对的拼句（`describeFindings` / `allOk`）与提示词（`prompts`）从工具箱搬回工作台：`repositories/local/prompts.dart`
 - 结果（`Outcome`）随规范「过程 / 结果」那一节回到工具箱（`0.1.0-beta.4`）：本地的 `repositories/local/outcome.dart` 与 `repositories/envelope.dart` 删掉，`data` 那一栏成为结果自己的字段（不再走侧表），路径怎么显示留 `repositories/local/paths.dart`
 - `--json` 一律是结果四样 + `data`；两套实现（命令行与本地）交出的 `data` 一字不差，对表连这一栏一起比
+- 声明表正名为 `artifacts`（原先叫 `products`）：任务文件、界面参数、Bloc 的状态字段、给窗口那一栏的键一并改；落点算法收进工具箱，本地那份删掉
 - 干掉 `lib/models/`：界面与 Bloc 直接拿工具箱的领域对象（`qt.Task` / `qt.Workflow`），走过几步、下一步、进度、判据条数由领域对象自己算；执行者的中文说法搬进 `lib/widgets/executor_label.dart`；信封那一栏 `data` 改托任务与定义的原文
 - 删死代码：`lib/core/artifact.dart`（无人引用）与 `tasks.dart` 里重复的 `textOf`
 - 初始化全部平台客户端：android、ios、linux、macos、windows、web（原先只有 web）

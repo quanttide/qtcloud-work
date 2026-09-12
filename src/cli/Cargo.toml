@@ -16,7 +16,7 @@ path = "src/main.rs"
 
 [dependencies]
 # 领域模型抽到工具箱之后，这里是它的第一个消费者
-quanttide-work = "0.1.0-beta.3"
+quanttide-work = "0.1.0-beta.4"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

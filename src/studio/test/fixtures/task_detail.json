@@ -133,9 +133,9 @@
         "新 tag 与这次内容对应（不是旧 tag 充数）；deploy-site 工作流跑绿；站点上查得到这份任务书",
         "三行说得清送到了哪、还差什么；拿不准的单列，不混在结论里"
       ],
-      "products": {}
+      "artifacts": {}
     },
-    "products": {
+    "artifacts": {
       "report": "artifacts/report/learn-task-create.md",
       "journal": "artifacts/journal/learn-task-create.md",
       "log": "tasks/learn-task-create.yaml"

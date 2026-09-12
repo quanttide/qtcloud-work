@@ -145,7 +145,7 @@ class Workbench extends StatelessWidget {
               child: TaskScreen(
                 task: task,
                 workflow: state.taskWorkflow,
-                products: state.taskProducts,
+                artifacts: state.taskArtifacts,
                 workspace: workspace,
                 busy: state.busy,
                 onNext: () => bloc.add(const WorkbenchRunNext()),

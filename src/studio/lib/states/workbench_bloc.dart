@@ -16,7 +16,7 @@ class WorkbenchState {
     this.tasks = const [],
     this.task,
     this.taskWorkflow,
-    this.taskProducts = const {},
+    this.taskArtifacts = const {},
     this.workflows = const [],
     this.workflow,
     this.workflowPath = '',
@@ -45,7 +45,7 @@ class WorkbenchState {
   final qt.Workflow? taskWorkflow;
 
   /// 当前任务三样产物的落点（按工作区算好的，相对数据仓）。
-  final Map<String, String> taskProducts;
+  final Map<String, String> taskArtifacts;
 
   /// 定义名单：名字、步骤串、位置。
   final List<({String name, String steps, String path})> workflows;
@@ -67,7 +67,7 @@ class WorkbenchState {
     List<({String name, String workflow, String next})>? tasks,
     qt.Task? task,
     qt.Workflow? taskWorkflow,
-    Map<String, String>? taskProducts,
+    Map<String, String>? taskArtifacts,
     List<({String name, String steps, String path})>? workflows,
     qt.Workflow? workflow,
     String? workflowPath,
@@ -80,7 +80,7 @@ class WorkbenchState {
     tasks: tasks ?? this.tasks,
     task: task ?? this.task,
     taskWorkflow: taskWorkflow ?? this.taskWorkflow,
-    taskProducts: taskProducts ?? this.taskProducts,
+    taskArtifacts: taskArtifacts ?? this.taskArtifacts,
     workflows: workflows ?? this.workflows,
     workflow: workflow ?? this.workflow,
     workflowPath: workflowPath ?? this.workflowPath,
@@ -184,11 +184,11 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
       final workflows = await _repository.workflows();
       var task = state.task;
       var taskWorkflow = state.taskWorkflow;
-      var taskProducts = state.taskProducts;
+      var taskArtifacts = state.taskArtifacts;
       if (task == null && tasks.isNotEmpty) {
         final opened = await _repository.task(tasks.first.name);
         task = opened.task;
-        taskProducts = opened.products;
+        taskArtifacts = opened.artifacts;
         taskWorkflow = await _workflowOf(task);
       }
       var workflow = state.workflow;
@@ -207,7 +207,7 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
           workflows: workflows,
           task: task,
           taskWorkflow: taskWorkflow,
-          taskProducts: taskProducts,
+          taskArtifacts: taskArtifacts,
           workflow: workflow,
           workflowPath: path,
           workflowYaml: yaml,
@@ -232,7 +232,7 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
         state.copyWith(
           busy: false,
           task: opened.task,
-          taskProducts: opened.products,
+          taskArtifacts: opened.artifacts,
           taskWorkflow: await _workflowOf(opened.task),
         ),
       );
@@ -277,7 +277,7 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
         busy: false,
         tasks: tasks,
         task: task,
-        taskProducts: opened?.products,
+        taskArtifacts: opened?.artifacts,
         taskWorkflow: task == null ? null : await _workflowOf(task),
         note: note,
       ),
@@ -337,7 +337,7 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
           busy: false,
           tasks: tasks,
           task: opened.task,
-          taskProducts: opened.products,
+          taskArtifacts: opened.artifacts,
           taskWorkflow: await _workflowOf(opened.task),
           note: '起了任务：$name',
         ),
