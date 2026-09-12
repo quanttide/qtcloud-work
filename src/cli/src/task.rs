@@ -7,7 +7,7 @@
 //! 事实记进流水与报告。
 
 use crate::workflow::{self, Step, WorkflowFile};
-use quanttide_work::criteria::Criterion;
+use quanttide_work::criterion::Criterion;
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -144,20 +144,18 @@ impl Task {
             .unwrap_or_default()
     }
 
-    /// 哪些步骤走过了：流水里成功执行过的、且名字确实是工作流上的步骤。
-    /// 哪些步骤走过了：看这一步**最近一次**尝试（执行与审查合起来）是否都 ok。
-    ///
-    /// 审查判 ✗ 时不算走过（下一步还是它）；重走一次都 ok，就算走过——上一笔失败不
-    /// 再压着它。
-    /// 哪些步骤走过了：算法在工具箱里（附加判定投票、重新执行从头算）。
+    /// 这件任务在工具箱里的样子（内容那一层交给工具箱）。
+    pub fn shared(&self) -> quanttide_work::task::Task {
+        quanttide_work::task::Task::of(&self.name, &self.payload())
+    }
+
+    /// 哪些步骤走过了：算法在工具箱的任务聚合里——附加判定投票、重新执行从头算。
     pub fn done(&self) -> Vec<String> {
-        let names: Vec<String> = self.steps().into_iter().map(|s| s.name()).collect();
-        quanttide_work::tasklog::done(&names, &self.events())
+        self.shared().done_steps(&self.workflow().shared())
     }
 
     pub fn next_step(&self) -> Option<Step> {
-        let names: Vec<String> = self.steps().into_iter().map(|s| s.name()).collect();
-        let next = quanttide_work::tasklog::next_step(&names, &self.events())?;
+        let next = self.shared().next_step(&self.workflow().shared())?;
         self.steps().into_iter().find(|step| step.name() == next)
     }
 
@@ -351,15 +349,14 @@ pub fn listing(root: Option<&Path>, data: &Path, workflows: Option<&Path>) -> Ve
         .collect()
 }
 
-/// 交给 AI 的那一段话：这一步做什么、判据是什么、产物落在哪。
-/// 交给 AI 的那一段话：说什么、不说什么是定死的，话本身在工具箱里。
+/// 交给 AI 的那一段话：说什么、不说什么是定死的，话本身在 `crate::prompts`。
 pub fn prompt_for(task: &Task, step: &Step) -> String {
-    quanttide_work::prompts::prompt_for(&facts_of(task, step), &step.criteria())
+    crate::prompts::prompt_for(&facts_of(task, step), &step.criteria())
 }
 
 /// 这一步的现场：路径由命令行这边算好递进去。
-fn facts_of(task: &Task, step: &Step) -> quanttide_work::prompts::Facts {
-    quanttide_work::prompts::Facts {
+fn facts_of(task: &Task, step: &Step) -> crate::prompts::Facts {
+    crate::prompts::Facts {
         root: task.root.display().to_string(),
         data: task.data.display().to_string(),
         name: task.name.clone(),
@@ -400,7 +397,7 @@ pub fn run_ai(prompt: &str, root: &Path) -> (bool, String) {
 
 /// 交给智能体审的那一段话：产物 + 判准，逐条回答。
 pub fn judge_prompt(task: &Task, step: &Step, criteria: &[Criterion]) -> String {
-    quanttide_work::prompts::judge_prompt(&facts_of(task, step), criteria)
+    crate::prompts::judge_prompt(&facts_of(task, step), criteria)
 }
 
 fn one_line(text: &str, limit: usize) -> String {
@@ -707,8 +704,7 @@ pub fn narrate(task: &Task, words: &str) {
 }
 
 pub fn state_line(task: &Task) -> String {
-    let names: Vec<String> = task.steps().into_iter().map(|s| s.name()).collect();
-    quanttide_work::tasklog::state_line(&names, &task.events(), &task.workflow_name())
+    task.shared().state_line(&task.workflow().shared())
 }
 
 // ---- 动作 ----

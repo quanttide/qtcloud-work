@@ -7,6 +7,7 @@ mod cli;
 mod help;
 mod material;
 mod outcome;
+mod prompts;
 mod task;
 mod workflow;
 

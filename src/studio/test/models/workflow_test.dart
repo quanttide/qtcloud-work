@@ -81,14 +81,6 @@ void main() {
     });
   });
 
-  group('工作流的形状', () {
-    // 规范：docs/specification/process/workflow.md·语法
-    // 「顶层三个字段：name、description 与 steps」
-    test('顶层字段就这三个', () {
-      expect(topFields, ['name', 'description', 'steps']);
-    });
-  });
-
   group('读一份定义', () {
     test('合法的读得进', () {
       final payload = loadDefinition(write('demo.yaml', good)) as Map;

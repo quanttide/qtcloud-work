@@ -38,6 +38,9 @@ class Task {
 
   bool get exists => fs.fileExists(file);
 
+  /// 这件任务在工具箱里的样子（内容那一层交给工具箱）。
+  qt.Task get shared => qt.Task.of(name, payload());
+
   Map payload() {
     if (!exists) return <String, Object?>{};
     try {
@@ -94,15 +97,11 @@ class Task {
   List<Map> events() =>
       (payload()['log'] as List?)?.whereType<Map>().toList() ?? const [];
 
-  /// 哪些步骤走过了：算法在工具箱里（附加判定投票、重新执行从头算）。
-  List<String> done() {
-    final names = steps().map((step) => step.name).toList();
-    return qt.done(names, events());
-  }
+  /// 哪些步骤走过了：算法在工具箱的任务聚合里（附加判定投票、重新执行从头算）。
+  List<String> done() => shared.doneSteps(workflow().shared);
 
   Step? nextStep() {
-    final names = steps().map((step) => step.name).toList();
-    final next = qt.nextStep(names, events());
+    final next = shared.nextStep(workflow().shared);
     if (next == null) return null;
     for (final step in steps()) {
       if (step.name == next) return step;
@@ -233,10 +232,7 @@ List<Task> listingTasks(String? root, String data, String? workflows) {
   ];
 }
 
-String stateLine(Task task) {
-  final names = task.steps().map((step) => step.name).toList();
-  return qt.stateLine(names, task.events(), task.workflowName);
-}
+String stateLine(Task task) => task.shared.stateLine(task.workflow().shared);
 
 // ---- 动作 ----
 

@@ -4,13 +4,14 @@ import 'rules.dart';
 import 'workflows.dart';
 import 'host/host.dart';
 import 'outcome.dart';
+import 'prompts.dart' as prompt;
 import 'tasks.dart';
 
 /// 走一步：执行者是 AI 的交给 `pi` 跑，然后程序自己判机械判据、把闸门项记进任务文件，
 /// 事实记进流水与报告。（与命令行 `src/task.rs` 的 execute 一条一条对齐）
 
 /// 这一步的现场：路径由工作室这边算好递进去。
-qt.Facts factsOf(Task task, Step step) => qt.Facts(
+prompt.Facts factsOf(Task task, Step step) => prompt.Facts(
   root: task.root,
   data: task.data,
   name: task.name,
@@ -28,7 +29,7 @@ qt.Facts factsOf(Task task, Step step) => qt.Facts(
 
 /// 交给 AI 的那一段话：说什么、不说什么是定死的，话本身在工具箱里。
 String promptFor(Task task, Step step) =>
-    qt.promptFor(factsOf(task, step), step.criteria);
+    prompt.promptFor(factsOf(task, step), step.criteria);
 
 String oneLine(String text, int limit) {
   final lines = text
@@ -66,7 +67,7 @@ List<(String, String, String)> judgeByAi(
   Step step,
   List<qt.Criterion> criteria,
 ) {
-  final run = runPi(qt.judgePrompt(factsOf(task, step), criteria), task.root);
+  final run = runPi(prompt.judgePrompt(factsOf(task, step), criteria), task.root);
   final rows = <(String, String, String)>[];
   for (var i = 0; i < criteria.length; i++) {
     final note = criteria[i].text.trim();
@@ -132,7 +133,7 @@ List<qt.Criterion> expandedCriteria(Task task, List<qt.Criterion> criteria) {
           ? expand(task, value)
           : value;
     });
-    return qt.Criterion.fromMap(out);
+    return qt.criterionOf(out);
   }).toList();
 }
 

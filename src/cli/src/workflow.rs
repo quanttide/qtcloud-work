@@ -7,13 +7,14 @@
 //! `quanttide-work` 里——两侧共用一份规矩。这一层只剩命令行自己的两件事：
 //! 文件读写（`<工作流目录>/<名字>.yaml`）与把动作写成信封。
 
-use quanttide_work::definition::{self as shared, Finding, Workflow as SharedWorkflow};
+use quanttide_work::workflow::{self as shared, Finding, Workflow as SharedWorkflow};
 use serde_yaml::{Mapping, Value};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
 // 字段表与取值：一处定义、两侧共用（工具箱 `quanttide-work`）。
-pub use quanttide_work::definition::{AGENT, HUMAN, RULE, Step};
+pub use quanttide_work::executor::{AGENT, HUMAN, RULE};
+pub use quanttide_work::workflow::Step;
 
 /// 这份文件不像一份工作流。
 #[derive(Debug)]
@@ -33,7 +34,7 @@ fn dump(value: &Value) -> String {
 
 /// 读一份定义：不是映射、缺字段、取值不对，当场报错。
 ///
-/// 校验的规矩在工具箱里（`quanttide_work::definition::validate`）——两侧共用一份，
+/// 校验的规矩在工具箱里（`quanttide_work::workflow::validate`）——两侧共用一份，
 /// 报错文字也一字不差。
 pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
     let file = path
@@ -99,7 +100,7 @@ impl WorkflowFile {
 
     /// 内容那一层交给工具箱。
     pub fn shared(&self) -> SharedWorkflow {
-        SharedWorkflow::new(&self.name, self.payload.clone())
+        SharedWorkflow::new(&self.name, &self.payload)
     }
 
     pub fn description(&self) -> String {
@@ -379,7 +380,7 @@ pub fn workflow_list(data: &Path, workflows: Option<&Path>) -> Result {
 ///
 /// 规矩在工具箱里；这里只把「路径在不在」用工作区根包一层。
 pub fn check(flow: &WorkflowFile, root: &Path, data: &Path) -> Vec<Finding> {
-    shared::check(&flow.shared(), &data.to_string_lossy(), |written| {
+    flow.shared().check(&data.to_string_lossy(), |written| {
         let path = Path::new(written);
         let target = if path.is_absolute() {
             path.to_path_buf()
@@ -392,11 +393,23 @@ pub fn check(flow: &WorkflowFile, root: &Path, data: &Path) -> Vec<Finding> {
 
 /// 核对结果写成人读的一段。
 pub fn describe(found: &[Finding]) -> Vec<String> {
-    shared::describe(found)
+    let mut lines = vec![format!("核对 {} 件事", found.len())];
+    for item in found {
+        lines.push(format!(
+            "  {} {}——{}",
+            if item.ok { "✓" } else { "✗" },
+            item.where_,
+            item.what
+        ));
+    }
+    if found.is_empty() {
+        lines.push("  （这条定义里没有可核对的路径与小节）".to_string());
+    }
+    lines
 }
 
 pub fn all_ok(found: &[Finding]) -> bool {
-    shared::all_ok(found)
+    found.iter().all(|item| item.ok)
 }
 
 /// 核对一条工作流的声明与判据对不对得上，结果印给人。

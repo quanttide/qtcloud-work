@@ -1,4 +1,5 @@
 import 'fs/fs.dart' as fs;
+import 'outcome.dart';
 import 'host/host.dart';
 
 /// 判据：跑定义里写下的机械核对。

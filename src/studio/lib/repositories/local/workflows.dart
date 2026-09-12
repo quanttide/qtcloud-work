@@ -18,17 +18,12 @@ export 'package:quanttide_work/quanttide_work.dart'
         rule,
         executors,
         criterionTypes,
-        topFields,
-        stepFields,
-        criterionFields,
+        criterionOf,
+        readCriterion,
         textOf,
         unknownFields,
-        validateDefinition,
         looksLikeSection,
-        expandPlaceholders,
-        checkWorkflow,
-        describeFindings,
-        allOk;
+        expandPlaceholders;
 
 import 'package:quanttide_work/quanttide_work.dart';
 
@@ -49,7 +44,7 @@ Object loadDefinition(String path) {
   } catch (error) {
     throw DefinitionError('$file 不是合法的 YAML：$error');
   }
-  validateDefinition(payload, file);
+  Workflow.fromValue(payload, file: file);
   return payload!;
 }
 
@@ -313,7 +308,7 @@ Outcome workflowCheck(
   if (!flow.exists) {
     return Outcome.failed(['没有这条工作流：${short(data, flow.file)}']);
   }
-  final found = checkWorkflow(flow.shared, data, (written) {
+  final found = flow.shared.check(data, (written) {
     final target = written.startsWith('/') ? written : '$root/$written';
     return fileExists(target) || dirExists(target);
   });
@@ -323,3 +318,17 @@ Outcome workflowCheck(
       ...describeFindings(found),
     ];
 }
+
+/// 核对结果写成人读的一段。
+List<String> describeFindings(List<Finding> found) {
+  final lines = <String>['核对 ${found.length} 件事'];
+  for (final item in found) {
+    lines.add('  ${item.ok ? '✓' : '✗'} ${item.where}——${item.what}');
+  }
+  if (found.isEmpty) {
+    lines.add('  （这条定义里没有可核对的路径与小节）');
+  }
+  return lines;
+}
+
+bool allOk(List<Finding> found) => found.every((item) => item.ok);
