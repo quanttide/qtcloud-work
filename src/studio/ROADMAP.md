@@ -71,7 +71,20 @@ sh scripts/parity.sh
 
 ## 现在在哪
 
-段一未开始。已命中的触发：单文件行数越界（4 个文件 >250 行，最长 378）、目录混用。
+**段一（正名）、段三（收敛实现）已完成**（2026-09-12，pi 执行 + 复核）：
+
+- `lib/views/` 就位（原 `lib/widgets/` 已撤），`test/views/` 同步
+- 只剩一套实现：`client.dart`、`runner.dart` 与对应测试已删；`main.dart` 仍是 `workspaceFromEnvironment()` + `LocalRepository(workspace)`，三处位置读法没变
+- **`find` → `search` 已随 cli 同批改完**（`dispatch.dart` 与 `help.dart`）
+- 门禁全过（`flutter analyze` 无问题、`flutter test` 78 条全绿）；与 cli 的全量对表 **24/24 一致**
+
+**剩下**：
+
+- 段二（清混用）：`local/` 里聚合名与职能名仍同层
+- 段四（转聚合）：按聚合重排 `local/`、拆 378/349/316 行的长文件、约定集中一处
+- 段五（契约对齐）：路由、CI 补 `dart format`、CanvasKit 自托管、依赖许可清单、IaC 归属
+- 段六（文档）：`doc/` 欠账、`doc/models/` 定位重定、工作流判据里的 `lib/cli` 改成实际位置、README 说法随段三更新
+- 段七（发布线）：studio 与 cli 一条线还是两条线
 
 ## 功能上还欠的（与结构无关）
 

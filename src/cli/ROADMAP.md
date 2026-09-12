@@ -61,7 +61,19 @@ sh scripts/validate-usecases.sh
 
 ## 现在在哪
 
-段一未开始。已命中的触发：单文件行数越界（3 个文件 >250 行，最长 945）、聚合件与适配件同层。
+**段一（正名与归类）、段二（立目录）、段三（拆长文件）已完成**（2026-09-12，pi 执行 + 复核）：
+
+- `src/` 顶层已是三类：聚合 `task/ workflow/ catalog/ artifact/ material/ workspace/`、服务 `search/ audit/`、适配 `cli.rs` `cli/` `help.rs` `prompts.rs` `health.rs`
+- 最长文件 240 行（原 `task.rs` 945 行 → `task/` 内 `ai / execute / journal / report / state`）
+- `find` → `search` 已在 cli 与 studio 两侧同批改完；约定落进 `src/CONVENTIONS.md`
+- 四条门禁全过（`cargo fmt --check`、`cargo clippy`、`cargo test --locked`、`validate-usecases.sh`）；与 studio 的全量对表 **24/24 一致**
+
+**剩下**：段四（版本同步、依赖许可清单、IaC 归属）、段五（`layers.md` 重写、api-references 分两类、`prompts` 两侧说法一致、用例对账去空转）。
+
+**两处已知欠账**（不阻塞，但要记着）：
+
+- `docs/dev-guide/layers.md` 仍是旧说法（还提 `outcome.rs`、还写"拟建"）——段五 5.1
+- `validate-usecases.sh` 目前空转（文档侧没有用例号，脚本靠跳过通过）——段五 5.5
 
 ## 与 studio 的关系
 

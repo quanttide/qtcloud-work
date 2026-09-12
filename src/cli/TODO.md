@@ -96,6 +96,6 @@ sh scripts/validate-usecases.sh
 
 **5.4** README 与 CHANGELOG 随 `search` 改名更新（CHANGELOG 记在 Unreleased）
 
-**5.5** `validate-usecases.sh` 的扫描范围随目录调整（现在找 `tests/*.rs`、`docs/user-guide/*.md`）
+**5.5** `validate-usecases.sh` 现在**空转**：`docs/user-guide/` 里还没有「## 用例」标题，脚本靠"文档里暂无用例，跳过对账"通过——对账是假的。要让两边真的对起来：把使用指南写成用例（一件一件事），测试按用例标出处
 
-- 判据：脚本跑得过，用例号两边集合仍相等
+- 判据：脚本打印的两行用例号一致且非空；`echo $?` 为 0
