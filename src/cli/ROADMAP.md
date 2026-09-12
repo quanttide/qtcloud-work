@@ -77,6 +77,12 @@ sh scripts/validate-usecases.sh
 - `docs/dev-guide/layers.md` 仍是旧说法（还提 `outcome.rs`、还写"拟建"）——段五 5.1
 - `validate-usecases.sh` 目前空转（文档侧没有用例号，脚本靠跳过通过）——段五 5.5
 
+**端侧适配留下的三处**（2026-09-12 跟到工具箱 `0.1.0-beta.6` 时发现，不阻塞）：
+
+- **流水落点没有测试**：`Task::artifact("log")` 应当等于任务文件本身。这轮第一版按 `Workspace::place` 算成了 `artifacts/log/<任务>.md`——**是 studio 那条测试逮住的，本侧没吭声**；补一条断在这。
+- **借一个空工作区**：工具箱的 `place` / `expanded` / `check` 不吃 `self`，这一侧只能 `Workspace::default()` 现造一个才调得动。等工具箱把这三件收成关联函数（`Workspace::place(任务, 产物)`），删掉这一行。
+- **`name` 与文件名不一致时无人挡**：`Workflow::of(值)` 的名字只取 `name` 字段，工具箱的 `validate` 拿不到文件名——定义里两者不一致时，工作区按名字取定义会**静默取不到**（流水判定返回空）。要么工具箱的 `validate` 收文件名核一致，要么本侧 `load` 里挡；这是规范层面的取舍，得先定规矩。
+
 ## 与 studio 的关系
 
 两条命令面是一件事的两侧，**改名与版本必须一起走**：
