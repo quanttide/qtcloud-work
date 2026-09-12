@@ -36,7 +36,7 @@ sh scripts/parity.sh          # 24 条必须仍一致
 
 **3.1** 撤掉起命令行那层：删 `repositories/client.dart` 与 `repositories/runner.dart`，界面全部走 `local/`
 
-- 改：`app.dart` 装配处只留本地那套；screens 里 `CliFailure` 的用法换成 `LocalFailure`；删 `test/repositories/client_test.dart`、`test/support/fake_runner.dart`；README「界面跑的是 studio 自己那份实现…命令行那份仍留着」整段改写；doc 里「命令行还没给」这类占位说明一并撤
+- 改：`app.dart` 装配处只留本地那套；screens 里 `CliFailure` 的用法换成 `LocalFailure`；删 `test/repositories/client_test.dart`、`test/support/fake_runner.dart`；`local/dispatch.dart` 头注释里「界面走 client.dart」的说法改掉；README「界面跑的是 studio 自己那份实现…命令行那份仍留着」整段改写；doc 里「命令行还没给」这类占位说明一并撤
 - 判据：`test ! -f lib/repositories/client.dart`；`grep -rn "Process.run" lib/repositories | wc -l` 为 0（`local/host/` 里跑 `pi` 的不算）；通用判据全绿
 - 注意：这一步是工作流 `code-implement-studio` 的「交接」，做完 studio 才算能自己把活干完
 
@@ -48,10 +48,10 @@ sh scripts/parity.sh          # 24 条必须仍一致
 
 触发已命中两条：单文件行数越界、目录混用。
 
-**4.1** 拆长文件，按聚合重排 `local/`
+**4.1** 拆长文件，按聚合重排 `local/`——靶子目录（见 ROADMAP「交付哪些聚合」）：`workflow/`、`task/`、`material/`、`catalog/`、`audit/`、`find/`、`workspace/` + 职能一处 `platform/`
 
 - `tasks.dart` 378 行、`workflows.dart` 316 行、`task_run.dart` 279 行——拆进各自聚合目录，单文件降到 **≤250 行**
-- 判据：`find lib -name "*.dart" | xargs wc -l | awk '$1>250'` 为空；通用判据全绿（**行为不变**是硬要求）
+- 判据：上述七个聚合目录 + `platform/` 都在；`local/*.dart` 下不再有散落单件；`find lib -name "*.dart" | xargs wc -l | awk '$1>250'` 为空；通用判据全绿（**行为不变**是硬要求）
 
 **4.2** `states/workbench_bloc.dart` 349 行——按 Bloc 家法拆（bloc / event / state）或按聚合拆
 
