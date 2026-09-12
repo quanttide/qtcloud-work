@@ -14,19 +14,19 @@ import 'package:quanttide_work/quanttide_work.dart';
 /// 跑一条判据，返回（是否通过，说明）。
 (bool, String) checkRule(String root, RuleItem item) {
   switch (item.kind) {
-    case RuleKind.path:
+    case RuleKind.pathExists:
       final target = item.args[0];
       return (
         fs.fileExists('$root/$target') || fs.dirExists('$root/$target'),
         target,
       );
-    case RuleKind.absent:
+    case RuleKind.pathAbsent:
       final target = item.args[0];
       return (
         !fs.fileExists('$root/$target') && !fs.dirExists('$root/$target'),
         target,
       );
-    case RuleKind.contains:
+    case RuleKind.fileContains:
       final target = item.args[0];
       final needle = item.args[1];
       if (!fs.fileExists('$root/$target')) return (false, '$target 不存在');
@@ -34,7 +34,7 @@ import 'package:quanttide_work/quanttide_work.dart';
         fs.readText('$root/$target').contains(needle),
         '$target 含「$needle」',
       );
-    case RuleKind.run:
+    case RuleKind.commandRun:
       final command = item.args[0];
       final result = runShell(command, root);
       if (result.code == 0) return (true, command);

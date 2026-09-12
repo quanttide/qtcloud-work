@@ -22,11 +22,11 @@ class FakeRepository implements StudioRepository {
   qt.Task get _task {
     final payload = Map<String, Object?>.from(fixturePayload('task_detail'));
     if (!finished) payload['log'] = <Object?>[];
-    return qt.Task.of('${payload['name'] ?? ''}', payload);
+    return qt.Task.of(payload);
   }
 
   qt.Workflow get _workflow =>
-      qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
+      qt.Workflow.of(fixturePayload('workflow_detail'));
 
   @override
   Future<List<({String name, String workflow, String next})>> tasks() async {

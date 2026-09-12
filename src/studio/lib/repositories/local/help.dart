@@ -67,24 +67,28 @@ List<String>? helpTopic(String name) {
 
 /// 导览：三处位置、分组命令、下一步。
 Outcome helpGuide() {
-  final result = Outcome(true)
-    ..lines = ['量潮工作云命令行——把知识工作做成可执行的编排。', '']
-    ..columns = ['组', '命令', '做什么'];
+  final lines = <String>['量潮工作云命令行——把知识工作做成可执行的编排。', ''];
+  final rows = <List<String>>[];
   for (final group in helpGroups) {
-    result.lines.add(group.name);
+    lines.add(group.name);
     for (final item in group.items) {
-      result.lines.add('  ${item.usage.padRight(42)} ${item.what}');
-      result.rows.add([group.name, item.usage, item.what]);
+      lines.add('  ${item.usage.padRight(42)} ${item.what}');
+      rows.add([group.name, item.usage, item.what]);
     }
-    result.lines.add('');
+    lines.add('');
   }
-  result.lines.add(
+  lines.add(
     '三处位置：--root 工作区 / --data 数据仓 / --workflows 工作流目录（缺省见 `--help`）。',
   );
-  result.lines.add(
+  lines.add(
     '话题：`qtcloud-work help <命令>` 看它一句话要点；`qtcloud-work <命令> --help` 看全部选项。',
   );
-  return result;
+  return Outcome(
+    true,
+    lines: lines,
+    columns: ['组', '命令', '做什么'],
+    rows: rows,
+  );
 }
 
 /// `help` 那一支：给了话题说要点，没给就是导览。

@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+- toolkit 升到 `quanttide_work 0.1.0-beta.6`（与 cli 同号），跟着改到位：
+  - **`RunContext` 从工具箱退出**（位置不进模型）：三处位置改由工作台自己在 `repositories/local/run_context.dart` 里定，界面与仓储都引这一份
+  - **落点**改走 `WorkspacePlace.place`：工具箱只给相对工作区根的路径，接目录的规矩与命令行相同（声明过的按工作区根接、没声明的按数据仓接；流水不是产物，是任务文件本身）
+  - **流水判定与定义核对**改走工作区聚合的扩展（`WorkspaceProgress.doneSteps` / `nextStep` / `stateLine`、`WorkspaceCheck.check`）；界面那几处走 `workspaceOf(任务, 定义)` 把两样装在一起
+  - **结果（`Outcome`）在工具箱里改成不可变**：工作台拼结果的写法跟着改成「先攒列表、再交构造器」，`data` 从 `Map?` 放宽成任意 JSON，取时要转型
+  - 定义读不通的报错从工具箱的结构化 `DefinitionError` 翻成工作台自己的 `WorkflowError`（报错文字仍与命令行一字不差）；`textOf` 本仓自备；占位展开改走 `Criterion.expanded`，本仓只答「名字换成哪条路径」
+
 - `lib/` 按 Bloc 家法重排：`repositories/`（接口 + 命令行客户端与本地两套实现）、`states/`（Bloc）、`screens/`、`widgets/`；`test/` 跟着分层
 - 状态交给 Bloc：`states/workbench_bloc.dart`（状态 + 事件 + Bloc 一个文件）取代 `StatefulWidget` + `setState`；界面件只认传进来的模型与回调
 - 加 `repositories/studio_repository.dart` 接口（任务 / 工作流 / 探活）：`client.dart`（读统一信封）与 `local/local_repository.dart`（直接调命令面）各实现一套

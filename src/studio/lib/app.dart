@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
 
+import 'repositories/local/run_context.dart';
 import 'repositories/studio_repository.dart';
 import 'screens/flow_screen.dart';
 import 'screens/settings_screen.dart';
@@ -19,7 +19,7 @@ class QtcloudWorkStudioApp extends StatelessWidget {
   });
 
   final StudioRepository repository;
-  final qt.RunContext workspace;
+  final RunContext workspace;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class QtcloudWorkStudioApp extends StatelessWidget {
 class Workbench extends StatelessWidget {
   const Workbench({super.key, required this.workspace});
 
-  final qt.RunContext workspace;
+  final RunContext workspace;
 
   @override
   Widget build(BuildContext context) {

@@ -12,7 +12,8 @@ export 'package:quanttide_work/quanttide_work.dart'
         Step,
         Workflow,
         Finding,
-        DefinitionError,
+        Workspace,
+        Artifact,
         agent,
         human,
         rule,
@@ -20,12 +21,20 @@ export 'package:quanttide_work/quanttide_work.dart'
         criterionTypes,
         criterionOf,
         readCriterion,
-        textOf,
-        unknownFields,
-        looksLikeSection,
-        expandPlaceholders;
+        placeholderNames,
+        looksLikeSection;
 
 import 'package:quanttide_work/quanttide_work.dart';
+
+/// 这份文件不像一份工作流（与命令行的 `WorkflowError` 同名同义）。
+class WorkflowError implements Exception {
+  const WorkflowError(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
 
 /// 读一份定义：文件读进来、YAML 解开、照 schema 验一遍。
 ///
@@ -36,15 +45,20 @@ Object loadDefinition(String path) {
   try {
     text = readText(path);
   } catch (error) {
-    throw DefinitionError('$file 读不了：$error');
+    throw WorkflowError('$file 读不了：$error');
   }
   Object? payload;
   try {
     payload = parseYaml(text);
   } catch (error) {
-    throw DefinitionError('$file 不是合法的 YAML：$error');
+    throw WorkflowError('$file 不是合法的 YAML：$error');
   }
-  Workflow.fromValue(payload, file: file);
+  try {
+    Workflow.fromValue(payload);
+  } on DefinitionError catch (error) {
+    // 报错文字在工具箱里，文件由这一层给（与命令行一字不差）
+    throw WorkflowError(error.message(file));
+  }
   return payload!;
 }
 
@@ -79,8 +93,8 @@ class WorkflowFile {
     return this;
   }
 
-  /// 内容那一层交给工具箱。
-  Workflow get shared => Workflow.of(name, payload);
+  /// 内容那一层交给工具箱（工作流名取自定义里的 `name` 字段）。
+  Workflow get shared => Workflow.of(payload);
 
   String get description => shared.description;
 
@@ -159,7 +173,7 @@ WorkflowFile importWorkflow(
     workflows: workflowsDir(data, workflows),
   );
   if (flow.exists) {
-    throw DefinitionError('已经有一条工作流叫「$chosen」：${flow.file}（换名字用 --as）');
+    throw WorkflowError('已经有一条工作流叫「$chosen」：${flow.file}（换名字用 --as）');
   }
   payload['name'] = chosen;
   flow = WorkflowFile(
@@ -210,21 +224,25 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
   if (!flow.exists) {
     return Outcome.failed(['没有这条工作流：${short(data, flow.file)}']);
   }
-  final result = Outcome(true)
-    ..columns = ['步骤', '谁执行', '怎么算完']
-    ..lines.add('工作流：${flow.name}（${short(data, flow.file)}）');
-  result.data = {
-    'payload': flow.payload,
-    'path': short(data, flow.file),
-    'yaml': flow.exists ? readText(flow.file) : '',
-  };
+  final lines = <String>['工作流：${flow.name}（${short(data, flow.file)}）'];
+  final rows = <List<String>>[];
   for (final step in flow.steps) {
     final counts =
         '${step.rules.length} rule / ${step.agents.length} agent / ${step.gates.length} human';
-    result.rows.add([step.name, step.executor, counts]);
-    result.lines.add('  ${step.name}：${step.executor}　$counts');
+    rows.add([step.name, step.executor, counts]);
+    lines.add('  ${step.name}：${step.executor}　$counts');
   }
-  return result;
+  return Outcome(
+    true,
+    lines: lines,
+    columns: ['步骤', '谁执行', '怎么算完'],
+    rows: rows,
+    data: {
+      'payload': flow.payload,
+      'path': short(data, flow.file),
+      'yaml': flow.exists ? readText(flow.file) : '',
+    },
+  );
 }
 
 Outcome workflowExport(
@@ -261,23 +279,29 @@ Outcome workflowImport(
       flow.name,
       workflows,
     ).withFirst('已导入：${short(data, flow.file)}（步骤 ${flow.steps.length} 个）');
-  } on DefinitionError catch (error) {
+  } on WorkflowError catch (error) {
     return Outcome.failed([error.message]);
   }
 }
 
 Outcome workflowList(String data, [String? workflows]) {
   final found = listingWorkflows(data, workflows);
-  final result = Outcome(true)..columns = ['工作流', '步骤', '位置'];
+  final lines = <String>[];
+  final rows = <List<String>>[];
   for (final flow in found) {
     final steps = flow.steps.map((step) => step.name).join('、');
-    result.rows.add([flow.name, steps, short(data, flow.file)]);
-    result.lines.add('${flow.name.padRight(24)} 步骤：$steps');
+    rows.add([flow.name, steps, short(data, flow.file)]);
+    lines.add('${flow.name.padRight(24)} 步骤：$steps');
   }
   if (found.isEmpty) {
-    result.lines = ['还没有工作流：workflow --new <名字> --steps 甲,乙'];
+    lines.add('还没有工作流：workflow --new <名字> --steps 甲,乙');
   }
-  return result;
+  return Outcome(
+    true,
+    lines: lines,
+    columns: ['工作流', '步骤', '位置'],
+    rows: rows,
+  );
 }
 
 Outcome workflowCheck(
@@ -290,22 +314,30 @@ Outcome workflowCheck(
   if (!flow.exists) {
     return Outcome.failed(['没有这条工作流：${short(data, flow.file)}']);
   }
-  final found = flow.shared.check(data, (written) {
+  final found = Workspace().check(flow.shared, (written) {
     final target = written.startsWith('/') ? written : '$root/$written';
     return fileExists(target) || dirExists(target);
   });
-  return Outcome(allOk(found))
-    ..lines = [
+  return Outcome(
+    allOk(found),
+    lines: [
       '工作流：${flow.file.split('/').last.replaceAll(RegExp(r'\.yaml$'), '')}',
       ...describeFindings(found),
-    ];
+    ],
+  );
 }
 
 /// 核对结果写成人读的一段。
 List<String> describeFindings(List<Finding> found) {
   final lines = <String>['核对 ${found.length} 件事'];
   for (final item in found) {
-    lines.add('  ${item.ok ? '✓' : '✗'} ${item.where}——${item.what}');
+    // 未核（带运行时占位的判据）：不算过也不算不过
+    final mark = switch (item.ok) {
+      true => '✓',
+      false => '✗',
+      null => '○',
+    };
+    lines.add('  $mark ${item.where}——${item.what}');
   }
   if (found.isEmpty) {
     lines.add('  （这条定义里没有可核对的路径与小节）');
@@ -313,4 +345,4 @@ List<String> describeFindings(List<Finding> found) {
   return lines;
 }
 
-bool allOk(List<Finding> found) => found.every((item) => item.ok);
+bool allOk(List<Finding> found) => found.every((item) => item.ok != false);

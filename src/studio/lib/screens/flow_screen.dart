@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
+import '../repositories/local/run_context.dart';
 import '../views/chat.dart';
 import '../views/criteria_panel.dart';
 import '../views/definition_view.dart';
@@ -26,7 +27,7 @@ class FlowScreen extends StatefulWidget {
   /// 定义落在哪、原文是什么（定义态要看）。
   final String path;
   final String yaml;
-  final qt.RunContext workspace;
+  final RunContext workspace;
   final bool busy;
 
   /// 起一件任务：把名字交出去，跑的是这条定义。

@@ -25,15 +25,15 @@ pub use quanttide_work::criterion::{RuleItem as Item, RuleKind as Kind, items_of
 /// 跑一条判据，返回（是否通过，说明）。
 pub fn check(root: &Path, item: &Item) -> (bool, String) {
     match item.kind {
-        Some(Kind::Path) => {
+        Some(Kind::PathExists) => {
             let target = &item.args[0];
             (root.join(target).exists(), target.clone())
         }
-        Some(Kind::Absent) => {
+        Some(Kind::PathAbsent) => {
             let target = &item.args[0];
             (!root.join(target).exists(), target.clone())
         }
-        Some(Kind::Contains) => {
+        Some(Kind::FileContains) => {
             let target = &item.args[0];
             let needle = &item.args[1];
             let path = root.join(target);
@@ -46,7 +46,7 @@ pub fn check(root: &Path, item: &Item) -> (bool, String) {
                 format!("{target} 含「{needle}」"),
             )
         }
-        Some(Kind::Run) => {
+        Some(Kind::CommandRun) => {
             let command = &item.args[0];
             let done = Command::new("sh")
                 .arg("-c")

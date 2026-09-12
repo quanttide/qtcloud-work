@@ -1,5 +1,12 @@
 import 'package:yaml/yaml.dart';
 
+/// 取一条字符串字段（缺了、不是字符串都当空；两头空白去掉）。
+String textOf(Object? value, String key) {
+  if (value is! Map) return '';
+  final item = value[key];
+  return item is String ? item.trim() : '';
+}
+
 /// 读一份 YAML，转成普通的 Dart 结构（Map / List / String / num / bool / null）。
 Object? parseYaml(String text) => _plain(loadYaml(text));
 

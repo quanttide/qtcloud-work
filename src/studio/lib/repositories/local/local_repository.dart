@@ -3,6 +3,7 @@ import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 import '../studio_repository.dart';
 import 'dispatch.dart';
+import 'run_context.dart';
 
 /// 命令面说不行（`ok` 为假）。把它印的话带出来。
 class LocalFailure implements Exception {
@@ -23,7 +24,7 @@ class LocalFailure implements Exception {
 class LocalRepository implements StudioRepository {
   LocalRepository(this.workspace);
 
-  final qt.RunContext workspace;
+  final RunContext workspace;
 
   /// 派一条命令，成功才给结果。
   Outcome _run(List<String> arguments) {
@@ -38,8 +39,10 @@ class LocalRepository implements StudioRepository {
   }
 
   /// 界面那一栏：界面不读给人看的话，只读这一栏。
-  Map<String, Object?> _data(List<String> arguments) =>
-      _run(arguments).data ?? const {};
+  Map<String, Object?> _data(List<String> arguments) {
+    final data = _run(arguments).data;
+    return data is Map<String, Object?> ? data : const {};
+  }
 
   // ---- 任务（执行侧）----
 
@@ -60,7 +63,7 @@ class LocalRepository implements StudioRepository {
   Future<({qt.Task task, qt.Workflow workflow, Map<String, String> artifacts})>
   task(String name) async {
     final data = _data(['task', name]);
-    final task = qt.Task.of(name, _payload(data));
+    final task = qt.Task.of(_payload(data));
     final artifacts = Map<String, String>.from(
       (data['artifacts'] as Map?) ?? const <String, Object?>{},
     );
@@ -118,7 +121,7 @@ class LocalRepository implements StudioRepository {
   ) async {
     final data = _data(['workflow', name]);
     return (
-      workflow: qt.Workflow.of(name, _payload(data)),
+      workflow: qt.Workflow.of(_payload(data)),
       path: '${data['path'] ?? ''}',
       yaml: '${data['yaml'] ?? ''}',
     );

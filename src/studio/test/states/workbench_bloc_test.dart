@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/states/workbench_bloc.dart';
 
 import '../support/fake_repository.dart';
+import 'package:qtcloud_work_studio/repositories/local/tasks.dart';
 
 /// 工作台状态机：一页一页地拿数据，动作之后把列表与当前那条重新拉齐。
 ///
@@ -58,7 +59,7 @@ void main() {
     final loaded = unfinished.stream.firstWhere((s) => s.task != null);
     unfinished.add(const WorkbenchLoad());
     final opened = await loaded;
-    final step = opened.task!.nextStep(opened.taskWorkflow!);
+    final step = workspaceOf(opened.task!, opened.taskWorkflow).nextStep(opened.task!);
     final done = unfinished.stream.firstWhere((s) => !s.busy && s.note != null);
     unfinished.add(const WorkbenchRecordDone());
     await done;

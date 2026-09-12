@@ -70,9 +70,9 @@ impl WorkflowFile {
         self
     }
 
-    /// 内容那一层交给工具箱。
+    /// 内容那一层交给工具箱（工作流名取自定义里的 `name` 字段）。
     pub fn shared(&self) -> SharedWorkflow {
-        SharedWorkflow::new(&self.name, &self.payload)
+        SharedWorkflow::of(&self.payload)
     }
 
     pub fn description(&self) -> String {

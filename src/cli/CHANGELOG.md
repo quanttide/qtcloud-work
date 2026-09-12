@@ -6,6 +6,13 @@
 
 ### Changed
 
+- 工具箱跟到 `quanttide-work 0.1.0-beta.6`（两侧同号），两次破坏性变更改到位：
+  - **落点**改走 `quanttide_work::workspace::Workspace::place`——工具箱只给**相对工作区根的路径**，接哪一处目录由本仓定：任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）；流水不是产物，仍是任务文件本身
+  - **流水判定**改走 `Workspace::done_steps` / `next_step` / `state_line`（按名字从工作区里取定义），定义核对改走 `Workspace::check`（`Finding.ok` 成了三态：过 / 不过 / 未核，退回了「○ 未核」的写法）
+  - **判据里的占位**展开改用工具箱那一套（`Criterion::expanded` 收「名字 → 路径」的解析函数）：本仓不再自己扫 `{{…}}`，只答「这个名字换成哪条路径」，且给的是工作区根视角（`run` 里的命令直接可用）
+  - 工作流读写对齐工具箱：`Workflow::of(值)` 的工作流名取自 `name` 字段（不再是文件名），语法校验收工具箱的结构化报错（`DefinitionError::message(file)`）；`text_of` 本仓自备
+- 删掉 `RunContext` 相关的转发（工具箱不再有那个类型）：任务里记的三处位置（`root` / `data` / `workflows`）仍是本仓自己的运行数据，读写不变
+
 - 命令 `find` 改名 `search`（按名找文档）：命令面、导览、README 与接口参考（`docs/api-references/search.md`）同步；命令面已发布，属破坏性变更，随版本号走。
 - 结果改用工具箱 `quanttide_work::outcome::Outcome`（规范「过程 / 结果」那一节结成的模型）；本地的 `outcome.rs` 只留「路径怎么显示给人看」，改成 `paths.rs`
 - `--json` 一律是这个结果：`ok` / `lines` / `columns` / `rows` 四样，原文托在 `data` 里（原先 `audit` / `catalog` / `material` 吐的是裸原文）；旧键按「只加不改」在顶层再留一轮，下一轮删

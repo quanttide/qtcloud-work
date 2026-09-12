@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/repositories/local/local_repository.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/repositories/local/run_context.dart';
 
 /// 本地那套实现：直接调命令面，不编信封。数据落在临时目录里，不碰仓。
 void main() {
@@ -32,7 +32,7 @@ steps:
     Directory('${tmp.path}/flows').createSync(recursive: true);
     File('${tmp.path}/flows/demo.yaml').writeAsStringSync(flow);
     repository = LocalRepository(
-      qt.RunContext(
+      RunContext(
         root: tmp.path,
         data: tmp.path,
         workflows: '${tmp.path}/flows',

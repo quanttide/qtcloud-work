@@ -5,16 +5,17 @@ import 'package:qtcloud_work_studio/screens/task_screen.dart';
 
 import '../support/fixtures.dart';
 import '../support/widget.dart';
+import 'package:qtcloud_work_studio/repositories/local/run_context.dart';
 
-final _workspace = qt.RunContext(
+final _workspace = RunContext(
   root: '/w',
   data: '/w/data',
   workflows: '/w/flows',
 );
 
 void main() {
-  final task = qt.Task.of('learn-task-create', fixturePayload('task_detail'));
-  final workflow = qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
+  final task = qt.Task.of(fixturePayload('task_detail'));
+  final workflow = qt.Workflow.of(fixturePayload('workflow_detail'));
 
   testWidgets('左边对话、右边状态面板', (tester) async {
     await pumpScreen(

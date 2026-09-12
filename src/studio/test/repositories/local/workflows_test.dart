@@ -61,7 +61,7 @@ void main() {
       expect(
         () => loadDefinition(write('a.yaml', 'steps:\n- name: 甲\n')),
         throwsA(
-          isA<DefinitionError>().having(
+          isA<WorkflowError>().having(
             (e) => e.message,
             'message',
             contains('少了 name'),
@@ -312,12 +312,7 @@ void main() {
       expect(looksLikeSection('data/report/x.md'), isFalse);
     });
 
-    test('占位按数据仓展开', () {
-      expect(
-        expandPlaceholders('{{report}}/x.md', '/d'),
-        '/d/artifacts/report/x.md',
-      );
-      expect(expandPlaceholders('{{log}}', '/d'), '/d/tasks');
-    });
+    // 占位展开与落点的规矩已归工具箱（`Criterion.expanded` / `Workspace.place`）——
+    // 那两份由工具箱的契约向量钉住；工作室这侧接得对不对，见 `tasks_test.dart` 的落点两条。
   });
 }

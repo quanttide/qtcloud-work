@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 import '../repositories/studio_repository.dart';
+import '../repositories/local/tasks.dart';
 
 /// 工作台状态：看哪一页、有哪些任务与工作流、当前那件/那条的现状。
 ///
@@ -310,7 +311,10 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
     Emitter<WorkbenchState> emit,
   ) {
     final flow = state.taskWorkflow;
-    final step = flow == null ? null : state.task?.nextStep(flow);
+    final task = state.task;
+    final step = (task == null || flow == null)
+        ? null
+        : workspaceOf(task, flow).nextStep(task);
     if (step == null) return Future.value();
     return _act(emit, (name) => _repository.done(name, step), '记了一步：$step');
   }

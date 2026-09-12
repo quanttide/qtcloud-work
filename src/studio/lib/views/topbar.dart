@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import '../repositories/local/run_context.dart';
 
 /// 顶栏：只有工作区切换。（见 doc/views/topbar.md）
 class Topbar extends StatelessWidget {
@@ -11,7 +11,7 @@ class Topbar extends StatelessWidget {
     required this.onRefresh,
   });
 
-  final qt.RunContext workspace;
+  final RunContext workspace;
   final bool busy;
   final VoidCallback onRefresh;
 

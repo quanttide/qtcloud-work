@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
+import '../repositories/local/tasks.dart';
 
 /// 状态面板：任务页右栏，从上到下五块。（见 doc/views/status-panel.md）
 ///
@@ -37,11 +38,11 @@ class StatusPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final flow = workflow;
-    final done = flow == null ? const <String>[] : task.doneSteps(flow);
+    final done = flow == null ? const <String>[] : workspaceOf(task, flow).doneSteps(task);
     final total = flow?.steps.length ?? 0;
     final finished = total > 0 && done.length == total;
     final progress = total == 0 ? 0.0 : done.length / total;
-    final current = flow == null ? null : task.nextStep(flow);
+    final current = flow == null ? null : workspaceOf(task, flow).nextStep(task);
     final recent = task.journal.length <= 5
         ? task.journal
         : task.journal.sublist(task.journal.length - 5);

@@ -1,41 +1,21 @@
 //! 任务聚合 / 走一步：展开占位、跑判据、记流水、写闸门。
 
-use super::{Task, ai, journal};
+use super::{Task, ai};
 use quanttide_work::criterion::Criterion;
+use quanttide_work::paths::PLACEHOLDER_NAMES;
 use std::path::Path;
 
-/// 把 `{{report}}` / `{{journal}}` / `{{log}}` / `{{artifacts}}` 换成本次任务的产物路径。
-pub fn expand(task: &Task, value: &str) -> String {
-    let mut out = String::new();
-    let mut rest = value;
-    while let Some(at) = rest.find("{{") {
-        out.push_str(&rest[..at]);
-        let after = &rest[at + 2..];
-        if let Some(end) = after.find("}}") {
-            let kind = &after[..end];
-            let path = match kind {
-                "report" => Some(task.artifact(journal::REPORT)),
-                "journal" => Some(task.artifact(journal::JOURNAL)),
-                "log" => Some(task.artifact(journal::LOG)),
-                "artifacts" => Some(task.artifacts_dir()),
-                _ => None,
-            };
-            match path {
-                Some(path) => out.push_str(&relative_to_root(task, &path)),
-                None => {
-                    out.push_str("{{");
-                    out.push_str(kind);
-                    out.push_str("}}");
-                }
-            }
-            rest = &after[end + 2..];
-        } else {
-            out.push_str("{{");
-            rest = after;
-        }
-    }
-    out.push_str(rest);
-    out
+/// 一个占位换成哪条路径：工具箱认的那几个名字，按工作区根视角写出来，
+/// 判据与 `run` 里的命令直接可用。
+fn place_of(task: &Task, name: &str) -> Option<String> {
+    let path = match name {
+        // 产物目录不是产物，另有落点
+        "artifacts" => task.artifacts_dir(),
+        // 产物按名字算（`log` 是任务文件本身，也在工具箱的落点里）
+        named if PLACEHOLDER_NAMES.contains(&named) => task.artifact(named),
+        _ => return None,
+    };
+    Some(relative_to_root(task, &path))
 }
 
 /// 判据按工作区根解析，占位也给工作区根视角的路径。
@@ -50,7 +30,7 @@ fn relative_to_root(task: &Task, path: &Path) -> String {
 pub fn expanded_criteria(task: &Task, criteria: &[Criterion]) -> Vec<Criterion> {
     criteria
         .iter()
-        .map(|criterion| criterion.expanded(|text| expand(task, text)))
+        .map(|criterion| criterion.expanded(|name| place_of(task, name)))
         .collect()
 }
 

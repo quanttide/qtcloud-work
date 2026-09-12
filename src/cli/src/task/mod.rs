@@ -16,6 +16,8 @@ pub mod state;
 pub use report::{task_journal, task_list, task_new, task_status, task_step};
 
 use crate::workflow::{self, Step, WorkflowFile};
+use quanttide_work::artifact::Artifact;
+use quanttide_work::workspace::Workspace;
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 
@@ -49,19 +51,6 @@ impl Task {
         found
     }
 
-    /// 这次执行的三处位置（落点按它算）。
-    pub fn context(&self) -> quanttide_work::task::RunContext {
-        quanttide_work::task::RunContext {
-            root: self.root.display().to_string(),
-            data: self.data.display().to_string(),
-            workflows: self
-                .workflows
-                .as_ref()
-                .map(|path| path.display().to_string())
-                .unwrap_or_default(),
-        }
-    }
-
     /// 闸门项：等人拍板的事项，记在任务文件里。
     pub fn gates(&self) -> Vec<String> {
         self.payload()
@@ -88,9 +77,29 @@ impl Task {
         let _ = std::fs::write(self.file(), text);
     }
 
-    /// 这次执行往哪写这种产物——落点在工具箱里（规范「任务 / 语法」）。
+    /// 这次执行往哪写这种产物——落点按名字在工具箱里算（规范「任务 / 语法」·落点）。
+    ///
+    /// 工具箱给的是**相对工作区根的路径**；接上哪一处目录是命令行的事：
+    /// 任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）。
     pub fn artifact(&self, kind: &str) -> PathBuf {
-        PathBuf::from(self.shared().artifact(kind, &self.context()))
+        // 流水不是产物——它就是任务文件（规范 `piece/artifact.md`）
+        if kind == crate::task::journal::LOG {
+            return self.file();
+        }
+        let task = self.shared();
+        // 落点只按名字算，不看工作区里装了什么——借一个空的把规矩走工具箱那一份。
+        let place = Workspace::default().place(&task, &Artifact::named(kind));
+        let base = if task.declared(kind).is_some() {
+            &self.root
+        } else {
+            &self.data
+        };
+        base.join(place)
+    }
+
+    /// 这次工作的边界：把这条任务与它跑的定义装在一起（工具箱按名字取工作流算流水）。
+    pub fn workspace(&self) -> Workspace {
+        Workspace::of(vec![self.workflow().shared()], vec![self.shared()])
     }
 
     pub fn exists(&self) -> bool {
@@ -138,7 +147,7 @@ impl Task {
 
     /// 这件任务在工具箱里的样子（内容那一层交给工具箱）。
     pub fn shared(&self) -> quanttide_work::task::Task {
-        quanttide_work::task::Task::of(&self.name, &self.payload())
+        quanttide_work::task::Task::of(&self.payload())
     }
 
     /// 记一笔流水：读任务文件、追加一条、写回去（流水只增不改）。

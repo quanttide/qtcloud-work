@@ -6,18 +6,18 @@ use crate::workflow::Step;
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 
-/// 哪些步骤走过了：算法在工具箱的任务聚合里——附加判定投票、重新执行从头算。
+/// 哪些步骤走过了：算法在工具箱的工作区聚合里——附加判定投票、重新执行从头算。
 pub fn done(task: &Task) -> Vec<String> {
-    task.shared().done_steps(&task.workflow().shared())
+    task.workspace().done_steps(&task.shared())
 }
 
 pub fn next_step(task: &Task) -> Option<Step> {
-    let next = task.shared().next_step(&task.workflow().shared())?;
+    let next = task.workspace().next_step(&task.shared())?;
     task.steps().into_iter().find(|step| step.name() == next)
 }
 
 pub fn state_line(task: &Task) -> String {
-    task.shared().state_line(&task.workflow().shared())
+    task.workspace().state_line(&task.shared())
 }
 
 /// 起一件任务：写下指令（跑哪条工作流、要什么），备好产物三家。

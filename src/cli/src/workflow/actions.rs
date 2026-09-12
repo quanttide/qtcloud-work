@@ -146,7 +146,7 @@ pub fn workflow_check(data: &Path, name: &str, root: &Path, workflows: Option<&P
             vec![format!("没有这条工作流：{}", short(data, &flow.file()))],
         );
     }
-    let found = check(&flow, root, data);
+    let found = check(&flow, root);
     let ok = all_ok(&found);
     let mut result = Outcome::new(ok);
     result.lines = vec![format!(

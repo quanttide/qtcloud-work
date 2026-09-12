@@ -8,15 +8,16 @@ import 'package:qtcloud_work_studio/views/step_chain.dart';
 
 import '../support/fixtures.dart';
 import '../support/widget.dart';
+import 'package:qtcloud_work_studio/repositories/local/run_context.dart';
 
-final _workspace = qt.RunContext(
+final _workspace = RunContext(
   root: '/w',
   data: '/w/data',
   workflows: '/w/flows',
 );
 
 void main() {
-  final workflow = qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
+  final workflow = qt.Workflow.of(fixturePayload('workflow_detail'));
 
   Widget screen() => FlowScreen(
     workflow: workflow,

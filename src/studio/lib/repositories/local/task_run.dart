@@ -86,57 +86,24 @@ List<(String, String, String)> judgeByAi(
   return rows;
 }
 
-/// 把 `{{report}}` / `{{journal}}` / `{{log}}` / `{{artifacts}}` 换成本次任务的产物路径。
-String expand(Task task, String value) {
-  final out = StringBuffer();
-  var rest = value;
-  while (true) {
-    final at = rest.indexOf('{{');
-    if (at < 0) {
-      out.write(rest);
-      break;
-    }
-    out.write(rest.substring(0, at));
-    final after = rest.substring(at + 2);
-    final end = after.indexOf('}}');
-    if (end < 0) {
-      out.write('{{');
-      rest = after;
-      continue;
-    }
-    final kind = after.substring(0, end);
-    final path = switch (kind) {
-      'report' => task.artifact(reportKind),
-      'journal' => task.artifact(journalKind),
-      'log' => task.artifact(logKind),
-      'artifacts' => task.artifactsDir,
-      _ => null,
-    };
-    if (path == null) {
-      out.write('{{$kind}}');
-    } else {
-      out.write(relativeToRoot(task, path));
-    }
-    rest = after.substring(end + 2);
-  }
-  return out.toString();
+/// 一个占位换成哪条路径：工具箱认的那几个名字，按工作区根视角写出来，
+/// 判据与 `run` 里的命令直接可用。
+String? placeOf(Task task, String name) {
+  final path = switch (name) {
+    // 产物目录不是产物，另有落点
+    'artifacts' => task.artifactsDir,
+    // 产物按名字算（`log` 是任务文件本身，也在工具箱的落点里）
+    _ => qt.placeholderNames.contains(name) ? task.artifact(name) : null,
+  };
+  return path == null ? null : relativeToRoot(task, path);
 }
 
 /// 判据按工作区根解析，占位也给工作区根视角的路径。
 String relativeToRoot(Task task, String path) => short(task.root, path);
 
 /// 判据里的占位先换成本次任务的真实路径，再去跑。
-List<qt.Criterion> expandedCriteria(Task task, List<qt.Criterion> criteria) {
-  return criteria.map((criterion) {
-    final out = <String, Object?>{};
-    criterion.toMap().forEach((key, value) {
-      out[key] = (value is String && value.contains('{{'))
-          ? expand(task, value)
-          : value;
-    });
-    return qt.criterionOf(out);
-  }).toList();
-}
+List<qt.Criterion> expandedCriteria(Task task, List<qt.Criterion> criteria) =>
+    criteria.map((criterion) => criterion.expanded((name) => placeOf(task, name))).toList();
 
 /// 走一步的三种结果：过没过、给人看的几句、给窗口画的行。
 class StepResult {
@@ -271,9 +238,10 @@ Outcome taskStep(
     chosen = next.name;
   }
   final result = execute(task, task.root, chosen, note, auto);
-  final outcome = Outcome(result.ok, lines: result.lines)
-    ..columns = ['核对', '结论', '说明']
-    ..rows = result.rows;
-  outcome.lines.add(stateLine(task));
-  return outcome;
+  return Outcome(
+    result.ok,
+    lines: [...result.lines, stateLine(task)],
+    columns: ['核对', '结论', '说明'],
+    rows: result.rows,
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+
+import '../repositories/local/run_context.dart';
 
 /// 设置页：三处位置 + provider 探活。（见 doc/screens/settings.md）
 ///
@@ -12,7 +13,7 @@ class SettingsScreen extends StatefulWidget {
     required this.onProbe,
   });
 
-  final qt.RunContext workspace;
+  final RunContext workspace;
   final Future<List<String>> Function() onProbe;
 
   @override

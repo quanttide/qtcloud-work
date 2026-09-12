@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
+import '../repositories/local/run_context.dart';
 import '../views/chat.dart';
 import '../views/status_panel.dart';
+import '../repositories/local/tasks.dart';
 
 /// 任务页：一次执行实例。左边对话，右边状态面板。（见 doc/screens/task.md）
 ///
@@ -27,7 +29,7 @@ class TaskScreen extends StatelessWidget {
 
   /// 三样产物的落点（按工作区算好的）。
   final Map<String, String> artifacts;
-  final qt.RunContext workspace;
+  final RunContext workspace;
   final bool busy;
   final VoidCallback onNext;
   final VoidCallback onDone;
@@ -39,7 +41,7 @@ class TaskScreen extends StatelessWidget {
     final lines = [
       '你在量潮工作云工作台里，看的是任务「${task.name}」（跑的是工作流 ${task.workflowName}）。',
       '开工：${task.start}',
-      '当前状态：${flow == null ? '定义取不到' : task.stateLine(flow)}',
+      '当前状态：${flow == null ? '定义取不到' : workspaceOf(task, flow).stateLine(task)}',
       '产物落点：报告 ${artifacts['report'] ?? ''}／流水 ${artifacts['journal'] ?? ''}／日志 ${artifacts['log'] ?? ''}',
       '任务文件：${workspace.data}/tasks/${task.name}.yaml',
       '工作流定义：${workspace.workflows}/${task.workflowName}.yaml',
@@ -100,7 +102,7 @@ class TaskScreen extends StatelessWidget {
               ),
               ChatMessage(
                 text: '这次跑的是 ${task.workflowName}，'
-                    '${flow == null ? '定义取不到' : task.stateLine(flow)}',
+                    '${flow == null ? '定义取不到' : workspaceOf(task, flow).stateLine(task)}',
               ),
             ],
           ),

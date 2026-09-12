@@ -34,12 +34,18 @@ pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
         std::fs::read_to_string(path).map_err(|e| WorkflowError(format!("{file} 读不了：{e}")))?;
     let payload: Value = serde_yaml::from_str(&text)
         .map_err(|e| WorkflowError(format!("{file} 不是合法的 YAML：{e}")))?;
-    if let Err(error) = shared::validate(&payload, &file) {
-        return Err(WorkflowError(error.0));
+    if let Err(error) = shared::validate(&payload) {
+        return Err(WorkflowError(error.message(&file)));
     }
     Ok(payload)
 }
 
+/// 取一条字符串字段（缺了、不是字符串都当空；两头空白去掉）。
 pub fn text_of(value: &Value, key: &str) -> String {
-    shared::text_of(value, key)
+    value
+        .get(key)
+        .and_then(|item| item.as_str())
+        .unwrap_or_default()
+        .trim()
+        .to_string()
 }

@@ -5,6 +5,11 @@ import 'fs/fs.dart' as fs;
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'yaml.dart';
 
+/// 工作区那几件操作（落点、定义核对、流水判定）是工具箱的扩展方法——
+/// 这里再导一次，界面与测试不必各自去引工具箱。
+export 'package:quanttide_work/quanttide_work.dart'
+    show WorkspaceCheck, WorkspacePlace, WorkspaceProgress;
+
 /// 任务：工作流的一次执行实例。
 ///
 /// `<数据仓>/tasks/<任务>.yaml` 是一次执行：跑哪条工作流 + 自带的运行上下文
@@ -40,7 +45,7 @@ class Task {
   bool get exists => fs.fileExists(file);
 
   /// 这件任务在工具箱里的样子（内容那一层交给工具箱）。
-  qt.Task get shared => qt.Task.of(name, payload());
+  qt.Task get shared => qt.Task.of(payload());
 
   Map payload() {
     if (!exists) return <String, Object?>{};
@@ -75,11 +80,23 @@ class Task {
     save(body);
   }
 
-  /// 这次执行往哪写产物——落点在工具箱里（规范「任务 / 语法」）。
-  String artifact(String kind) => shared.artifact(
-    kind,
-    qt.RunContext(root: root, data: data, workflows: workflows ?? ''),
-  );
+  /// 这次工作的边界：把这条任务与它跑的定义装在一起（工具箱按名字取工作流算流水）。
+  qt.Workspace workspace() =>
+      qt.Workspace(workflows: [workflow().shared], tasks: [shared]);
+
+  /// 这次执行往哪写这种产物——落点按名字在工具箱里算（规范「任务 / 语法」·落点）。
+  ///
+  /// 工具箱给的是**相对工作区根的路径**；接上哪一处目录是窗口的事：
+  /// 任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）。
+  String artifact(String kind) {
+    // 流水不是产物——它就是任务文件（规范 `piece/artifact.md`）
+    if (kind == logKind) return file;
+    final task = shared;
+    // 落点只按名字算，不看工作区里装了什么——借一个空的把规矩走工具箱那一份。
+    final place = qt.Workspace().place(task, qt.Artifact.named(kind));
+    final base = task.declared(kind) == null ? data : root;
+    return place.startsWith('/') ? place : '$base/$place';
+  }
 
   String get start => textOf(payload(), 'start');
 
@@ -93,11 +110,11 @@ class Task {
   List<Map> events() =>
       (payload()['log'] as List?)?.whereType<Map>().toList() ?? const [];
 
-  /// 哪些步骤走过了：算法在工具箱的任务聚合里（附加判定投票、重新执行从头算）。
-  List<String> done() => shared.doneSteps(workflow().shared);
+  /// 哪些步骤走过了：算法在工具箱的工作区聚合里（附加判定投票、重新执行从头算）。
+  List<String> done() => workspace().doneSteps(shared);
 
   Step? nextStep() {
-    final next = shared.nextStep(workflow().shared);
+    final next = workspace().nextStep(shared);
     if (next == null) return null;
     for (final step in steps()) {
       if (step.name == next) return step;
@@ -228,7 +245,7 @@ List<Task> listingTasks(String? root, String data, String? workflows) {
   ];
 }
 
-String stateLine(Task task) => task.shared.stateLine(task.workflow().shared);
+String stateLine(Task task) => task.workspace().stateLine(task.shared);
 
 // ---- 动作 ----
 
@@ -274,61 +291,78 @@ Outcome taskStatus(String? root, String data, String name, String? workflows) {
     return Outcome.failed(['没有这件任务：${short(data, task.file)}']);
   }
   final finished = task.done();
-  final result = Outcome(true)..columns = ['步骤', '状态'];
-  result.lines.add('任务：${task.name}');
-  result.lines.add('  开工：${task.start.isEmpty ? '（没记）' : task.start}');
-  result.lines.add(
+  final lines = <String>[];
+  final rows = <List<String>>[];
+  lines.add('任务：${task.name}');
+  lines.add('  开工：${task.start.isEmpty ? '（没记）' : task.start}');
+  lines.add(
     '  工作流：${task.workflowName}——${task.workflow().description}',
   );
-  result.lines.add('  步骤：${task.steps().length} 个');
+  lines.add('  步骤：${task.steps().length} 个');
   for (final step in task.steps()) {
     final state = finished.contains(step.name) ? '✓' : '—';
-    result.rows.add([step.name, state]);
-    result.lines.add('  $state ${step.name}');
+    rows.add([step.name, state]);
+    lines.add('  $state ${step.name}');
   }
-  result.lines.add(stateLine(task));
-  result.lines.add('指令：${short(data, task.file)}');
-  result.lines.add(
+  lines.add(stateLine(task));
+  lines.add('指令：${short(data, task.file)}');
+  lines.add(
     '产物：${short(data, task.artifact(reportKind))}、'
     '${short(data, task.artifact(journalKind))}　'
     '流水：${short(data, task.artifact(logKind))}',
   );
   final events = task.events();
   final tail = events.length <= 5 ? events : events.sublist(events.length - 5);
-  result.data = {
-    'payload': task.payload(),
-    'artifacts': {
-      'report': short(data, task.artifact(reportKind)),
-      'journal': short(data, task.artifact(journalKind)),
-      'log': short(data, task.artifact(logKind)),
-    },
-  };
   if (events.isNotEmpty) {
-    result.lines.add('流水（最近五条）：');
+    lines.add('流水（最近五条）：');
     for (final event in tail) {
-      result.lines.add(
+      lines.add(
         '  ${event['at'] ?? ''}　${event['step'] ?? ''}　${event['detail'] ?? ''}',
       );
     }
   }
-  return result;
+  return Outcome(
+    true,
+    lines: lines,
+    columns: ['步骤', '状态'],
+    rows: rows,
+    data: {
+      'payload': task.payload(),
+      'artifacts': {
+        'report': short(data, task.artifact(reportKind)),
+        'journal': short(data, task.artifact(journalKind)),
+        'log': short(data, task.artifact(logKind)),
+      },
+    },
+  );
 }
 
 Outcome taskList(String? root, String data, String? workflows) {
   final found = listingTasks(root, data, workflows);
-  final result = Outcome(true)..columns = ['任务', '工作流', '下一步'];
+  final lines = <String>[];
+  final rows = <List<String>>[];
   for (final task in found) {
     final next = task.nextStep()?.name ?? '走完';
-    result.rows.add([task.name, task.workflowName, next]);
-    result.lines.add(
+    rows.add([task.name, task.workflowName, next]);
+    lines.add(
       '${task.name.padRight(24)} 工作流 ${task.workflowName}　下一步：$next',
     );
   }
   if (found.isEmpty) {
-    result.lines = ['还没有任务：qtcloud-work task --new <名字> --workflow <工作流>'];
+    lines.add('还没有任务：qtcloud-work task --new <名字> --workflow <工作流>');
   }
-  return result;
+  return Outcome(
+    true,
+    lines: lines,
+    columns: ['任务', '工作流', '下一步'],
+    rows: rows,
+  );
 }
+
+/// 一件任务与它的定义装在一起——界面那几处要算流水与状态行
+/// （工具箱按名字取工作流，所以定义得跟任务一起装进去）。
+qt.Workspace workspaceOf(qt.Task task, qt.Workflow? flow) =>
+    qt.Workspace(workflows: [?flow], tasks: [task]);
 
 /// 日志收叙事：一段一段往下写。
 void narrate(Task task, String words) {

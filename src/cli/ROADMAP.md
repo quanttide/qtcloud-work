@@ -68,7 +68,9 @@ sh scripts/validate-usecases.sh
 - `find` → `search` 已在 cli 与 studio 两侧同批改完；约定落进 `src/CONVENTIONS.md`
 - 四条门禁全过（`cargo fmt --check`、`cargo clippy`、`cargo test --locked`、`validate-usecases.sh`）；与 studio 的全量对表 **24/24 一致**
 
-**剩下**：段四（版本同步、依赖许可清单、IaC 归属）、段五（`layers.md` 重写、api-references 分两类、`prompts` 两侧说法一致、用例对账去空转）。
+**剩下**：段四（依赖许可清单、IaC 归属；4.1 版本同步已做）、段五（`layers.md` 重写、api-references 分两类、`prompts` 两侧说法一致、用例对账去空转）。
+
+**端侧适配已做**（2026-09-12）：工具箱两侧同号发到 `0.1.0-beta.6`，cli 与 studio 同批引这一号，并把两次破坏性变更改到位（`RunContext` 退出、落点/流水判定/核对归工具箱的工作区聚合、`Outcome` 不可变、判据占位展开收成一套）。四条门禁全过，与 studio 的对表 **10/10 一致**。
 
 **两处已知欠账**（不阻塞，但要记着）：
 
@@ -80,5 +82,5 @@ sh scripts/validate-usecases.sh
 两条命令面是一件事的两侧，**改名与版本必须一起走**：
 
 - `find` → `search`：两侧同批改（cli 侧还有 `docs/api-references/find.md`）
-- `quanttide-work` 版本：cli `0.1.0-beta.4` / studio `^0.1.0-beta.5` 现在是错开的，而对表要求两边算出同一个结果——先对齐版本
+- `quanttide-work` 版本：两侧已引同一个号（`0.1.0-beta.6`）——新工具箱再有破坏性变更时同批改，引完跑一次 `parity.sh`
 - `prompts`：两侧各有一份，头注释互相打脸，要合一或写明差异

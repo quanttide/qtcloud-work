@@ -8,7 +8,7 @@ use serde_json::Value as Json;
 pub(crate) fn emit(result: Outcome, cli: &Cli) -> i32 {
     if let Some(out) = &cli.out {
         // `--out` 落的是原文那一栏（`--json` 的四样里那一栏的内容）。
-        catalog::write_json(out, &result.data_json());
+        catalog::write_json(out, &result.to_output_json());
     }
     if cli.json {
         println!(

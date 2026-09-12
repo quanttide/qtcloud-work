@@ -1,14 +1,15 @@
 //! 工作流聚合 / 定义核对：声明与判据对不对得上。
 
 use super::WorkflowFile;
-use quanttide_work::workflow::Finding;
+use quanttide_work::workspace::{Finding, Workspace};
 use std::path::Path;
 
 /// 核对一条工作流：判据里的路径在不在；描述里提到的报告小节有没有判据覆盖。
 ///
 /// 规矩在工具箱里；这里只把「路径在不在」用工作区根包一层。
-pub fn check(flow: &WorkflowFile, root: &Path, data: &Path) -> Vec<Finding> {
-    flow.shared().check(&data.to_string_lossy(), |written| {
+pub fn check(flow: &WorkflowFile, root: &Path) -> Vec<Finding> {
+    // 核对只按传进来的定义与参数算，不看工作区里装了什么——借一个空的。
+    Workspace::default().check(&flow.shared(), |written| {
         let path = Path::new(written);
         let target = if path.is_absolute() {
             path.to_path_buf()
@@ -25,7 +26,12 @@ pub fn describe(found: &[Finding]) -> Vec<String> {
     for item in found {
         lines.push(format!(
             "  {} {}——{}",
-            if item.ok { "✓" } else { "✗" },
+            match item.ok {
+                Some(true) => "✓",
+                Some(false) => "✗",
+                // 带运行时占位的判据核不了：给一条「未核」，不算过也不算不过
+                None => "○",
+            },
             item.where_,
             item.what
         ));
@@ -37,5 +43,5 @@ pub fn describe(found: &[Finding]) -> Vec<String> {
 }
 
 pub fn all_ok(found: &[Finding]) -> bool {
-    found.iter().all(|item| item.ok)
+    found.iter().all(|item| item.ok != Some(false))
 }

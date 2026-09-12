@@ -6,8 +6,8 @@ import 'package:qtcloud_work_studio/views/status_panel.dart';
 import '../support/fixtures.dart';
 
 void main() {
-  final task = qt.Task.of('learn-task-create', fixturePayload('task_detail'));
-  final workflow = qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
+  final task = qt.Task.of(fixturePayload('task_detail'));
+  final workflow = qt.Workflow.of(fixturePayload('workflow_detail'));
 
   Future<void> pump(WidgetTester tester, {bool busy = false}) {
     return tester.pumpWidget(

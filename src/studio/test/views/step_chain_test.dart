@@ -6,7 +6,7 @@ import 'package:qtcloud_work_studio/views/step_chain.dart';
 import '../support/fixtures.dart';
 
 void main() {
-  final workflow = qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
+  final workflow = qt.Workflow.of(fixturePayload('workflow_detail'));
 
   testWidgets('一步一个节点，副标题写执行者与判据条数', (tester) async {
     await tester.pumpWidget(
