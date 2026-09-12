@@ -4,7 +4,7 @@
 
 界面参照（`doc/`）已经落到实现（`lib/`）：三屏（任务、流程、设置）、七块视图（侧栏、顶栏、对话、状态面板、步骤链、判据面板、定义态）、三个模型（工作流、任务、三处位置）。
 
-界面跑的是自己那份实现（`lib/core/`），与命令行算出来的是同一个结果：同一处工作区、同一条命令，两侧比 `ok`／`columns`／`rows`，二十四条全一致（`scripts/parity.sh`）。给人看的话两边各写各的。
+界面跑的是自己那份实现（`lib/application/`），与命令行算出来的是同一个结果：同一处工作区、同一条命令，两侧比 `ok`／`columns`／`rows`，二十四条全一致（`scripts/parity.sh`）。给人看的话两边各写各的。
 
 点了真的会动的：探活、走下一步、记一步、记日志；流程页的 ⋯ 里还有起一件任务（`task --new`）与检查定义（`--check`）。
 
@@ -20,7 +20,7 @@
 
 ## 文档欠的账
 
-- `lib/models/executor.dart`、`lib/models/table_result.dart`、`lib/core/`、`lib/cli/`、`app.dart` 与 `main.dart` 都还没有对应的 doc
+- `lib/domain/executor.dart`、`lib/infrastructure/envelope.dart`、`lib/application/`、`lib/infrastructure/`、`presentation/app.dart` 与 `main.dart` 都还没有对应的 doc
 
 ## 发布线
 

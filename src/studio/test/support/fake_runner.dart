@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:qtcloud_work_studio/cli/qtcloud_work.dart';
-import 'package:qtcloud_work_studio/cli/runner.dart';
-import 'package:qtcloud_work_studio/models/workspace.dart';
+import 'package:qtcloud_work_studio/infrastructure/client.dart';
+import 'package:qtcloud_work_studio/infrastructure/runner.dart';
+import 'package:qtcloud_work_studio/domain/workspace.dart';
 
 const testWorkspace = Workspace(
   root: '/w',

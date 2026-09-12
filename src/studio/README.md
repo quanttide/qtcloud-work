@@ -21,22 +21,25 @@ flutter build web --release --dart-define=APP_VERSION=0.1.0
 
 ```
 lib/
-├── main.dart          工作台（现在只有任务页：左边任务，右边这次走成什么样）
-├── models/            界面背后的数据：工作流定义、任务记录、三处位置
-└── cli/               命令行客户端：起子进程、读统一信封（ok / columns / rows / lines）
+├── main.dart           装配：读环境、起工作台
+├── domain/             领域模型：三处位置、执行者、任务与定义的读模型
+├── application/        用例：工作流、任务、走一步、命令面与导览
+├── infrastructure/     适配器：信封、命令行客户端与运行器、判据执行、平台读写（fs / host / env / YAML）
+└── presentation/       界面：app、screens/、views/
 test/
-├── models/            模型与领域实现（工作流、任务、三处位置、信封）
-├── cli/               命令怎么拼、信封怎么读、导览（用假 runner，不起子进程）
-├── views/ screens/    界面块与三个页面
-├── fixtures/          真实输出，从命令行抓下来的
-└── widget_test.dart   工作台冒烟
+├── domain/             领域模型（工作流、任务、三处位置）
+├── application/        用例（导览）
+├── infrastructure/     信封、命令行客户端、环境
+├── presentation/       界面块与页面、工作台冒烟
+├── support/            假 runner、起界面的小工具
+└── fixtures/           真实输出，从命令行抓下来的
 doc/                   原型与设计说明（screens / views / models 三轴）
 ```
 
 六个平台（android、ios、linux、macos、windows、web）的目录都已初始化；
 以后加平台或补平台文件，执行 `flutter create .` 即可。
 
-界面跑的是 studio 自己那份实现（`lib/core/`，与命令行同一个结果）；命令行那份仍留着，两边各自都能把活干完。
+界面跑的是 studio 自己那份实现（`lib/application/`，与命令行同一个结果）；命令行那份仍留着，两边各自都能把活干完。
 三处位置从环境读（`QTCLOUD_WORK_ROOT`／`QTCLOUD_WORK_DATA`／`QTCLOUD_WORK_WORKFLOWS`）。
 
 ## 校验
