@@ -7,8 +7,8 @@ import 'screens/flow_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/task_screen.dart';
 import 'states/workbench_bloc.dart';
-import 'widgets/sidebar.dart';
-import 'widgets/topbar.dart';
+import 'views/sidebar.dart';
+import 'views/topbar.dart';
 
 /// 工作台：顶栏 + 侧栏 + 当前那一屏。（见 doc/index.md）
 class QtcloudWorkStudioApp extends StatelessWidget {

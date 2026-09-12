@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/widgets/sidebar.dart';
+import 'package:qtcloud_work_studio/views/sidebar.dart';
 
 void main() {
   Future<void> pump(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/widgets/definition_view.dart';
+import 'package:qtcloud_work_studio/views/definition_view.dart';
 
 void main() {
   testWidgets('定义态给原文，也标出它是哪个文件', (tester) async {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../widgets/executor_label.dart';
+import 'executor_label.dart';
 
 /// 步骤链：一步一个节点，竖着排，一步接一步。（见 doc/views/step-chain.md）
 class StepChain extends StatelessWidget {

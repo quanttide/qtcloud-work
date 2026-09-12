@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
-import 'package:qtcloud_work_studio/widgets/status_panel.dart';
+import 'package:qtcloud_work_studio/views/status_panel.dart';
 
-import '../support/fake_runner.dart';
+import '../support/fixtures.dart';
 
 void main() {
   final task = qt.Task.of('learn-task-create', fixturePayload('task_detail'));

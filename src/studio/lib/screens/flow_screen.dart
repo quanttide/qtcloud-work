@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../widgets/chat.dart';
-import '../widgets/criteria_panel.dart';
-import '../widgets/definition_view.dart';
-import '../widgets/step_chain.dart';
+import '../views/chat.dart';
+import '../views/criteria_panel.dart';
+import '../views/definition_view.dart';
+import '../views/step_chain.dart';
 
 /// 流程页：一条定义。左边对话，右边两态（步骤 / 定义）。（见 doc/screens/flow.md）
 ///

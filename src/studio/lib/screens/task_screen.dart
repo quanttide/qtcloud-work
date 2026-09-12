@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../widgets/chat.dart';
-import '../widgets/status_panel.dart';
+import '../views/chat.dart';
+import '../views/status_panel.dart';
 
 /// 任务页：一次执行实例。左边对话，右边状态面板。（见 doc/screens/task.md）
 ///

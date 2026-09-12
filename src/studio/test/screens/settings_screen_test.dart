@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/screens/settings_screen.dart';
 
-import '../support/fake_runner.dart';
+import '../support/fixtures.dart';
 import '../support/widget.dart';
 
 void main() {

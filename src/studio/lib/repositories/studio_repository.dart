@@ -6,9 +6,7 @@ import 'package:quanttide_work/quanttide_work.dart' as qt;
 /// 界面要的派生值（走过几步、下一步、进度、判据条数）由领域对象自己算，
 /// 不另造一套模型。
 ///
-/// 两套实现：
-/// - [`client.dart`](client.dart)：命令行客户端——把命令跑起来，读统一信封；
-/// - [`local/local_repository.dart`](local/local_repository.dart)：本地那套——直接调命令面。
+/// 唯一实现：[`local/local_repository.dart`](local/local_repository.dart)——直接调命令面。
 ///
 /// 测试注入假实现（见 `test/support/`），不碰真实文件与进程。
 abstract class StudioRepository {

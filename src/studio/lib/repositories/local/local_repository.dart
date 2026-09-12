@@ -16,11 +16,10 @@ class LocalFailure implements Exception {
   String toString() => 'LocalFailure: $message';
 }
 
-/// 本地那套实现：不起命令面、不编信封，直接把命令派给 `dispatch`，
+/// 实现：不起命令面、不编信封，直接把命令派给 `dispatch`，
 /// 再从结构化那一栏拿回任务与定义的原文，装成工具箱的领域对象。
 ///
-/// 与命令行客户端（`../client.dart`）算的是同一套结果——同一处工作区、
-/// 同一条命令；差只差在中间过不过一次信封。
+/// 与 `bin/qtcloud.dart` 算的是同一套结果——同一处工作区、同一条命令面。
 class LocalRepository implements StudioRepository {
   LocalRepository(this.workspace);
 

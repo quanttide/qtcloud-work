@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/widgets/chat.dart';
+import 'package:qtcloud_work_studio/views/chat.dart';
 
 void main() {
   testWidgets('开场的话摆出来，草案卡也是消息', (tester) async {

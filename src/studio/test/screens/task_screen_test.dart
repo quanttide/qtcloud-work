@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'package:qtcloud_work_studio/screens/task_screen.dart';
 
-import '../support/fake_runner.dart';
+import '../support/fixtures.dart';
 import '../support/widget.dart';
 
 final _workspace = qt.RunContext(

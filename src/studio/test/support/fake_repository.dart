@@ -1,7 +1,7 @@
 import 'package:qtcloud_work_studio/repositories/studio_repository.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import 'fake_runner.dart';
+import 'fixtures.dart';
 
 /// 假的工作台数据边界：读的是命令行真实输出（`test/fixtures/`），动作只记一笔。
 ///

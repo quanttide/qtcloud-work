@@ -8,7 +8,7 @@ import 'task_run.dart';
 
 /// 命令面：与 `qtcloud-work` 一条一条对齐。
 ///
-/// 入口（`bin/qtcloud.dart`）与界面（`lib/repositories/client.dart`）都走这里；
+/// 入口（`bin/qtcloud.dart`）与界面（`repositories/local/local_repository.dart`）都走这里；
 /// 还没搬的命令如实报「还没搬」，不假装成功。
 const String defaultApiBase = 'https://api.quanttide.com/qtcloud-work';
 

@@ -25,17 +25,15 @@ lib/
 ├── app.dart            工作台外壳：顶栏 + 侧栏 + 当前那一屏
 ├── repositories/       数据边界：交出来的就是工具箱里的领域对象
 │   ├── studio_repository.dart   接口（界面与 Bloc 只依赖它）
-│   ├── client.dart      命令行客户端：把命令跑起来、把结果读成领域对象
-│   ├── runner.dart      怎么把命令跑起来（测试里换成假的）
-│   └── local/           本地那套：命令面（dispatch / 导览）与平台读写（fs / host / env / YAML、判据执行）
+│   └── local/           实现：命令面（dispatch / 导览）与平台读写（fs / host / env / YAML、判据执行）
 │                        结果（`Outcome`）与路径怎么显示，在工具箱与 `local/paths.dart`
 ├── states/             状态：workbench_bloc.dart（状态 + 事件 + Bloc 一个文件）
 ├── screens/            三个页面：任务、流程、设置
-└── widgets/            页面里可复用的块（`executor_label.dart` 是执行者怎么说）
+└── views/              页面里可复用的块（`executor_label.dart` 是执行者怎么说）
 test/
 ├── repositories/ states/
-├── screens/ widgets/   页面与块、工作台冒烟
-├── support/            假仓储、假 runner、起界面的小工具
+├── screens/ views/     页面与块、工作台冒烟
+├── support/            假仓储、样例数据、起界面的小工具
 └── fixtures/           真实输出，从命令行抓下来的
 doc/                   原型与设计说明（screens / views / models 三轴）
 ```
@@ -43,7 +41,7 @@ doc/                   原型与设计说明（screens / views / models 三轴�
 六个平台（android、ios、linux、macos、windows、web）的目录都已初始化；
 以后加平台或补平台文件，执行 `flutter create .` 即可。
 
-界面跑的是 studio 自己那份实现（`lib/repositories/local/`，与命令行同一个结果）；命令行那份仍留着，两边各自都能把活干完。
+界面只有一套实现（`lib/repositories/local/`）：不起子进程、不依赖命令行，算出来的结果与命令行一致。
 三处位置从环境读（`QTCLOUD_WORK_ROOT`／`QTCLOUD_WORK_DATA`／`QTCLOUD_WORK_WORKFLOWS`）。
 
 ## 校验

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/app.dart';
 
 import 'support/fake_repository.dart';
-import 'support/fake_runner.dart';
+import 'support/fixtures.dart';
 
 void main() {
   testWidgets('工作台起来就是任务页：顶栏 + 侧栏 + 任务', (tester) async {

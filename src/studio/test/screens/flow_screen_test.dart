@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'package:qtcloud_work_studio/screens/flow_screen.dart';
-import 'package:qtcloud_work_studio/widgets/criteria_panel.dart';
-import 'package:qtcloud_work_studio/widgets/step_chain.dart';
+import 'package:qtcloud_work_studio/views/criteria_panel.dart';
+import 'package:qtcloud_work_studio/views/step_chain.dart';
 
-import '../support/fake_runner.dart';
+import '../support/fixtures.dart';
 import '../support/widget.dart';
 
 final _workspace = qt.RunContext(
