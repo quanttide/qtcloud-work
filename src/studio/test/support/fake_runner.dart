@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:qtcloud_work_studio/models/workspace.dart';
 import 'package:qtcloud_work_studio/repositories/envelope.dart';
 import 'package:qtcloud_work_studio/repositories/runner.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-/// 界面测试用的那处工作区：三处位置都是假的，不碰真实文件。
-const testWorkspace = Workspace(
+/// 测试用的那处工作区——就是工具箱里的运行上下文。
+const testWorkspace = qt.RunContext(
   root: '/w',
   data: '/w/data/context/qtcloud-work',
   workflows: '/w/data/profile/quanttide/workflows',
@@ -18,6 +18,15 @@ String fixture(String name) =>
 /// 真实输出里给界面那一栏（`data`）——界面从不读面向人的 `lines`。
 Map<String, Object?> fixtureData(String name) =>
     TableResult.fromStdout(fixture(name)).data;
+
+/// 真实输出里的表（`rows`）——名单类的命令用这一栏，没有 `data`。
+List<List<String>> fixtureRows(String name) =>
+    TableResult.fromStdout(fixture(name)).rows;
+
+/// 那一栏里托着的原文：任务文件 / 定义文件的内容，装成领域对象要用。
+Map<String, Object?> fixturePayload(String name) => Map<String, Object?>.from(
+  (fixtureData(name)['payload'] as Map?) ?? const <String, Object?>{},
+);
 
 /// 假的 runner：记下每次调用的参数，按关键字回话。
 class FakeRunner implements Runner {

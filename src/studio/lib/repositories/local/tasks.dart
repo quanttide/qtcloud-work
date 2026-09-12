@@ -300,28 +300,12 @@ Outcome taskStatus(String? root, String data, String name, String? workflows) {
   final events = task.events();
   final tail = events.length <= 5 ? events : events.sublist(events.length - 5);
   outcomeData[result] = {
-    'name': task.name,
-    'start': task.start,
-    'workflow': task.workflowName,
-    'description': task.workflow().description,
-    'steps': [
-      for (final step in task.steps())
-        {'name': step.name, 'done': finished.contains(step.name)},
-    ],
-    'state': stateLine(task),
+    'payload': task.payload(),
     'products': {
       'report': short(data, task.artifact(reportKind)),
       'journal': short(data, task.artifact(journalKind)),
       'log': short(data, task.artifact(logKind)),
     },
-    'journal': [
-      for (final event in tail)
-        {
-          'at': '${event['at'] ?? ''}',
-          'step': '${event['step'] ?? ''}',
-          'detail': '${event['detail'] ?? ''}',
-        },
-    ],
   };
   if (events.isNotEmpty) {
     result.lines.add('流水（最近五条）：');

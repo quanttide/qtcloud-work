@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import 'models/workspace.dart';
 import 'repositories/studio_repository.dart';
 import 'screens/flow_screen.dart';
 import 'screens/settings_screen.dart';
@@ -19,7 +19,7 @@ class QtcloudWorkStudioApp extends StatelessWidget {
   });
 
   final StudioRepository repository;
-  final Workspace workspace;
+  final qt.RunContext workspace;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class QtcloudWorkStudioApp extends StatelessWidget {
 class Workbench extends StatelessWidget {
   const Workbench({super.key, required this.workspace});
 
-  final Workspace workspace;
+  final qt.RunContext workspace;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +117,8 @@ class Workbench extends StatelessWidget {
             Expanded(
               child: FlowScreen(
                 workflow: workflow,
+                path: state.workflowPath,
+                yaml: state.workflowYaml,
                 workspace: workspace,
                 busy: state.busy,
                 onCreate: (name) => bloc.add(WorkbenchCreateTask(name)),
@@ -143,6 +145,7 @@ class Workbench extends StatelessWidget {
               child: TaskScreen(
                 task: task,
                 workflow: state.taskWorkflow,
+                products: state.taskProducts,
                 workspace: workspace,
                 busy: state.busy,
                 onNext: () => bloc.add(const WorkbenchRunNext()),

@@ -1,42 +1,55 @@
-import 'package:qtcloud_work_studio/models/task.dart';
-import 'package:qtcloud_work_studio/models/workflow.dart';
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
 import 'package:qtcloud_work_studio/repositories/studio_repository.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 import 'fake_runner.dart';
 
-/// 假的工作台数据边界：读的是命令行真实输出，动作只记一笔。
+/// 假的工作台数据边界：读的是命令行真实输出（`test/fixtures/`），动作只记一笔。
 ///
-/// 界面测试不碰文件与进程——问什么答什么；四个动作（走一步、记一步、
-/// 记日志、起任务）留下的痕迹进 [calls]，供断言。
+/// 交出来的跟真实现一样是工具箱的领域对象——界面测试不碰文件与进程。
 class FakeRepository implements StudioRepository {
-  FakeRepository({this.healthLines = const ['provider：无已部署'], this.finished = true});
+  FakeRepository({
+    this.healthLines = const ['provider：无已部署'],
+    this.finished = true,
+  });
 
   final List<String> healthLines;
 
-  /// 任务详情读回来时，步骤算不算都走过了（默认拿真实输出里那件走完的）。
+  /// 任务算不算走完了（默认拿真实输出里那件走完的）；没走完就把流水清空。
   final bool finished;
 
   final List<String> calls = [];
 
-  @override
-  Future<List<TaskSummary>> tasks() async =>
-      TableResult.fromStdout(fixture('task_list')).rows
-          .map(TaskSummary.fromRow)
-          .toList(growable: false);
+  qt.Task get _task {
+    final payload = Map<String, Object?>.from(fixturePayload('task_detail'));
+    if (!finished) payload['log'] = <Object?>[];
+    return qt.Task.of('${payload['name'] ?? ''}', payload);
+  }
+
+  qt.Workflow get _workflow =>
+      qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
 
   @override
-  Future<TaskDetail> task(String name) async {
-    final data = Map<String, Object?>.from(fixtureData('task_detail'));
-    if (!finished) {
-      data['steps'] = [
-        for (final step in (data['steps'] as List).cast<Map>())
-          {...step, 'done': false},
-      ];
-      data['state'] = '下一步：profile';
-    }
-    return TaskDetail.fromData(data);
+  Future<List<({String name, String workflow, String next})>> tasks() async {
+    final rows = fixtureRows('task_list');
+    return [
+      for (final row in rows)
+        (
+          name: row.isNotEmpty ? row[0] : '',
+          workflow: row.length > 1 ? row[1] : '',
+          next: row.length > 2 ? row[2] : '',
+        ),
+    ];
   }
+
+  @override
+  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
+  task(String name) async => (
+    task: _task,
+    workflow: _workflow,
+    products: Map<String, String>.from(
+      (fixtureData('task_detail')['products'] as Map?) ?? const {},
+    ),
+  );
 
   @override
   Future<void> next(String name) async => calls.add('next $name');
@@ -54,18 +67,33 @@ class FakeRepository implements StudioRepository {
       calls.add('create $name $workflow');
 
   @override
-  Future<List<WorkflowSummary>> workflows() async =>
-      TableResult.fromStdout(fixture('workflow_list')).rows
-          .map(WorkflowSummary.fromRow)
-          .toList(growable: false);
+  Future<List<({String name, String steps, String path})>> workflows() async {
+    final rows = fixtureRows('workflow_list');
+    return [
+      for (final row in rows)
+        (
+          name: row.isNotEmpty ? row[0] : '',
+          steps: row.length > 1 ? row[1] : '',
+          path: row.length > 2 ? row[2] : '',
+        ),
+    ];
+  }
 
   @override
-  Future<WorkflowDetail> workflow(String name) async =>
-      WorkflowDetail.fromData(fixtureData('workflow_detail'));
+  Future<({qt.Workflow workflow, String path, String yaml})> workflow(
+    String name,
+  ) async {
+    final data = fixtureData('workflow_detail');
+    return (
+      workflow: _workflow,
+      path: '${data['path'] ?? ''}',
+      yaml: '${data['yaml'] ?? ''}',
+    );
+  }
 
   @override
-  Future<DefinitionCheck> check(String name) async =>
-      const DefinitionCheck(ok: true, lines: ['定义没问题']);
+  Future<({bool ok, List<String> lines})> check(String name) async =>
+      (ok: true, lines: const ['定义没问题']);
 
   @override
   Future<List<String>> health() async => healthLines;

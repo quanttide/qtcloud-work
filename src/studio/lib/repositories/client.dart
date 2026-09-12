@@ -1,6 +1,5 @@
-import '../models/task.dart';
-import '../models/workflow.dart';
-import '../models/workspace.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
+
 import 'envelope.dart';
 import 'runner.dart';
 import 'studio_repository.dart';
@@ -19,7 +18,7 @@ class CliFailure implements Exception {
 }
 
 /// 命令行客户端：把命令跑起来，把统一信封（`ok` / `columns` / `rows` / `lines`）
-/// 读成模型。
+/// 读成工具箱里的领域对象。
 ///
 /// 界面不自己去读工作流与任务文件的原文——那是命令行的活。两套实现之一；
 /// 另一套是 `local/local_repository.dart`（不起命令面，直接算）。
@@ -30,15 +29,21 @@ class QtcloudWork implements StudioRepository {
     this.binary = 'qtcloud-work',
   }) : runner = runner ?? CoreRunner(workspace);
 
-  final Workspace workspace;
+  /// 三处位置（就是工具箱里的运行上下文）。
+  final qt.RunContext workspace;
   final Runner runner;
   final String binary;
 
-  /// 跑一条命令，拿统一信封，不管 `ok`。[arguments] 不含三处位置与 `--json`，
-  /// 这里统一带上。核对定义要这一条——「有地方要改」也是结果，不算出错。
+  /// 跑一条命令，拿统一信封，不管 `ok`。核对定义要这一条——「有地方要改」
+  /// 也是结果，不算出错。
   Future<TableResult> envelope(List<String> arguments) async {
     final output = await runner.run(binary, [
-      ...workspace.globalArgs,
+      '--root',
+      workspace.root,
+      '--data',
+      workspace.data,
+      '--workflows',
+      workspace.workflows,
       '--json',
       ...arguments,
     ]);
@@ -55,14 +60,32 @@ class QtcloudWork implements StudioRepository {
   // ---- 任务（执行侧）----
 
   @override
-  Future<List<TaskSummary>> tasks() async =>
-      (await call(['task', '--list'])).rows
-          .map(TaskSummary.fromRow)
-          .toList(growable: false);
+  Future<List<({String name, String workflow, String next})>> tasks() async {
+    final rows = (await call(['task', '--list'])).rows;
+    return [
+      for (final row in rows)
+        (
+          name: row.isNotEmpty ? row[0] : '',
+          workflow: row.length > 1 ? row[1] : '',
+          next: row.length > 2 ? row[2] : '',
+        ),
+    ];
+  }
 
   @override
-  Future<TaskDetail> task(String name) async =>
-      TaskDetail.fromData((await call(['task', name])).data);
+  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
+  task(String name) async {
+    final data = (await call(['task', name])).data;
+    final task = qt.Task.of(name, _payload(data));
+    final products = Map<String, String>.from(
+      (data['products'] as Map?) ?? const <String, Object?>{},
+    );
+    return (
+      task: task,
+      workflow: (await workflow(task.workflowName)).workflow,
+      products: products,
+    );
+  }
 
   @override
   Future<void> next(String name) async {
@@ -93,19 +116,34 @@ class QtcloudWork implements StudioRepository {
   // ---- 工作流（定义侧）----
 
   @override
-  Future<List<WorkflowSummary>> workflows() async =>
-      (await call(['workflow', '--list'])).rows
-          .map(WorkflowSummary.fromRow)
-          .toList(growable: false);
+  Future<List<({String name, String steps, String path})>> workflows() async {
+    final rows = (await call(['workflow', '--list'])).rows;
+    return [
+      for (final row in rows)
+        (
+          name: row.isNotEmpty ? row[0] : '',
+          steps: row.length > 1 ? row[1] : '',
+          path: row.length > 2 ? row[2] : '',
+        ),
+    ];
+  }
 
   @override
-  Future<WorkflowDetail> workflow(String name) async =>
-      WorkflowDetail.fromData((await call(['workflow', name])).data);
+  Future<({qt.Workflow workflow, String path, String yaml})> workflow(
+    String name,
+  ) async {
+    final data = (await call(['workflow', name])).data;
+    return (
+      workflow: qt.Workflow.of(name, _payload(data)),
+      path: '${data['path'] ?? ''}',
+      yaml: '${data['yaml'] ?? ''}',
+    );
+  }
 
   @override
-  Future<DefinitionCheck> check(String name) async {
+  Future<({bool ok, List<String> lines})> check(String name) async {
     final result = await envelope(['workflow', name, '--check']);
-    return DefinitionCheck(ok: result.ok, lines: result.lines);
+    return (ok: result.ok, lines: result.lines);
   }
 
   // ---- 其他 ----
@@ -113,3 +151,7 @@ class QtcloudWork implements StudioRepository {
   @override
   Future<List<String>> health() async => (await call(['health'])).lines;
 }
+
+/// 信封那一栏 `data` 里托着的原文（任务文件 / 定义文件的内容）。
+Map _payload(Map<String, Object?> data) =>
+    (data['payload'] as Map?) ?? const <String, Object?>{};

@@ -20,7 +20,7 @@
 
 ## 文档欠的账
 
-- `lib/models/executor.dart`、`lib/repositories/envelope.dart`、`lib/repositories/local/`、`lib/repositories/client.dart`、`lib/app.dart` 与 `lib/main.dart` 都还没有对应的 doc
+- `lib/repositories/`、`lib/states/`、`lib/widgets/executor_label.dart`、`lib/app.dart` 与 `lib/main.dart` 都还没有对应的 doc
 
 ## 发布线
 

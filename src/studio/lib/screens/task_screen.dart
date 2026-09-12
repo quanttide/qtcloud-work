@@ -1,43 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../models/task.dart';
-import '../models/workflow.dart';
-import '../models/workspace.dart';
 import '../widgets/chat.dart';
 import '../widgets/status_panel.dart';
 
 /// 任务页：一次执行实例。左边对话，右边状态面板。（见 doc/screens/task.md）
 ///
-/// 只认传进来的模型与回调；拿数据、改状态在 `states/workbench_bloc.dart`。
+/// 只认传进来的领域对象与回调；拿数据、改状态在 `states/workbench_bloc.dart`。
 class TaskScreen extends StatelessWidget {
   const TaskScreen({
     super.key,
     required this.task,
+    required this.workflow,
+    required this.products,
     required this.workspace,
     required this.busy,
     required this.onNext,
     required this.onDone,
     required this.onJournal,
-    this.workflow,
   });
 
-  final TaskDetail task;
-  final Workspace workspace;
+  final qt.Task task;
+
+  /// 这件任务跑的那条定义——状态面板要看闸门、算下一步。
+  final qt.Workflow? workflow;
+
+  /// 三样产物的落点（按工作区算好的）。
+  final Map<String, String> products;
+  final qt.RunContext workspace;
   final bool busy;
   final VoidCallback onNext;
   final VoidCallback onDone;
   final ValueChanged<String> onJournal;
 
-  /// 这件任务跑的那条工作流——状态面板要看闸门。
-  final WorkflowDetail? workflow;
-
   /// 发话时随带的背景：这一屏在看什么。
   String _brief() {
+    final flow = workflow;
     final lines = [
       '你在量潮工作云工作台里，看的是任务「${task.name}」（跑的是工作流 ${task.workflowName}）。',
       '开工：${task.start}',
-      '当前状态：${task.stateLine}',
-      '产物落点：报告 ${task.products.report}／流水 ${task.products.journal}／日志 ${task.products.log}',
+      '当前状态：${flow == null ? '定义取不到' : task.stateLine(flow)}',
+      '产物落点：报告 ${products['report'] ?? ''}／流水 ${products['journal'] ?? ''}／日志 ${products['log'] ?? ''}',
       '任务文件：${workspace.data}/tasks/${task.name}.yaml',
       '工作流定义：${workspace.workflows}/${task.workflowName}.yaml',
     ];
@@ -81,6 +84,7 @@ class TaskScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final flow = workflow;
     return Row(
       children: [
         Expanded(
@@ -94,7 +98,10 @@ class TaskScreen extends StatelessWidget {
                     '这一屏聊的是目标与流程：想改的是流程定义，不是这一次的产物——'
                     '产物不满意，改流程再跑一遍。话都交给本机的 pi。',
               ),
-              ChatMessage(text: '这次跑的是 ${task.workflowName}，${task.stateLine}'),
+              ChatMessage(
+                text: '这次跑的是 ${task.workflowName}，'
+                    '${flow == null ? '定义取不到' : task.stateLine(flow)}',
+              ),
             ],
           ),
         ),
@@ -103,7 +110,8 @@ class TaskScreen extends StatelessWidget {
           width: 420,
           child: StatusPanel(
             task: task,
-            workflow: workflow,
+            workflow: flow,
+            products: products,
             busy: busy,
             onNext: onNext,
             onDone: onDone,

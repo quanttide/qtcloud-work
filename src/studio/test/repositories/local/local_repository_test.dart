@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/models/workspace.dart';
 import 'package:qtcloud_work_studio/repositories/local/local_repository.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 /// 本地那套实现：直接调命令面，不编信封。数据落在临时目录里，不碰仓。
 void main() {
@@ -32,7 +32,11 @@ steps:
     Directory('${tmp.path}/flows').createSync(recursive: true);
     File('${tmp.path}/flows/demo.yaml').writeAsStringSync(flow);
     repository = LocalRepository(
-      Workspace(root: tmp.path, data: tmp.path, workflows: '${tmp.path}/flows'),
+      qt.RunContext(
+        root: tmp.path,
+        data: tmp.path,
+        workflows: '${tmp.path}/flows',
+      ),
     );
   });
   tearDown(() => tmp.deleteSync(recursive: true));
@@ -47,10 +51,10 @@ steps:
 
   test('起一件任务再读回来', () async {
     await repository.create('demo', 'demo');
-    final task = await repository.task('demo');
-    expect(task.name, 'demo');
-    expect(task.workflowName, 'demo');
-    expect(task.steps.map((item) => item.name), ['甲', '乙']);
+    final opened = await repository.task('demo');
+    expect(opened.task.name, 'demo');
+    expect(opened.task.workflowName, 'demo');
+    expect(opened.workflow.steps.map((item) => item.name), ['甲', '乙']);
   });
 
   test('没有这条工作流就不给起，话说清楚', () async {

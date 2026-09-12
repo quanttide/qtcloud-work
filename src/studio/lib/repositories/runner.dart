@@ -1,6 +1,6 @@
 import 'local/dispatch.dart';
 import 'local/outcome.dart';
-import '../models/workspace.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 /// 一次调用的结果：命令行那边是一个子进程的输出，这里是同一份信封。
 class RunOutput {
@@ -20,7 +20,7 @@ abstract class Runner {
 class CoreRunner implements Runner {
   CoreRunner(this.workspace);
 
-  final Workspace workspace;
+  final qt.RunContext workspace;
 
   @override
   Future<RunOutput> run(String executable, List<String> arguments) async {

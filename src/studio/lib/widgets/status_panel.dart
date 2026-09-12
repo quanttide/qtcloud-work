@@ -1,66 +1,71 @@
 import 'package:flutter/material.dart';
-
-import '../models/executor.dart';
-import '../models/task.dart';
-import '../models/workflow.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 /// 状态面板：任务页右栏，从上到下五块。（见 doc/views/status-panel.md）
+///
+/// 走过的步骤、下一步、进度都由工具箱的任务聚合算——界面只管画。
 class StatusPanel extends StatelessWidget {
   const StatusPanel({
     super.key,
     required this.task,
     required this.workflow,
+    required this.products,
     required this.busy,
     required this.onNext,
     required this.onDone,
     required this.onJournal,
   });
 
-  final TaskDetail task;
-  final WorkflowDetail? workflow;
+  final qt.Task task;
+  final qt.Workflow? workflow;
+
+  /// 三样产物的落点（按工作区算好的，相对数据仓）。
+  final Map<String, String> products;
   final bool busy;
   final VoidCallback onNext;
   final VoidCallback onDone;
   final VoidCallback onJournal;
 
-  /// 闸门：判据里有「人」的那几步——步骤执行者是 AI 也可能卡着人签。
-  /// （见 doc/models/task.md「闸门与产物」）
-  List<WorkflowStep> get _gates =>
+  /// 闸门：这一步本来就是人做的，或留着人拍板的判据。
+  List<qt.Step> get _gates =>
       workflow?.steps
-          .where(
-            (step) =>
-                step.executor == Executor.human || step.criteria.human > 0,
-          )
+          .where((step) => step.isHuman || step.gates.isNotEmpty)
           .toList() ??
       const [];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final flow = workflow;
+    final done = flow == null ? const <String>[] : task.doneSteps(flow);
+    final total = flow?.steps.length ?? 0;
+    final finished = total > 0 && done.length == total;
+    final progress = total == 0 ? 0.0 : done.length / total;
+    final current = flow == null ? null : task.nextStep(flow);
+    final recent = task.journal.length <= 5
+        ? task.journal
+        : task.journal.sublist(task.journal.length - 5);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         Row(
           children: [
             Icon(
-              task.finished ? Icons.check_circle : Icons.play_circle,
+              finished ? Icons.check_circle : Icons.play_circle,
               size: 16,
               color: theme.colorScheme.primary,
             ),
             const SizedBox(width: 6),
-            Text(
-              task.finished ? '走完' : '运行中',
-              style: theme.textTheme.titleSmall,
-            ),
+            Text(finished ? '走完' : '运行中', style: theme.textTheme.titleSmall),
             const Spacer(),
-            Text('${task.doneCount} / ${task.steps.length}'),
+            Text('${done.length} / $total'),
           ],
         ),
         const SizedBox(height: 8),
-        LinearProgressIndicator(value: task.progress),
+        LinearProgressIndicator(value: progress),
         const SizedBox(height: 12),
         Text(
-          task.currentStep == null ? '没有下一步' : '当前步骤　${task.currentStep}',
+          current == null ? '没有下一步' : '当前步骤　$current',
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
@@ -70,20 +75,20 @@ class StatusPanel extends StatelessWidget {
           for (final gate in _gates) '${gate.name}　待人放行',
         ]),
         _block(theme, '产物', [
-          '报告　${task.products.report}',
-          '日志　${task.products.journal}',
-          '流水　${task.products.log}',
+          '报告　${products['report'] ?? ''}',
+          '日志　${products['journal'] ?? ''}',
+          '流水　${products['log'] ?? ''}',
         ]),
         _block(theme, '流水（最近几条）', [
-          if (task.journal.isEmpty) '还没有流水',
-          for (final entry in task.journal)
+          if (recent.isEmpty) '还没有流水',
+          for (final entry in recent)
             '${entry.at}　${entry.step}　${entry.detail}',
         ]),
         const SizedBox(height: 16),
         Row(
           children: [
             FilledButton.icon(
-              onPressed: busy || task.finished ? null : onNext,
+              onPressed: busy || finished ? null : onNext,
               icon: const Icon(Icons.play_arrow, size: 18),
               label: const Text('走下一步'),
             ),

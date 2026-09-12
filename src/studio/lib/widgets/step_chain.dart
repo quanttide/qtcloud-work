@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../models/executor.dart';
-import '../models/workflow.dart';
+import '../widgets/executor_label.dart';
 
 /// 步骤链：一步一个节点，竖着排，一步接一步。（见 doc/views/step-chain.md）
 class StepChain extends StatelessWidget {
@@ -12,16 +12,9 @@ class StepChain extends StatelessWidget {
     required this.onSelect,
   });
 
-  final WorkflowDetail workflow;
+  final qt.Workflow workflow;
   final int? selected;
   final ValueChanged<int> onSelect;
-
-  static Color colorOf(Executor executor, ColorScheme scheme) =>
-      switch (executor) {
-        Executor.agent => scheme.tertiary,
-        Executor.rule => scheme.secondary,
-        Executor.human => scheme.primary,
-      };
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +52,8 @@ class StepChain extends StatelessWidget {
                             Text(workflow.steps[i].name),
                             const Spacer(),
                             Text(
-                              '${workflow.steps[i].executor.stepLabel} · '
-                              '${workflow.steps[i].criteria.total} 条判据',
+                              '${stepLabelOf(workflow.steps[i].executor)} · '
+                              '${workflow.steps[i].criteria.length} 条判据',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],

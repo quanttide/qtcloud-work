@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
-import 'package:qtcloud_work_studio/models/workflow.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'package:qtcloud_work_studio/widgets/criteria_panel.dart';
 
 import '../support/fake_runner.dart';
 
 void main() {
-  final workflow = WorkflowDetail.fromData(
-    TableResult.fromStdout(fixture('workflow_detail')).data,
-  );
+  final workflow = qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
 
   testWidgets('没选步骤时给一句话', (tester) async {
     await tester.pumpWidget(

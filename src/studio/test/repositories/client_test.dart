@@ -90,9 +90,12 @@ void main() {
         'learn-task-create': fixture('workflow_detail'),
       });
       final client = QtcloudWork(workspace: workspace, runner: runner);
-      final workflow = await client.workflow('learn-task-create');
-      expect(workflow.steps.length, 5);
-      expect(workflow.criteria.total, 18);
+      final opened = await client.workflow('learn-task-create');
+      expect(opened.workflow.steps.length, 5);
+      expect(
+        opened.workflow.steps.fold(0, (sum, step) => sum + step.criteria.length),
+        18,
+      );
     });
 
     test('命令行说不行就抛，把它印的话带出来', () async {

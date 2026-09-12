@@ -1,6 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/models/task.dart';
-import 'package:qtcloud_work_studio/models/workflow.dart';
 import 'package:qtcloud_work_studio/states/workbench_bloc.dart';
 
 import '../support/fake_repository.dart';
@@ -59,13 +57,14 @@ void main() {
     addTearDown(unfinished.close);
     final loaded = unfinished.stream.firstWhere((s) => s.task != null);
     unfinished.add(const WorkbenchLoad());
-    final task = (await loaded).task!;
+    final opened = await loaded;
+    final step = opened.task!.nextStep(opened.taskWorkflow!);
     final done = unfinished.stream.firstWhere((s) => !s.busy && s.note != null);
     unfinished.add(const WorkbenchRecordDone());
     await done;
     expect(
       unfinishedRepository.calls,
-      contains('done learn-task-create ${task.currentStep}'),
+      contains('done learn-task-create $step'),
     );
   });
 
@@ -93,10 +92,11 @@ void main() {
 
 class _FailingRepository extends FakeRepository {
   @override
-  Future<List<TaskSummary>> tasks() async => throw const LocalFailureProbe();
+  Future<List<({String name, String workflow, String next})>> tasks() async =>
+      throw const LocalFailureProbe();
 
   @override
-  Future<List<WorkflowSummary>> workflows() async =>
+  Future<List<({String name, String steps, String path})>> workflows() async =>
       throw const LocalFailureProbe();
 }
 

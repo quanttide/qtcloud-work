@@ -1,10 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../models/task.dart';
-import '../models/workflow.dart';
 import '../repositories/studio_repository.dart';
 
 /// 工作台状态：看哪一页、有哪些任务与工作流、当前那件/那条的现状。
+///
+/// 手里拿的是工具箱的领域对象（[qt.Task] / [qt.Workflow]），
+/// 界面要的派生值由它们自己算。
 class WorkbenchState {
   const WorkbenchState({
     this.page = 'task',
@@ -14,8 +16,11 @@ class WorkbenchState {
     this.tasks = const [],
     this.task,
     this.taskWorkflow,
+    this.taskProducts = const {},
     this.workflows = const [],
     this.workflow,
+    this.workflowPath = '',
+    this.workflowYaml = '',
   });
 
   /// 当前那一屏：`task` / `flow` / `settings`。
@@ -30,18 +35,27 @@ class WorkbenchState {
   /// 要弹一句的话；弹过就清掉。
   final String? note;
 
-  final List<TaskSummary> tasks;
+  /// 任务名单：名字、工作流、下一步。
+  final List<({String name, String workflow, String next})> tasks;
 
   /// 当前那件任务。
-  final TaskDetail? task;
+  final qt.Task? task;
 
-  /// 当前任务跑的那条工作流——状态面板要看闸门。
-  final WorkflowDetail? taskWorkflow;
+  /// 当前任务跑的那条定义——状态面板要看闸门。
+  final qt.Workflow? taskWorkflow;
 
-  final List<WorkflowSummary> workflows;
+  /// 当前任务三样产物的落点（按工作区算好的，相对数据仓）。
+  final Map<String, String> taskProducts;
 
-  /// 当前那条工作流定义。
-  final WorkflowDetail? workflow;
+  /// 定义名单：名字、步骤串、位置。
+  final List<({String name, String steps, String path})> workflows;
+
+  /// 当前那条定义。
+  final qt.Workflow? workflow;
+
+  /// 当前定义的落点与原文（定义态要看）。
+  final String workflowPath;
+  final String workflowYaml;
 
   WorkbenchState copyWith({
     String? page,
@@ -50,11 +64,14 @@ class WorkbenchState {
     String? note,
     bool clearError = false,
     bool clearNote = false,
-    List<TaskSummary>? tasks,
-    TaskDetail? task,
-    WorkflowDetail? taskWorkflow,
-    List<WorkflowSummary>? workflows,
-    WorkflowDetail? workflow,
+    List<({String name, String workflow, String next})>? tasks,
+    qt.Task? task,
+    qt.Workflow? taskWorkflow,
+    Map<String, String>? taskProducts,
+    List<({String name, String steps, String path})>? workflows,
+    qt.Workflow? workflow,
+    String? workflowPath,
+    String? workflowYaml,
   }) => WorkbenchState(
     page: page ?? this.page,
     busy: busy ?? this.busy,
@@ -63,8 +80,11 @@ class WorkbenchState {
     tasks: tasks ?? this.tasks,
     task: task ?? this.task,
     taskWorkflow: taskWorkflow ?? this.taskWorkflow,
+    taskProducts: taskProducts ?? this.taskProducts,
     workflows: workflows ?? this.workflows,
     workflow: workflow ?? this.workflow,
+    workflowPath: workflowPath ?? this.workflowPath,
+    workflowYaml: workflowYaml ?? this.workflowYaml,
   );
 }
 
@@ -144,16 +164,16 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
 
   final StudioRepository _repository;
 
-  /// 任务那条工作流——取不到就不显示闸门，不挡这一屏。
-  Future<WorkflowDetail?> _workflowOf(TaskDetail task) async {
+  /// 任务那条定义——取不到就不显示闸门，不挡这一屏。
+  Future<qt.Workflow?> _workflowOf(qt.Task task) async {
     try {
-      return await _repository.workflow(task.workflowName);
+      return (await _repository.workflow(task.workflowName)).workflow;
     } catch (_) {
       return null;
     }
   }
 
-  /// 拿齐两串列表；当前那件/那条还没选中就选第一条。
+  /// 拿齐两串名单；当前那件/那条还没选中就选第一条。
   Future<void> _onLoad(
     WorkbenchLoad event,
     Emitter<WorkbenchState> emit,
@@ -164,13 +184,21 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
       final workflows = await _repository.workflows();
       var task = state.task;
       var taskWorkflow = state.taskWorkflow;
+      var taskProducts = state.taskProducts;
       if (task == null && tasks.isNotEmpty) {
-        task = await _repository.task(tasks.first.name);
+        final opened = await _repository.task(tasks.first.name);
+        task = opened.task;
+        taskProducts = opened.products;
         taskWorkflow = await _workflowOf(task);
       }
       var workflow = state.workflow;
+      var path = state.workflowPath;
+      var yaml = state.workflowYaml;
       if (workflow == null && workflows.isNotEmpty) {
-        workflow = await _repository.workflow(workflows.first.name);
+        final opened = await _repository.workflow(workflows.first.name);
+        workflow = opened.workflow;
+        path = opened.path;
+        yaml = opened.yaml;
       }
       emit(
         state.copyWith(
@@ -179,7 +207,10 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
           workflows: workflows,
           task: task,
           taskWorkflow: taskWorkflow,
+          taskProducts: taskProducts,
           workflow: workflow,
+          workflowPath: path,
+          workflowYaml: yaml,
         ),
       );
     } catch (error) {
@@ -196,12 +227,13 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
   ) async {
     emit(state.copyWith(busy: true, clearError: true));
     try {
-      final task = await _repository.task(event.name);
+      final opened = await _repository.task(event.name);
       emit(
         state.copyWith(
           busy: false,
-          task: task,
-          taskWorkflow: await _workflowOf(task),
+          task: opened.task,
+          taskProducts: opened.products,
+          taskWorkflow: await _workflowOf(opened.task),
         ),
       );
     } catch (error) {
@@ -215,28 +247,37 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
   ) async {
     emit(state.copyWith(busy: true, clearError: true));
     try {
-      final workflow = await _repository.workflow(event.name);
-      emit(state.copyWith(busy: false, workflow: workflow));
+      final opened = await _repository.workflow(event.name);
+      emit(
+        state.copyWith(
+          busy: false,
+          workflow: opened.workflow,
+          workflowPath: opened.path,
+          workflowYaml: opened.yaml,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(busy: false, error: '$error'));
     }
   }
 
-  /// 动作之后把任务列表与当前那件重新拉齐，并弹一句话。
+  /// 动作之后把任务名单与当前那件重新拉齐，并弹一句话。
   Future<void> _realign(
     Emitter<WorkbenchState> emit, {
     required String note,
   }) async {
     final tasks = await _repository.tasks();
     final name = state.task?.name;
-    final task = name == null || !tasks.any((item) => item.name == name)
-        ? state.task
+    final opened = name == null || !tasks.any((item) => item.name == name)
+        ? null
         : await _repository.task(name);
+    final task = opened?.task ?? state.task;
     emit(
       state.copyWith(
         busy: false,
         tasks: tasks,
         task: task,
+        taskProducts: opened?.products,
         taskWorkflow: task == null ? null : await _workflowOf(task),
         note: note,
       ),
@@ -268,13 +309,10 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
     WorkbenchRecordDone event,
     Emitter<WorkbenchState> emit,
   ) {
-    final step = state.task?.currentStep;
+    final flow = state.taskWorkflow;
+    final step = flow == null ? null : state.task?.nextStep(flow);
     if (step == null) return Future.value();
-    return _act(
-      emit,
-      (name) => _repository.done(name, step),
-      '记了一步：$step',
-    );
+    return _act(emit, (name) => _repository.done(name, step), '记了一步：$step');
   }
 
   Future<void> _onJournal(
@@ -293,13 +331,14 @@ class WorkbenchBloc extends Bloc<WorkbenchEvent, WorkbenchState> {
     try {
       await _repository.create(name, workflow);
       final tasks = await _repository.tasks();
-      final task = await _repository.task(name);
+      final opened = await _repository.task(name);
       emit(
         state.copyWith(
           busy: false,
           tasks: tasks,
-          task: task,
-          taskWorkflow: await _workflowOf(task),
+          task: opened.task,
+          taskProducts: opened.products,
+          taskWorkflow: await _workflowOf(opened.task),
           note: '起了任务：$name',
         ),
       );

@@ -214,27 +214,9 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
     ..columns = ['步骤', '谁执行', '怎么算完']
     ..lines.add('工作流：${flow.name}（${short(data, flow.file)}）');
   outcomeData[result] = {
-    'name': flow.name,
+    'payload': flow.payload,
     'path': short(data, flow.file),
-    'description': flow.description,
     'yaml': flow.exists ? readText(flow.file) : '',
-    'steps': [
-      for (final step in flow.steps)
-        {
-          'name': step.name,
-          'executor': step.executor,
-          'rule': step.rules.length,
-          'agent': step.agents.length,
-          'human': step.gates.length,
-          'criteria': [
-            for (final criterion in step.criteria)
-              {
-                'executor': criterion.executor,
-                'text': criterion.text,
-              },
-          ],
-        },
-    ],
   };
   for (final step in flow.steps) {
     final counts =

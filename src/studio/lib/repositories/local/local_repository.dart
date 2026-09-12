@@ -1,15 +1,10 @@
-import '../../models/task.dart';
-import '../../models/workflow.dart';
-import '../../models/workspace.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
+
 import '../studio_repository.dart';
 import 'dispatch.dart';
 import 'outcome.dart';
 
-/// 本地那套实现：不起命令面、不编信封，直接把命令派给 `dispatch`，从
-/// 结构化那一栏装模型。
-///
-/// 与命令行客户端（`../client.dart`）算的是同一套结果——同一处工作区、
-/// 同一条命令；差只差在中间过不过一次信封。
+/// 命令面说不行（`ok` 为假）。把它印的话带出来。
 class LocalFailure implements Exception {
   const LocalFailure(this.lines);
 
@@ -21,10 +16,15 @@ class LocalFailure implements Exception {
   String toString() => 'LocalFailure: $message';
 }
 
+/// 本地那套实现：不起命令面、不编信封，直接把命令派给 `dispatch`，
+/// 再从结构化那一栏拿回任务与定义的原文，装成工具箱的领域对象。
+///
+/// 与命令行客户端（`../client.dart`）算的是同一套结果——同一处工作区、
+/// 同一条命令；差只差在中间过不过一次信封。
 class LocalRepository implements StudioRepository {
   LocalRepository(this.workspace);
 
-  final Workspace workspace;
+  final qt.RunContext workspace;
 
   /// 派一条命令，成功才给结果。
   Outcome _run(List<String> arguments) {
@@ -45,13 +45,32 @@ class LocalRepository implements StudioRepository {
   // ---- 任务（执行侧）----
 
   @override
-  Future<List<TaskSummary>> tasks() async => _run(['task', '--list']).rows
-      .map(TaskSummary.fromRow)
-      .toList(growable: false);
+  Future<List<({String name, String workflow, String next})>> tasks() async {
+    final rows = _run(['task', '--list']).rows;
+    return [
+      for (final row in rows)
+        (
+          name: row.isNotEmpty ? row[0] : '',
+          workflow: row.length > 1 ? row[1] : '',
+          next: row.length > 2 ? row[2] : '',
+        ),
+    ];
+  }
 
   @override
-  Future<TaskDetail> task(String name) async =>
-      TaskDetail.fromData(_data(['task', name]));
+  Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
+  task(String name) async {
+    final data = _data(['task', name]);
+    final task = qt.Task.of(name, _payload(data));
+    final products = Map<String, String>.from(
+      (data['products'] as Map?) ?? const <String, Object?>{},
+    );
+    return (
+      task: task,
+      workflow: (await workflow(task.workflowName)).workflow,
+      products: products,
+    );
+  }
 
   @override
   Future<void> next(String name) async {
@@ -82,24 +101,39 @@ class LocalRepository implements StudioRepository {
   // ---- 工作流（定义侧）----
 
   @override
-  Future<List<WorkflowSummary>> workflows() async => _run(['workflow', '--list'])
-      .rows
-      .map(WorkflowSummary.fromRow)
-      .toList(growable: false);
+  Future<List<({String name, String steps, String path})>> workflows() async {
+    final rows = _run(['workflow', '--list']).rows;
+    return [
+      for (final row in rows)
+        (
+          name: row.isNotEmpty ? row[0] : '',
+          steps: row.length > 1 ? row[1] : '',
+          path: row.length > 2 ? row[2] : '',
+        ),
+    ];
+  }
 
   @override
-  Future<WorkflowDetail> workflow(String name) async =>
-      WorkflowDetail.fromData(_data(['workflow', name]));
+  Future<({qt.Workflow workflow, String path, String yaml})> workflow(
+    String name,
+  ) async {
+    final data = _data(['workflow', name]);
+    return (
+      workflow: qt.Workflow.of(name, _payload(data)),
+      path: '${data['path'] ?? ''}',
+      yaml: '${data['yaml'] ?? ''}',
+    );
+  }
 
   @override
-  Future<DefinitionCheck> check(String name) async {
+  Future<({bool ok, List<String> lines})> check(String name) async {
     final outcome = dispatch(
       ['workflow', name, '--check'],
       root: workspace.root,
       data: workspace.data,
       workflows: workspace.workflows,
     );
-    return DefinitionCheck(ok: outcome.ok, lines: outcome.lines);
+    return (ok: outcome.ok, lines: outcome.lines);
   }
 
   // ---- 其他 ----
@@ -107,3 +141,7 @@ class LocalRepository implements StudioRepository {
   @override
   Future<List<String>> health() async => _run(['health']).lines;
 }
+
+/// 结构化那一栏里托着的原文（任务文件 / 定义文件的内容）。
+Map _payload(Map<String, Object?> data) =>
+    (data['payload'] as Map?) ?? const <String, Object?>{};

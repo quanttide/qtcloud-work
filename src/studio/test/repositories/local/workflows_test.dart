@@ -6,10 +6,6 @@
 ///   `docs/specification/process/workflow.md`·语法定义。正向用例覆盖合法定义的读入与展示、
 ///   四个动作（新建、导出、导入、核对）的结果；反向用例覆盖非法输入的报错：
 ///   字段缺失、字段冗余、取值越界、rule 判据缺少判法。
-/// - **模型层**：`WorkflowDetail` / `CriteriaCounts`（`lib/models/`，界面背后的数据），
-///   输入为信封的 `data` 字段，不读取面向人的 `lines`。期望值取自
-///   `test/fixtures/workflow_detail.json`（命令行的真实输出），不使用手工构造的样例。
-///
 /// 规格或真实输出与实现不一致时，先修订文档，再更新测试。
 ///
 /// `good` 为定义层共用的输入夹具：一份最小且 rule / agent / human 三类判据齐备的定义。
@@ -19,12 +15,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/repositories/local/workflows.dart';
-import 'package:qtcloud_work_studio/models/executor.dart';
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
-import 'package:qtcloud_work_studio/models/workflow.dart';
-
-TableResult fixture(String name) =>
-    TableResult.fromStdout(File('test/fixtures/$name.json').readAsStringSync());
 
 late Directory tmp;
 
@@ -59,27 +49,6 @@ steps:
 void main() {
   setUp(() => tmp = Directory.systemTemp.createTempSync('definition'));
   tearDown(() => tmp.deleteSync(recursive: true));
-
-  group('工作流详情', () {
-    test('从真实输出读出名字、位置、步骤与判据', () {
-      final workflow = WorkflowDetail.fromData(fixture('workflow_detail').data);
-      expect(workflow.name, 'learn-task-create');
-      expect(workflow.path.endsWith('learn-task-create.yaml'), isTrue);
-      expect(workflow.steps.length, 5);
-      expect(workflow.steps.first.name, 'profile');
-      expect(workflow.steps.first.executor, Executor.agent);
-      expect(workflow.steps.first.criteria.total, 4);
-      expect(workflow.criteria.total, 4 + 5 + 4 + 3 + 2);
-      expect(workflow.summary, '5 步 · 18 条判据');
-    });
-
-    test('人执行的步骤认得出来', () {
-      final workflow = WorkflowDetail.fromData(fixture('workflow_detail').data);
-      final audit = workflow.steps.firstWhere((step) => step.name == 'audit');
-      expect(audit.criteria.human, 1);
-      expect(audit.criteria.of(Executor.human), 1);
-    });
-  });
 
   group('读一份定义', () {
     test('合法的读得进', () {

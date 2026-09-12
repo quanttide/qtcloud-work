@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
-import 'package:qtcloud_work_studio/models/task.dart';
-import 'package:qtcloud_work_studio/models/workflow.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'package:qtcloud_work_studio/widgets/status_panel.dart';
 
 import '../support/fake_runner.dart';
 
 void main() {
-  final task = TaskDetail.fromData(
-    TableResult.fromStdout(fixture('task_detail')).data,
-  );
-  final workflow = WorkflowDetail.fromData(
-    TableResult.fromStdout(fixture('workflow_detail')).data,
-  );
+  final task = qt.Task.of('learn-task-create', fixturePayload('task_detail'));
+  final workflow = qt.Workflow.of('learn-task-create', fixturePayload('workflow_detail'));
 
   Future<void> pump(WidgetTester tester, {bool busy = false}) {
     return tester.pumpWidget(
@@ -22,6 +16,9 @@ void main() {
           body: StatusPanel(
             task: task,
             workflow: workflow,
+            products: Map<String, String>.from(
+              (fixtureData('task_detail')['products'] as Map?) ?? const {},
+            ),
             busy: busy,
             onNext: () {},
             onDone: () {},

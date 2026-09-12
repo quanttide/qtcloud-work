@@ -10,7 +10,7 @@ Flutter Web 客户端 `src/studio` 的界面参照，也是命令行 `qtcloud-wo
 |---|---|---|
 | [screens/](screens/task.md) | 三个页面：任务、流程、设置 | [`lib/screens/`](../lib/screens) |
 | [views/](views/sidebar.md) | 页面里可复用的块：侧栏、顶栏、对话、状态面板、步骤链、判据面板、定义态 | [`lib/widgets/`](../lib/widgets) |
-| [models/](models/workflow.md) | 界面背后的数据：工作流（定义侧）、任务（执行侧）、三处位置 | [`lib/models/`](../lib/models) |
+| [models/](models/workflow.md) | 界面背后的数据：工作流（定义侧）、任务（执行侧）、三处位置 | 工具箱 [`quanttide-work-toolkit`](../../../../packages/quanttide-work-toolkit/packages/dart) |
 
 界面跑的是 studio 自己那份实现（`../lib/repositories/local`），与命令行算出来的是同一个结果；给人看的话各写各的。
 
@@ -19,7 +19,7 @@ Flutter Web 客户端 `src/studio` 的界面参照，也是命令行 `qtcloud-wo
 
 `index.html` 是可点的整合原型（单文件跑起来，无外部依赖）；`screens/` 与 `views/` 的描述与它一一对应。
 
-界面实现落在 `../lib`：`models/` 是这几个模型，`repositories/` 是界面调这套实现的那层薄壳（把命令包成方法）。
+界面实现落在 `../lib`：领域模型在工具箱（命令行与工作台共用一份），`repositories/` 把命令包成方法、交出领域对象。
 
 ## 三屏
 

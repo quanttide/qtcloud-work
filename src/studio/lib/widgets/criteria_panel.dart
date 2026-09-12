@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import '../models/workflow.dart';
+import 'executor_label.dart';
 
 /// 判据面板：点一个步骤，下面列出这一步的全部判据。（见 doc/views/criteria-panel.md）
 class CriteriaPanel extends StatelessWidget {
   const CriteriaPanel({super.key, this.step});
 
-  final WorkflowStep? step;
+  final qt.Step? step;
 
   @override
   Widget build(BuildContext context) {
@@ -27,19 +28,16 @@ class CriteriaPanel extends StatelessWidget {
             children: [
               Text(current.name, style: theme.textTheme.titleSmall),
               const SizedBox(width: 8),
-              Text(
-                current.executor.stepLabel,
-                style: theme.textTheme.bodySmall,
-              ),
+              Text(stepLabelOf(current.executor), style: theme.textTheme.bodySmall),
               const Spacer(),
               Text(
-                '${current.criteria.total} 条判据（机器判 ${current.criteria.rule}）',
+                '${current.criteria.length} 条判据（机器判 ${current.rules.length}）',
                 style: theme.textTheme.bodySmall,
               ),
             ],
           ),
           const SizedBox(height: 8),
-          for (final item in current.items)
+          for (final item in current.criteria)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
@@ -48,7 +46,7 @@ class CriteriaPanel extends StatelessWidget {
                   SizedBox(
                     width: 64,
                     child: Text(
-                      item.executor.criterionLabel,
+                      criterionLabelOf(item.executor),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.primary,
                       ),
@@ -60,7 +58,7 @@ class CriteriaPanel extends StatelessWidget {
                 ],
               ),
             ),
-          if (current.items.isEmpty)
+          if (current.criteria.isEmpty)
             Text(
               '这一步的判据没有逐条文字（定义文件里没写 `description`，也没写路径类的字段）。',
               style: theme.textTheme.bodySmall?.copyWith(
