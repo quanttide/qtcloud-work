@@ -411,9 +411,9 @@ dependencies = [
 
 [[package]]
 name = "quanttide-work"
-version = "0.1.0-alpha.6"
+version = "0.1.0-beta.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13ff5b6502b77c09c62282efb6ee9c17cae9be90723c9ffea54778e61c4eff90"
+checksum = "b1d6dccdcb8959e159fcde7fb004fbb3da582a9ab1f713bafd595d749527513d"
 dependencies = [
  "serde_json",
  "serde_yaml",

@@ -7,6 +7,7 @@
 //! 事实记进流水与报告。
 
 use crate::workflow::{self, Step, WorkflowFile};
+use quanttide_work::criteria::Criterion;
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -398,7 +399,7 @@ pub fn run_ai(prompt: &str, root: &Path) -> (bool, String) {
 }
 
 /// 交给智能体审的那一段话：产物 + 判准，逐条回答。
-pub fn judge_prompt(task: &Task, step: &Step, criteria: &[Value]) -> String {
+pub fn judge_prompt(task: &Task, step: &Step, criteria: &[Criterion]) -> String {
     quanttide_work::prompts::judge_prompt(&facts_of(task, step), criteria)
 }
 
@@ -440,16 +441,15 @@ fn verdict_of(out: &str, index: usize) -> (String, String) {
 }
 
 /// 让智能体按判准审一遍；返回（说明，结论，理由）。
-pub fn judge_by_ai(task: &Task, step: &Step, criteria: &[Value]) -> Vec<(String, String, String)> {
+pub fn judge_by_ai(
+    task: &Task,
+    step: &Step,
+    criteria: &[Criterion],
+) -> Vec<(String, String, String)> {
     let (ran, out) = run_ai(&judge_prompt(task, step, criteria), &task.root);
     let mut rows = Vec::new();
     for (index, criterion) in criteria.iter().enumerate() {
-        let note = criterion
-            .get("description")
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .trim()
-            .to_string();
+        let note = criterion.text();
         if !ran {
             rows.push((
                 note,
@@ -516,23 +516,10 @@ fn relative_to_root(task: &Task, path: &Path) -> String {
 }
 
 /// 判据里的占位先换成本次任务的真实路径，再去跑。
-pub fn expanded_criteria(task: &Task, criteria: &[Value]) -> Vec<Value> {
+pub fn expanded_criteria(task: &Task, criteria: &[Criterion]) -> Vec<Criterion> {
     criteria
         .iter()
-        .map(|criterion| {
-            let mut out = criterion.clone();
-            if let Some(mapping) = out.as_mapping_mut() {
-                let keys: Vec<Value> = mapping.keys().cloned().collect();
-                for key in keys {
-                    if let Some(Value::String(text)) = mapping.get(&key).cloned()
-                        && text.contains("{{")
-                    {
-                        mapping.insert(key, Value::String(expand(task, &text)));
-                    }
-                }
-            }
-            out
-        })
+        .map(|criterion| criterion.expanded(|text| expand(task, text)))
         .collect()
 }
 
@@ -598,12 +585,7 @@ pub fn execute(
             .iter()
             .map(|criterion| {
                 (
-                    criterion
-                        .get("description")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .trim()
-                        .to_string(),
+                    criterion.text(),
                     "待判".to_string(),
                     "没跑智能体（人为地记一步）".to_string(),
                 )
@@ -613,14 +595,7 @@ pub fn execute(
     let gates: Vec<String> = found
         .gates()
         .iter()
-        .map(|criterion| {
-            criterion
-                .get("description")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .trim()
-                .to_string()
-        })
+        .map(|criterion| criterion.text())
         .collect();
     let rules_pass = results.iter().all(|(_, passed, _)| *passed);
     // 待判（人为地记一步、没跑智能体）不挡这一步，原样进闸门项。
