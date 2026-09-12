@@ -54,9 +54,10 @@ sh scripts/parity.sh          # 24 条必须仍一致
 
 触发已命中两条：单文件行数越界、目录混用。
 
-**4.1** 拆长文件，重排 `local/`——靶子目录（见 ROADMAP「交付哪些模块」）：聚合 `workflow/`、`task/`、`material/`、`workspace/`；领域服务 `search/`、`catalog/`、`audit/`；适配一处 `platform/`
+**4.1** 拆长文件，重排 `local/`——靶子目录（见 ROADMAP「交付哪些模块」）：聚合 `workflow/`、`task/`、`catalog/`、`material/`、`workspace/`；领域服务 `search/`、`audit/`；适配一处 `platform/`
 
-- 聚合名用业务名词，服务名用能力名（名动同形，`search/` 而不是 `searcher/`——`-er` 是类名惯例，不是目录名惯例）
+- 聚合名用业务名词，服务名用能力名（`search/` 而不是 `searcher/`——`-er` 是类名惯例，不是目录名惯例）；归类看**有没有自己的定义**，不看是不是动词（`catalog` 有定义故为聚合，`search`、`audit` 只做一件事故为服务）
+- 依赖单向：**服务可依赖聚合，聚合不得依赖服务**（`search` 用 `catalog` 的名字索引）
 - `tasks.dart` 378 行、`workflows.dart` 316 行、`task_run.dart` 279 行——拆进各自目录，单文件降到 **≤250 行**
 - 判据：上述目录都在；`local/*.dart` 下不再有散落单件；`find lib -name "*.dart" | xargs wc -l | awk '$1>250'` 为空；通用判据全绿（**行为不变**是硬要求）
 
