@@ -1,19 +1,18 @@
-/// 工作流这个模块的测试设计。
+/// 工作流模块的测试设计。
 ///
-/// 工作流有两副面孔，测试照这两副分：
+/// 被测对象分两层，数据来源各不相同：
 ///
-/// - **定义**（正本）：`<数据仓>/workflows/<名字>.yaml`，schema 由规格
-///   `docs/specification/process/workflow.md`·语法定死。所以先核形状（顶层字段），
-///   再把「缺字段 / 多字段 / 取值不对 / rule 少了判法」逐条试到它该报的那句话，
-///   最后是新建、导出、导入、核对四个动作——真落盘到临时仓，测的就是文件落得对不对。
-/// - **界面模型**（视图）：`WorkflowDetail` / `CriteriaCounts` 从信封的 `data` 读出来，
-///   不碰给人看的 `lines`。期望来自 `test/fixtures/workflow_detail.json`——命令行真输出，
-///   不是手搓样例。
+/// - **定义层**：`<数据仓>/workflows/<名字>.yaml`，契约由规格
+///   `docs/specification/process/workflow.md`·语法定义。正向用例覆盖合法定义的读入与展示、
+///   四个动作（新建、导出、导入、核对）的结果；反向用例覆盖非法输入的报错：
+///   字段缺失、字段冗余、取值越界、rule 判据缺少判法。
+/// - **视图层**：`WorkflowDetail` / `CriteriaCounts`，输入为信封的 `data` 字段，
+///   不读取面向人的 `lines`。期望值取自 `test/fixtures/workflow_detail.json`
+///   （命令行的真实输出），不使用手工构造的样例。
 ///
-/// 出处（规格、真实输出）对不上，先改文档再回填测试。
+/// 规格或真实输出与实现不一致时，先修订文档，再更新测试。
 ///
-/// `good` 是定义侧共用的判例：一份最小但三类判据（rule / agent / human）齐全的定义，
-/// 免得每例各造一份。
+/// `good` 为定义层共用的输入夹具：一份最小且 rule / agent / human 三类判据齐备的定义。
 library;
 
 import 'dart:io';
