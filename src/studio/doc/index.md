@@ -8,18 +8,18 @@ Flutter Web 客户端 `src/studio` 的界面参照，也是命令行 `qtcloud-wo
 
 | 目录 | 装什么 | 实现 |
 |---|---|---|
-| [screens/](screens/task.md) | 三个页面：任务、流程、设置 | [`lib/presentation/screens/`](../lib/presentation/screens) |
-| [views/](views/sidebar.md) | 页面里可复用的块：侧栏、顶栏、对话、状态面板、步骤链、判据面板、定义态 | [`lib/presentation/views/`](../lib/presentation/views) |
-| [models/](models/workflow.md) | 界面背后的数据：工作流（定义侧）、任务（执行侧）、三处位置 | [`lib/domain/`](../lib/domain) |
+| [screens/](screens/task.md) | 三个页面：任务、流程、设置 | [`lib/screens/`](../lib/screens) |
+| [views/](views/sidebar.md) | 页面里可复用的块：侧栏、顶栏、对话、状态面板、步骤链、判据面板、定义态 | [`lib/widgets/`](../lib/widgets) |
+| [models/](models/workflow.md) | 界面背后的数据：工作流（定义侧）、任务（执行侧）、三处位置 | [`lib/models/`](../lib/models) |
 
-界面跑的是 studio 自己那份实现（`../lib/application`），与命令行算出来的是同一个结果；给人看的话各写各的。
+界面跑的是 studio 自己那份实现（`../lib/repositories/local`），与命令行算出来的是同一个结果；给人看的话各写各的。
 
 每篇 `.md` 都配一份伴生文件：**屏与视图配 `.html`**（自带样式，可单独在浏览器里打开看），
 **模型配 `.json`**（真实样例，从仓里的工作流定义与任务文件转来）。
 
 `index.html` 是可点的整合原型（单文件跑起来，无外部依赖）；`screens/` 与 `views/` 的描述与它一一对应。
 
-界面实现落在 `../lib`：`domain/` 是这几个模型，`infrastructure/` 是界面调这套实现的那层薄壳（把命令包成方法）。
+界面实现落在 `../lib`：`models/` 是这几个模型，`repositories/` 是界面调这套实现的那层薄壳（把命令包成方法）。
 
 ## 三屏
 

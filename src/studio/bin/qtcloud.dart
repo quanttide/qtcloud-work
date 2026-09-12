@@ -4,14 +4,14 @@
 //! 用途有二：一是让 studio 不依赖命令行也能干活，二是让「对表」有得比——
 //! 同一处工作区、同一条命令，两边各跑一次，信封必须一样。
 //!
-//! 命令面在 `lib/application/dispatch.dart` 一处实现，界面那层也走它。
+//! 命令面在 `lib/repositories/local/dispatch.dart` 一处实现，界面那层也走它。
 //!
 //! 用法：dart run bin/qtcloud.dart [--root R] [--data D] [--workflows W] [--json] <命令…>
 
 import 'dart:io';
 
-import 'package:qtcloud_work_studio/application/dispatch.dart';
-import 'package:qtcloud_work_studio/application/outcome.dart';
+import 'package:qtcloud_work_studio/repositories/local/dispatch.dart';
+import 'package:qtcloud_work_studio/repositories/local/outcome.dart';
 
 void main(List<String> argv) {
   final args = [...argv];

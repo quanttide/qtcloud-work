@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 
-- `lib/` 按 DDD 四层重排：`domain/`（领域模型）、`application/`（用例）、`infrastructure/`（信封、客户端、判据执行、平台读写）、`presentation/`（界面）；`test/` 跟着分层
+- `lib/` 按 Bloc 家法重排：`models/`（界面要用的模型）、`repositories/`（接口 + 命令行客户端与本地两套实现，本地那套另带平台读写）、`screens/`、`widgets/`；`test/` 跟着分层
 - toolkit 升到 `quanttide_work 0.1.0-beta.1`：判据与定义改成不可变值对象（`Criterion`、`Workflow.of`），`TaskDetail` / `WorkflowDetail` 从信封的 `data` 装配（`fromData`）
 - 删死代码：`lib/core/artifact.dart`（无人引用）与 `tasks.dart` 里重复的 `textOf`
 - 初始化全部平台客户端：android、ios、linux、macos、windows、web（原先只有 web）
