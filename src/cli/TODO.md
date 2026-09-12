@@ -28,7 +28,7 @@ sh scripts/validate-usecases.sh
 
 **2.1** `src/` 分三类落位
 
-- **聚合**：`task/`、`workflow/`、`material/`、`catalog/`、`workspace/`
+- **聚合**：`task/`、`workflow/`、`catalog/`、`artifact/`、`material/`、`workspace/`（`artifact` 是定义型聚合——标准产物定义即规范）
 - **领域服务**：`search`、`audit`（是否收进 `service/` 一层，待拍板——服务件少，平铺也不违反契约）
 - **适配**：`cli.rs`（入口与发射）、`help.rs`、`prompts.rs`、`paths.rs`、`health`（是否收进 `platform/`，待拍板）
 - 判据：聚合件不再与适配件同层；`src/` 顶层只剩目录 + 少量适配件 + `main.rs`

@@ -16,7 +16,7 @@
 
 | 条款 | 现状 | 判定 |
 |---|---|---|
-| 终态按聚合、聚合与领域服务并列、适配一处 | `src/*.rs` 平铺一层：聚合件（`task` `workflow` `material` `catalog`）、服务件（`catalog.rs` 里的 search、`audit`）、适配件（`cli` `help` `prompts` `paths` `health` 在 `cli.rs` 里）**全部同层** | ✗ 该转 |
+| 终态按聚合、聚合与领域服务并列、适配一处 | `src/*.rs` 平铺一层：聚合件（`task` `workflow` `catalog` `artifact` `material`）、服务件（`catalog.rs` 里的 search、`audit`）、适配件（`cli` `help` `prompts` `paths` `health` 在 `cli.rs` 里）**全部同层** | ✗ 该转 |
 | 单文件行数越界即触发转聚合 | 3 个文件超阈，最长 945 行 | ✗ 已触发 |
 | 同一目录不得混用层名与聚合名 | 无层名，但**聚合件与适配件同层**——同一病的另一种形态 | ✗ 违规 |
 | 角色唯一 | `workspace` 没有自己的文件：`workspace_root` / `data_dir` 散在 `cli.rs`，`paths.rs` 只管路径显示；`health` 也住在 `cli.rs` | ✗ 待立 |

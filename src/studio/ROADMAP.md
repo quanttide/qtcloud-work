@@ -31,6 +31,7 @@ studio 现在能干活：三屏七块齐、点了真的会动、对话通了；�
 | `workflow/` | 工作流定义：列表、看一件、核对定义、导出、导入 | 已有（`workflows.dart` 316 行） |
 | `task/` | 任务：列表、新建、看一件、走下一步、记一步、收日志 | 已有（`tasks.dart` 378 + `task_run.dart` 279） |
 | `catalog/` | 目录：按资产种类清点工作区，建成名字索引（条目、快照语义是它自己的定义） | 命令面已有、界面侧未搬 |
+| `artifact/` | 资产表：标准产物定义（`journal`、`report`、`profile` … 各叫什么、落在哪、依哪一条）——定义即规范 | 命令面已有、界面侧未搬；`catalog` / `audit` / `material` / `search` 都依赖它 |
 | `material/` | 材料 | 命令面已有、界面侧未搬 |
 | `workspace/` | 三处位置与环境 | 已有（`paths.dart` + `environment*`） |
 

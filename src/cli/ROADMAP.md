@@ -25,6 +25,7 @@ cli 已经能用也能发：命令面四组齐（工作区 / 工作流 / 任务 
 | `task/` | 任务：状态推导、走一步、流水、报告、日志 | 已有（`task.rs`，945 行待拆） |
 | `workflow/` | 工作流：YAML 读写、严格 schema、五个动作 | 已有（`workflow.rs` 459 行待拆） |
 | `catalog/` | 目录：扫描成名字索引（条目与快照语义是它自己的定义） | 已有（`catalog.rs` 276 行） |
+| `artifact/` | 资产表：**标准产物定义**（`journal`、`report`、`profile` … 各叫什么、落在哪、依哪一条）——显式定义的领域模型，定义即规范 | 已有（`artifact.rs` 147 行） |
 | `material/` | 材料：类型 / 内容 / 来源 / 时间，阶段由位置承担 | 已有（`material.rs` 240 行） |
 | `workspace/` | 工作区：三处位置与落点 | **未立**——`workspace_root` / `data_dir` 现在散在 `cli.rs`，`paths.rs` 只管路径显示 |
 
@@ -37,7 +38,7 @@ cli 已经能用也能发：命令面四组齐（工作区 / 工作流 / 任务 
 
 **适配**（边界外的东西与入口）：`cli.rs`（入口与发射）、`help.rs`、`prompts.rs`、`paths.rs`、`health`（现住 `cli.rs`，待分出）。
 
-**待拍板**：`artifact.rs`（资产表二十格与落点规则）——它是**定义表**（静态规范），按「有没有自己的定义」这条判据，它跟 `catalog`（清点的产物，有快照与生命周期）不同科，建议归适配或另立参考一处；请定。
+`artifact` 是**定义型聚合**：它不描述某个对象长什么样，它定的是「有哪些标准产物」（`journal`、`report`、`profile` …）与各自的落点——**改它即改规范**（文档面同源：work 域 handbook 的产物规范、gallery 的案例、`.quanttide/*/contract.yaml`）。
 
 ## 五段怎么走
 
