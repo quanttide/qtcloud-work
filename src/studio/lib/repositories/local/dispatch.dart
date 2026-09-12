@@ -31,7 +31,7 @@ Outcome dispatch(
       return helpOf(tail.isEmpty ? null : tail.first);
     case 'health':
       return healthOf(server ?? baseFromEnv());
-    case 'find':
+    case 'search':
     case 'catalog':
     case 'audit':
     case 'material':

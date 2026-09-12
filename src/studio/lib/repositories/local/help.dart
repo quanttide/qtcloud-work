@@ -22,7 +22,7 @@ class HelpGroup {
 
 const List<HelpGroup> helpGroups = [
   HelpGroup('工作区', [
-    HelpItem('find <名字> [--show]', '按名找文档'),
+    HelpItem('search <名字> [--show]', '按名找文档'),
     HelpItem('catalog', '按资产种类列条目'),
     HelpItem('audit [--make]', '审计资产表与工作区'),
     HelpItem('material [<路径>…]', '材料的四字段与阶段'),

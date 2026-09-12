@@ -17,7 +17,7 @@ void main() {
 
   test('命令那一列宽 42，做了什么从第 45 格起', () {
     final guide = helpGuide();
-    final line = guide.lines.firstWhere((l) => l.contains('find <名字>'));
+    final line = guide.lines.firstWhere((l) => l.contains('search <名字>'));
     expect(line.indexOf('按名找文档'), 45);
   });
 
