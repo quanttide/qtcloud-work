@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
 import 'package:qtcloud_work_studio/models/workspace.dart';
 import 'package:qtcloud_work_studio/models/workflow.dart';
 import 'package:qtcloud_work_studio/screens/flow_screen.dart';
@@ -17,19 +17,18 @@ const _workspace = Workspace(
 );
 
 void main() {
-  final workflow = WorkflowDetail.fromData(
-    TableResult.fromStdout(fixture('workflow_detail')).data,
+  final workflow = WorkflowDetail.fromData(fixtureData('workflow_detail'));
+
+  Widget screen() => FlowScreen(
+    workflow: workflow,
+    workspace: _workspace,
+    busy: false,
+    onCreate: (_) {},
+    onCheck: () async => const DefinitionCheck(ok: true, lines: ['定义没问题']),
   );
 
   testWidgets('默认是步骤态，点一个步骤看判据', (tester) async {
-    await pumpScreen(
-      tester,
-      FlowScreen(
-        client: fakeClient(),
-        workspace: _workspace,
-        workflow: workflow,
-      ),
-    );
+    await pumpScreen(tester, screen());
     expect(find.byType(StepChain), findsOneWidget);
     expect(find.byType(CriteriaPanel), findsOneWidget);
     await tester.tap(find.text('site'));
@@ -38,14 +37,7 @@ void main() {
   });
 
   testWidgets('切到定义态换成原文那处', (tester) async {
-    await pumpScreen(
-      tester,
-      FlowScreen(
-        client: fakeClient(),
-        workspace: _workspace,
-        workflow: workflow,
-      ),
-    );
+    await pumpScreen(tester, screen());
     await tester.tap(find.text('定义'));
     await tester.pumpAndSettle();
     expect(find.byType(StepChain), findsNothing);

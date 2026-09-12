@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../repositories/client.dart';
 import '../models/workspace.dart';
 
 /// 设置页：三处位置 + provider 探活。（见 doc/screens/settings.md）
+///
+/// 探活这件事问完就完，不进工作台状态——所以直接拿一个回调，
+/// 不走 `states/workbench_bloc.dart`。
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
-    required this.client,
     required this.workspace,
+    required this.onProbe,
   });
 
-  final QtcloudWork client;
   final Workspace workspace;
+  final Future<List<String>> Function() onProbe;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -23,9 +25,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _probe() async {
     try {
-      final result = await widget.client.health();
+      final lines = await widget.onProbe();
       if (!mounted) return;
-      setState(() => _health = result.lines.join('\n'));
+      setState(() => _health = lines.join('\n'));
     } catch (error) {
       if (!mounted) return;
       setState(() => _health = '$error');

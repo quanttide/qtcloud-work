@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../repositories/client.dart';
 import '../models/workflow.dart';
 import '../models/workspace.dart';
 import '../widgets/chat.dart';
@@ -9,57 +8,39 @@ import '../widgets/definition_view.dart';
 import '../widgets/step_chain.dart';
 
 /// 流程页：一条定义。左边对话，右边两态（步骤 / 定义）。（见 doc/screens/flow.md）
+///
+/// 只认传进来的模型与回调；拿数据、改状态在 `states/workbench_bloc.dart`。
 class FlowScreen extends StatefulWidget {
   const FlowScreen({
     super.key,
-    required this.client,
     required this.workflow,
     required this.workspace,
-    this.onCreated,
+    required this.busy,
+    required this.onCreate,
+    required this.onCheck,
   });
 
-  final QtcloudWork client;
   final WorkflowDetail workflow;
   final Workspace workspace;
+  final bool busy;
 
-  /// 起了一件任务之后通知外面（刷新列表、去打开它）。
-  final Future<void> Function(String name)? onCreated;
+  /// 起一件任务：把名字交出去，跑的是这条定义。
+  final ValueChanged<String> onCreate;
+
+  /// 核对定义：把结果拿回来弹窗（这是查询，不进状态）。
+  final Future<DefinitionCheck> Function() onCheck;
 
   @override
   State<FlowScreen> createState() => _FlowScreenState();
 }
 
 class _FlowScreenState extends State<FlowScreen> {
+  // 这一屏自己的一点界面状态：看步骤还是看原文、选中第几步。
   bool _definition = false;
-  bool _busy = false;
   int? _selected;
 
   void _tell(String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-  }
-
-  /// 起一件任务：`task --new <名字> --workflow <这条>`。
-  Future<void> _create() async {
-    final name = await _askName();
-    if (name == null || name.trim().isEmpty) return;
-    setState(() => _busy = true);
-    try {
-      final result = await widget.client.create(
-        name.trim(),
-        widget.workflow.name,
-      );
-      if (!mounted) return;
-      if (result.ok) {
-        _tell('已起任务：${name.trim()}');
-        await widget.onCreated?.call(name.trim());
-      } else {
-        _tell(result.lines.join('　'));
-      }
-    } catch (error) {
-      if (mounted) _tell('$error');
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
   }
 
   Future<String?> _askName() {
@@ -88,32 +69,38 @@ class _FlowScreenState extends State<FlowScreen> {
     );
   }
 
+  /// 起一件任务：`task --new <名字> --workflow <这条>`。
+  Future<void> _create() async {
+    final name = await _askName();
+    if (name == null || name.trim().isEmpty) return;
+    widget.onCreate(name.trim());
+  }
+
   /// 核对定义：`workflow <名字> --check`。
   Future<void> _check() async {
-    setState(() => _busy = true);
+    final DefinitionCheck result;
     try {
-      final result = await widget.client.workflowCheck(widget.workflow.name);
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(result.ok ? '定义没问题' : '定义有几处要改'),
-          content: SingleChildScrollView(
-            child: SelectableText(result.lines.join('\n')),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('知道了'),
-            ),
-          ],
-        ),
-      );
+      result = await widget.onCheck();
     } catch (error) {
       if (mounted) _tell('$error');
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      return;
     }
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(result.ok ? '定义没问题' : '定义有几处要改'),
+        content: SingleChildScrollView(
+          child: SelectableText(result.lines.join('\n')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -162,7 +149,7 @@ class _FlowScreenState extends State<FlowScreen> {
                     ),
                     const SizedBox(width: 8),
                     PopupMenuButton<String>(
-                      enabled: !_busy,
+                      enabled: !widget.busy,
                       tooltip: '更多',
                       onSelected: (value) {
                         if (value == 'check') _check();

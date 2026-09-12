@@ -4,7 +4,9 @@
 
 ## [Unreleased]
 
-- `lib/` 按 Bloc 家法重排：`models/`（界面要用的模型）、`repositories/`（接口 + 命令行客户端与本地两套实现，本地那套另带平台读写）、`screens/`、`widgets/`；`test/` 跟着分层
+- `lib/` 按 Bloc 家法重排：`models/`（界面要用的模型）、`repositories/`（接口 + 命令行客户端与本地两套实现）、`states/`（Bloc）、`screens/`、`widgets/`；`test/` 跟着分层
+- 状态交给 Bloc：`states/workbench_bloc.dart`（状态 + 事件 + Bloc 一个文件）取代 `StatefulWidget` + `setState`；界面件只认传进来的模型与回调
+- 加 `repositories/studio_repository.dart` 接口（任务 / 工作流 / 探活）：`client.dart`（读统一信封）与 `local/local_repository.dart`（直接调命令面）各实现一套
 - toolkit 升到 `quanttide_work 0.1.0-beta.1`：判据与定义改成不可变值对象（`Criterion`、`Workflow.of`），`TaskDetail` / `WorkflowDetail` 从信封的 `data` 装配（`fromData`）
 - 删死代码：`lib/core/artifact.dart`（无人引用）与 `tasks.dart` 里重复的 `textOf`
 - 初始化全部平台客户端：android、ios、linux、macos、windows、web（原先只有 web）

@@ -10,7 +10,7 @@ void main() {
     test('每次都带上三处位置与 --json', () async {
       final runner = FakeRunner({'--list': fixture('task_list')});
       final client = QtcloudWork(workspace: workspace, runner: runner);
-      await client.taskList();
+      await client.envelope(['task', '--list']);
       expect(runner.calls.single, [
         'qtcloud-work',
         '--root',
@@ -60,7 +60,7 @@ void main() {
       final client = QtcloudWork(workspace: workspace, runner: runner);
       await client.next('demo');
       await client.journal('demo', '今天走了三步');
-      await client.workflowCheck('devops-release');
+      await client.check('devops-release');
       expect(runner.calls[0].sublist(8), ['task', 'demo', '--next']);
       expect(runner.calls[1].sublist(8), [
         'task',

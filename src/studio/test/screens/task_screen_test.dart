@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
 import 'package:qtcloud_work_studio/models/workspace.dart';
 import 'package:qtcloud_work_studio/models/task.dart';
+import 'package:qtcloud_work_studio/models/workflow.dart';
 import 'package:qtcloud_work_studio/screens/task_screen.dart';
 
 import '../support/fake_runner.dart';
@@ -15,18 +15,20 @@ const _workspace = Workspace(
 );
 
 void main() {
-  final task = TaskDetail.fromData(
-    TableResult.fromStdout(fixture('task_detail')).data,
-  );
+  final task = TaskDetail.fromData(fixtureData('task_detail'));
+  final workflow = WorkflowDetail.fromData(fixtureData('workflow_detail'));
 
   testWidgets('左边对话、右边状态面板', (tester) async {
     await pumpScreen(
       tester,
       TaskScreen(
-        client: fakeClient(),
-        workspace: _workspace,
         task: task,
-        onReload: () async {},
+        workflow: workflow,
+        workspace: _workspace,
+        busy: false,
+        onNext: () {},
+        onDone: () {},
+        onJournal: (_) {},
       ),
     );
     await tester.pumpAndSettle();

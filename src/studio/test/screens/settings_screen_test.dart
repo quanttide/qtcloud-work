@@ -8,7 +8,10 @@ void main() {
   testWidgets('三处位置都在，也能探活', (tester) async {
     await pumpScreen(
       tester,
-      SettingsScreen(client: fakeClient(), workspace: testWorkspace),
+      SettingsScreen(
+        workspace: testWorkspace,
+        onProbe: () async => const ['provider：无已部署'],
+      ),
     );
     expect(find.text('工作区（--root）'), findsOneWidget);
     expect(find.text('数据仓（--data）'), findsOneWidget);

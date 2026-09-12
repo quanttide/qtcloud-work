@@ -120,3 +120,14 @@ class WorkflowSummary {
     path: row.length > 2 ? row[2] : '',
   );
 }
+
+/// 定义核对的结果：过没过，以及给人看的话。
+///
+/// 与别的动作不同，「有地方要改」不是出错——它是这次核对的结果，
+/// 所以不走异常，原样交给界面弹窗。
+class DefinitionCheck {
+  const DefinitionCheck({required this.ok, required this.lines});
+
+  final bool ok;
+  final List<String> lines;
+}

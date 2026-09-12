@@ -1,17 +1,23 @@
 import 'dart:io';
 
-import 'package:qtcloud_work_studio/repositories/client.dart';
-import 'package:qtcloud_work_studio/repositories/runner.dart';
 import 'package:qtcloud_work_studio/models/workspace.dart';
+import 'package:qtcloud_work_studio/repositories/envelope.dart';
+import 'package:qtcloud_work_studio/repositories/runner.dart';
 
+/// 界面测试用的那处工作区：三处位置都是假的，不碰真实文件。
 const testWorkspace = Workspace(
   root: '/w',
   data: '/w/data/context/qtcloud-work',
   workflows: '/w/data/profile/quanttide/workflows',
 );
 
+/// 命令行的真实输出（`test/fixtures/*.json`）原样读进来。
 String fixture(String name) =>
     File('test/fixtures/$name.json').readAsStringSync();
+
+/// 真实输出里给界面那一栏（`data`）——界面从不读面向人的 `lines`。
+Map<String, Object?> fixtureData(String name) =>
+    TableResult.fromStdout(fixture(name)).data;
 
 /// 假的 runner：记下每次调用的参数，按关键字回话。
 class FakeRunner implements Runner {
@@ -35,19 +41,4 @@ class FakeRunner implements Runner {
       stdout: '{"ok": false, "lines": ["假 runner 没有这条回复"]}',
     );
   }
-}
-
-/// 默认都回真实夹具的客户端。顺序有用：列表那条要先匹配上。
-QtcloudWork fakeClient({Map<String, String> extra = const {}}) {
-  return QtcloudWork(
-    workspace: testWorkspace,
-    runner: FakeRunner({
-      'task --list': fixture('task_list'),
-      'task ': fixture('task_detail'),
-      'workflow --list': fixture('workflow_list'),
-      'workflow ': fixture('workflow_detail'),
-      'health': '{"ok":true,"lines":["provider：无已部署"]}',
-      ...extra,
-    }),
-  );
 }

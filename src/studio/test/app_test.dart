@@ -1,12 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qtcloud_work_studio/app.dart';
 
+import 'support/fake_repository.dart';
 import 'support/fake_runner.dart';
 
 void main() {
   testWidgets('工作台起来就是任务页：顶栏 + 侧栏 + 任务', (tester) async {
     await tester.pumpWidget(
-      QtcloudWorkStudioApp(client: fakeClient(), workspace: testWorkspace),
+      QtcloudWorkStudioApp(
+        repository: FakeRepository(),
+        workspace: testWorkspace,
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -19,7 +23,10 @@ void main() {
 
   testWidgets('切到流程页换成步骤链', (tester) async {
     await tester.pumpWidget(
-      QtcloudWorkStudioApp(client: fakeClient(), workspace: testWorkspace),
+      QtcloudWorkStudioApp(
+        repository: FakeRepository(),
+        workspace: testWorkspace,
+      ),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('流程'));

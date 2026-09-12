@@ -24,19 +24,19 @@ lib/
 ├── main.dart           装配：读环境、起工作台
 ├── app.dart            工作台外壳：顶栏 + 侧栏 + 当前那一屏
 ├── models/             界面要用的模型：三处位置、执行者、任务与定义的读模型
-├── repositories/       数据边界：接口 + 两套实现
-│   ├── task_repository.dart  workflow_repository.dart   接口（界面只依赖它）
-│   ├── client.dart      命令行客户端：起子进程、读统一信封
+├── repositories/       数据边界
+│   ├── studio_repository.dart   接口（界面与 Bloc 只依赖它）
+│   ├── client.dart      命令行客户端：把命令跑起来、读统一信封
 │   ├── runner.dart      怎么把命令跑起来（测试里换成假的）
 │   ├── envelope.dart    命令行的统一输出信封（ok / columns / rows / lines）
 │   └── local/           本地那套：命令面（dispatch / 导览）与平台读写（fs / host / env / YAML、判据执行）
+├── states/             状态：workbench_bloc.dart（状态 + 事件 + Bloc 一个文件）
 ├── screens/            三个页面：任务、流程、设置
 └── widgets/            页面里可复用的块
 test/
-├── models/             模型（工作流、任务、三处位置）
-├── repositories/       信封、命令行客户端、环境、导览
+├── models/ repositories/ states/
 ├── screens/ widgets/   页面与块、工作台冒烟
-├── support/            假仓储、起界面的小工具
+├── support/            假仓储、假 runner、起界面的小工具
 └── fixtures/           真实输出，从命令行抓下来的
 doc/                   原型与设计说明（screens / views / models 三轴）
 ```
