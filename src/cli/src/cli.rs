@@ -2,7 +2,7 @@
 //!
 //! 命令行只解析参数、定位工作区与数据仓、把动作层算出的结果印出来；
 //! 算法都在动作层，动作与它操作的对象住同一个模块（workflow.rs / task.rs / catalog.rs /
-//! audit.rs / material.rs），结果都走 outcome.rs 那一层，命令行与窗口共用。
+//! audit.rs / material.rs），结果都走工具箱那一层（`quanttide_work::outcome`），命令行与窗口共用。
 
 use crate::artifact;
 use crate::audit;
@@ -11,6 +11,8 @@ use crate::help;
 use crate::material;
 use crate::task;
 use crate::workflow;
+use quanttide_work::outcome::Outcome;
+use serde_json::Value as Json;
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
@@ -235,14 +237,15 @@ fn data_dir(cli: &Cli) -> std::result::Result<PathBuf, String> {
     Ok(data)
 }
 
-fn emit(result: crate::outcome::Result, cli: &Cli) -> i32 {
+fn emit(result: Outcome, cli: &Cli) -> i32 {
     if let Some(out) = &cli.out {
-        catalog::write_json(out, &result.to_json());
+        // `--out` 落的是原文那一栏（`--json` 的四样里那一栏的内容）。
+        catalog::write_json(out, &result.data_json());
     }
     if cli.json {
         println!(
             "{}",
-            serde_json::to_string_pretty(&result.to_json()).unwrap_or_default()
+            serde_json::to_string_pretty(&envelope_json(&result)).unwrap_or_default()
         );
     } else {
         for line in &result.lines {
@@ -255,6 +258,21 @@ fn emit(result: crate::outcome::Result, cli: &Cli) -> i32 {
     if result.ok { 0 } else { 1 }
 }
 
+/// 信封 + 旧键留一轮。
+///
+/// `--json` 的字段是脚本依赖的契约，只加不改：原文摊在 `data` 里是一轮，
+/// 原来的顶层键（`count` / `entries` / `result` …）再留一轮，下一轮删。
+fn envelope_json(result: &Outcome) -> Json {
+    let mut envelope = result.to_json();
+    let (Some(Json::Object(data)), Json::Object(top)) = (&result.data, &mut envelope) else {
+        return envelope;
+    };
+    for (key, value) in data {
+        top.entry(key.clone()).or_insert_with(|| value.clone());
+    }
+    envelope
+}
+
 /// 入口：解析环境里的参数、跑一遍、把退出码交出去（`main.rs` 只有一行调它）。
 pub fn run_from_env() -> i32 {
     let cli = Cli::parse();
@@ -265,9 +283,9 @@ fn run(cli: &Cli) -> i32 {
     match &cli.command {
         Command::Help { topic } => match topic {
             Some(name) => match help::topic(name) {
-                Some(lines) => emit(crate::outcome::Result::lines(true, lines), cli),
+                Some(lines) => emit(Outcome::lines(true, lines), cli),
                 None => emit(
-                    crate::outcome::Result::lines(
+                    Outcome::lines(
                         false,
                         vec![format!(
                             "没有这条命令：{name}（`qtcloud-work help` 看全部）"
@@ -310,7 +328,7 @@ fn run(cli: &Cli) -> i32 {
                         .iter()
                         .map(|a| format!("会补建：{}（{}）", a.kind, a.name)),
                 );
-                return emit(crate::outcome::Result::lines(true, lines), cli);
+                return emit(Outcome::lines(true, lines), cli);
             }
             emit(
                 audit::audit(&root, *make).with_first(format!("工作区：{}", root.display())),
@@ -361,7 +379,7 @@ fn run(cli: &Cli) -> i32 {
             if *new {
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
+                        Outcome::lines(
                             true,
                             vec![format!("预演：会写 {},{}", data.display(), steps)],
                         ),
@@ -387,10 +405,7 @@ fn run(cli: &Cli) -> i32 {
             if let Some(source) = import_from {
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
-                            true,
-                            vec![format!("预演：会导入 {}", source.display())],
-                        ),
+                        Outcome::lines(true, vec![format!("预演：会导入 {}", source.display())]),
                         cli,
                     );
                 }
@@ -401,7 +416,7 @@ fn run(cli: &Cli) -> i32 {
             }
             let Some(name) = name else {
                 return emit(
-                    crate::outcome::Result::lines(
+                    Outcome::lines(
                         false,
                         vec![
                             "用法：qtcloud-work workflow <名字>，或 --list / --new / --import"
@@ -414,10 +429,7 @@ fn run(cli: &Cli) -> i32 {
             if let Some(target) = export {
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
-                            true,
-                            vec![format!("预演：会导出到 {}", target.display())],
-                        ),
+                        Outcome::lines(true, vec![format!("预演：会导出到 {}", target.display())]),
                         cli,
                     );
                 }
@@ -448,7 +460,7 @@ fn run(cli: &Cli) -> i32 {
             if *new {
                 let Some(name) = name else {
                     return emit(
-                        crate::outcome::Result::lines(
+                        Outcome::lines(
                             false,
                             vec![
                                 "用法：qtcloud-work task --new <名字> --workflow <工作流>"
@@ -460,7 +472,7 @@ fn run(cli: &Cli) -> i32 {
                 };
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
+                        Outcome::lines(
                             true,
                             vec![format!(
                                 "预演：会起任务 {name}（数据仓 {}）",
@@ -475,17 +487,14 @@ fn run(cli: &Cli) -> i32 {
             }
             let Some(name) = name else {
                 return emit(
-                    crate::outcome::Result::lines(false, vec!["用法：qtcloud-work task <名字>，或 task --list / --new <名字> --workflow <工作流>".to_string()]),
+                    Outcome::lines(false, vec!["用法：qtcloud-work task <名字>，或 task --list / --new <名字> --workflow <工作流>".to_string()]),
                     cli,
                 );
             };
             if let Some(words) = journal {
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
-                            true,
-                            vec![format!("预演：会给 {name} 记日志")],
-                        ),
+                        Outcome::lines(true, vec![format!("预演：会给 {name} 记日志")]),
                         cli,
                     );
                 }
@@ -494,10 +503,7 @@ fn run(cli: &Cli) -> i32 {
             if *next {
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
-                            true,
-                            vec![format!("预演：会走 {name} 的下一步")],
-                        ),
+                        Outcome::lines(true, vec![format!("预演：会走 {name} 的下一步")]),
                         cli,
                     );
                 }
@@ -509,10 +515,7 @@ fn run(cli: &Cli) -> i32 {
             if let Some(step) = done {
                 if cli.dry_run {
                     return emit(
-                        crate::outcome::Result::lines(
-                            true,
-                            vec![format!("预演：会记 {name} 的 {step}")],
-                        ),
+                        Outcome::lines(true, vec![format!("预演：会记 {name} 的 {step}")]),
                         cli,
                     );
                 }

@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 结果改用工具箱 `quanttide_work::outcome::Outcome`（规范「过程 / 结果」那一节结成的模型）；本地的 `outcome.rs` 只留「路径怎么显示给人看」，改成 `paths.rs`
+- `--json` 一律是这个结果：`ok` / `lines` / `columns` / `rows` 四样，原文托在 `data` 里（原先 `audit` / `catalog` / `material` 吐的是裸原文）；旧键按「只加不改」在顶层再留一轮，下一轮删
+- `task <名字>` 与 `workflow <名字>` 的结果补上 `data`：任务原文与三样产物的落点、定义原文与其位置——窗口从这一栏装领域对象
+- `--out` 落的是原文那一栏（`data` 的内容），形状不变
+
 ## [0.1.0-beta.1] - 2026-09-11
 
 从 alpha 进 beta：功能齐了，等反馈。

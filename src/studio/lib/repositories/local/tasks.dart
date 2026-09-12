@@ -1,6 +1,7 @@
+import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'paths.dart';
 import 'workflows.dart';
 import 'fs/fs.dart' as fs;
-import 'outcome.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 import 'yaml.dart';
 
@@ -299,7 +300,7 @@ Outcome taskStatus(String? root, String data, String name, String? workflows) {
   );
   final events = task.events();
   final tail = events.length <= 5 ? events : events.sublist(events.length - 5);
-  outcomeData[result] = {
+  result.data = {
     'payload': task.payload(),
     'products': {
       'report': short(data, task.artifact(reportKind)),

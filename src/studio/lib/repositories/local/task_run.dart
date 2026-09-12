@@ -1,9 +1,10 @@
+import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'paths.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 import 'rules.dart';
 import 'workflows.dart';
 import 'host/host.dart';
-import 'outcome.dart';
 import 'prompts.dart' as prompt;
 import 'tasks.dart';
 

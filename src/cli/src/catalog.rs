@@ -216,11 +216,11 @@ pub fn build(root: &Path) -> Catalog {
 
 // ---- 动作（按名找文档、看目录）----
 
-use crate::outcome::Result;
+use quanttide_work::outcome::Outcome;
 
-pub fn catalog(root: &Path) -> Result {
+pub fn catalog(root: &Path) -> Outcome {
     let found = build(root);
-    let mut result = Result {
+    let mut result = Outcome {
         ok: true,
         ..Default::default()
     };
@@ -230,19 +230,19 @@ pub fn catalog(root: &Path) -> Result {
         result.lines.push(format!("[{}] {rel}", entry.kind));
         result.rows.push(vec![entry.kind.clone(), rel]);
     }
-    result.payload = Some(payload(root, &found));
+    result.data = Some(payload(root, &found));
     result
 }
 
-pub fn find(root: &Path, name: &str, show: bool) -> Result {
+pub fn find(root: &Path, name: &str, show: bool) -> Outcome {
     if name.trim().is_empty() {
-        return Result::lines(false, vec!["请填要找的名字".to_string()]);
+        return Outcome::lines(false, vec!["请填要找的名字".to_string()]);
     }
     let matches = build(root).find(name);
     if matches.is_empty() {
-        return Result::lines(false, vec![format!("未找到：{name}")]);
+        return Outcome::lines(false, vec![format!("未找到：{name}")]);
     }
-    let mut result = Result::new(true);
+    let mut result = Outcome::new(true);
     for entry in matches {
         let rel = short(root, &entry.path);
         result.lines.push(format!("[{}] {rel}", entry.kind));

@@ -180,13 +180,13 @@ fn collect_markdown(base: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-use crate::outcome::Result;
+use quanttide_work::outcome::Outcome;
 use serde_json::json;
 // ---- 动作 ----
 
-pub fn material(root: &Path, paths: Option<&[String]>) -> Result {
+pub fn material(root: &Path, paths: Option<&[String]>) -> Outcome {
     let found = materials(root, paths);
-    let mut result = Result::new(true);
+    let mut result = Outcome::new(true);
     result.columns = vec![
         "材料".to_string(),
         "类型".to_string(),
@@ -223,7 +223,7 @@ pub fn material(root: &Path, paths: Option<&[String]>) -> Result {
             .lines
             .push("阶段由资产位置承担：日志是原始，其余是材料。".to_string());
     }
-    result.payload = Some(json!({
+    result.data = Some(json!({
         "count": found.len(),
         "materials": found.iter().map(|(rel, mat)| json!({
             "path": rel,

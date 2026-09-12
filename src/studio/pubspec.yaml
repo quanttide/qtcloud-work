@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   # 领域模型抽到工具箱之后，这里是它的第一个消费者
-  quanttide_work: ^0.1.0-beta.2
+  quanttide_work: ^0.1.0-beta.4
   # 状态交给 Bloc：状态 + 事件 + Bloc 住 states/，界面只管画
   flutter_bloc: ^9.1.0
   yaml: ^3.1.4

@@ -8,6 +8,7 @@
 //! 文件读写（`<工作流目录>/<名字>.yaml`）与把动作写成信封。
 
 use quanttide_work::workflow::{self as shared, Finding, Workflow as SharedWorkflow};
+use serde_json::{Value as Json, json};
 use serde_yaml::{Mapping, Value};
 use std::fmt;
 use std::path::{Path, PathBuf};
@@ -263,7 +264,8 @@ pub fn listing(data: &Path, workflows: Option<&Path>) -> Vec<WorkflowFile> {
 
 // ---- 动作 ----
 
-use crate::outcome::{Result, short};
+use crate::paths::short;
+use quanttide_work::outcome::Outcome;
 
 pub fn workflow_new(
     data: &Path,
@@ -271,27 +273,27 @@ pub fn workflow_new(
     steps: &[String],
     note: &str,
     workflows: Option<&Path>,
-) -> Result {
+) -> Outcome {
     if name.trim().is_empty() {
-        return Result::lines(false, vec!["请先给工作流起个名字".to_string()]);
+        return Outcome::lines(false, vec!["请先给工作流起个名字".to_string()]);
     }
     if steps.is_empty() {
-        return Result::lines(false, vec!["至少给一个步骤：--steps 甲,乙,丙".to_string()]);
+        return Outcome::lines(false, vec!["至少给一个步骤：--steps 甲,乙,丙".to_string()]);
     }
     let flow = create(data, name.trim(), steps, note, workflows);
     workflow_show(data, name.trim(), workflows)
         .with_first(format!("写下工作流：{}", short(data, &flow.file())))
 }
 
-pub fn workflow_show(data: &Path, name: &str, workflows: Option<&Path>) -> Result {
+pub fn workflow_show(data: &Path, name: &str, workflows: Option<&Path>) -> Outcome {
     let flow = open_workflow(data, name, workflows);
     if !flow.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!("没有这条工作流：{}", short(data, &flow.file()))],
         );
     }
-    let mut result = Result::new(true);
+    let mut result = Outcome::new(true);
     result.columns = vec![
         "步骤".to_string(),
         "谁执行".to_string(),
@@ -316,13 +318,29 @@ pub fn workflow_show(data: &Path, name: &str, workflows: Option<&Path>) -> Resul
             .lines
             .push(format!("  {}：{}　{counts}", step.name(), step.executor()));
     }
+    // 给窗口的那一栏：定义原文 + 它在哪 + 文件原文（定义态看的就是它）。
+    result.data = Some(json!({
+        "payload": to_json(&flow.payload),
+        "path": short(data, &flow.file()),
+        "yaml": std::fs::read_to_string(flow.file()).unwrap_or_default(),
+    }));
     result
 }
 
-pub fn workflow_export(data: &Path, name: &str, target: &Path, workflows: Option<&Path>) -> Result {
+/// 定义原文转成 JSON（给窗口那一栏用）；转不动按 null。
+fn to_json(value: &Value) -> Json {
+    serde_json::to_value(value).unwrap_or(Json::Null)
+}
+
+pub fn workflow_export(
+    data: &Path,
+    name: &str,
+    target: &Path,
+    workflows: Option<&Path>,
+) -> Outcome {
     let flow = open_workflow(data, name, workflows);
     if !flow.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!("没有这条工作流：{}", short(data, &flow.file()))],
         );
@@ -335,12 +353,17 @@ pub fn workflow_export(data: &Path, name: &str, target: &Path, workflows: Option
     ))
 }
 
-pub fn workflow_import(data: &Path, source: &Path, name: &str, workflows: Option<&Path>) -> Result {
+pub fn workflow_import(
+    data: &Path,
+    source: &Path,
+    name: &str,
+    workflows: Option<&Path>,
+) -> Outcome {
     if !source.is_file() {
-        return Result::lines(false, vec![format!("没有这份文件：{}", source.display())]);
+        return Outcome::lines(false, vec![format!("没有这份文件：{}", source.display())]);
     }
     match import_workflow(data, source, name, workflows) {
-        Err(error) => Result::lines(false, vec![error.0]),
+        Err(error) => Outcome::lines(false, vec![error.0]),
         Ok(flow) => workflow_show(data, &flow.name, workflows).with_first(format!(
             "已导入：{}（步骤 {} 个）",
             short(data, &flow.file()),
@@ -349,9 +372,9 @@ pub fn workflow_import(data: &Path, source: &Path, name: &str, workflows: Option
     }
 }
 
-pub fn workflow_list(data: &Path, workflows: Option<&Path>) -> Result {
+pub fn workflow_list(data: &Path, workflows: Option<&Path>) -> Outcome {
     let found = listing(data, workflows);
-    let mut result = Result::new(true);
+    let mut result = Outcome::new(true);
     result.columns = vec!["工作流".to_string(), "步骤".to_string(), "位置".to_string()];
     for flow in &found {
         let steps = flow
@@ -413,17 +436,17 @@ pub fn all_ok(found: &[Finding]) -> bool {
 }
 
 /// 核对一条工作流的声明与判据对不对得上，结果印给人。
-pub fn workflow_check(data: &Path, name: &str, root: &Path, workflows: Option<&Path>) -> Result {
+pub fn workflow_check(data: &Path, name: &str, root: &Path, workflows: Option<&Path>) -> Outcome {
     let flow = open_workflow(data, name, workflows);
     if !flow.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!("没有这条工作流：{}", short(data, &flow.file()))],
         );
     }
     let found = check(&flow, root, data);
     let ok = all_ok(&found);
-    let mut result = Result::new(ok);
+    let mut result = Outcome::new(ok);
     result.lines = vec![format!(
         "工作流：{}",
         flow.file()

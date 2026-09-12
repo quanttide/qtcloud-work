@@ -6,7 +6,7 @@
 #   sh scripts/parity.sh workflow --list    # 只比这一条
 #   sh scripts/parity.sh --report           # 只报告，不因「没搬」而失败
 #
-# 比的是**算出来的结果**：ok / columns / rows。
+# 比的是**算出来的结果**：ok / columns / rows，加给窗口那一栏（data）。
 # 给人看的话（lines）不比——界面跟命令行不必一字不差，各写各的。
 # 结论只有一种：一致；不一致就算不过。
 
@@ -62,7 +62,7 @@ run_studio() {
     --root "$REPO_ROOT" --data "$DATA_DIR" --workflows "$WORKFLOWS_DIR" --json "$@")
 }
 
-# 比一次：算出来的结果一不一致
+# 比一次：算出来的结果一不一致（含给窗口那一栏）
 verdict_of() {
   printf '%s' "$1" > /tmp/parity-cli.json
   printf '%s' "$2" > /tmp/parity-studio.json
@@ -81,7 +81,12 @@ except Exception:
 
 
 def shape(x):
-    return {'ok': x.get('ok'), 'columns': x.get('columns'), 'rows': x.get('rows')}
+    return {
+        'ok': x.get('ok'),
+        'columns': x.get('columns'),
+        'rows': x.get('rows'),
+        'data': x.get('data'),
+    }
 
 
 print('一致' if shape(a) == shape(b) else '不一致')

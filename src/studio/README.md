@@ -25,10 +25,10 @@ lib/
 ├── app.dart            工作台外壳：顶栏 + 侧栏 + 当前那一屏
 ├── repositories/       数据边界：交出来的就是工具箱里的领域对象
 │   ├── studio_repository.dart   接口（界面与 Bloc 只依赖它）
-│   ├── client.dart      命令行客户端：把命令跑起来、读统一信封
+│   ├── client.dart      命令行客户端：把命令跑起来、把结果读成领域对象
 │   ├── runner.dart      怎么把命令跑起来（测试里换成假的）
-│   ├── envelope.dart    命令行的统一输出信封（ok / columns / rows / lines）
 │   └── local/           本地那套：命令面（dispatch / 导览）与平台读写（fs / host / env / YAML、判据执行）
+│                        结果（`Outcome`）与路径怎么显示，在工具箱与 `local/paths.dart`
 ├── states/             状态：workbench_bloc.dart（状态 + 事件 + Bloc 一个文件）
 ├── screens/            三个页面：任务、流程、设置
 └── widgets/            页面里可复用的块（`executor_label.dart` 是执行者怎么说）

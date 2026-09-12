@@ -1,8 +1,8 @@
+import 'package:quanttide_work/quanttide_work.dart' show Outcome;
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
 import '../studio_repository.dart';
 import 'dispatch.dart';
-import 'outcome.dart';
 
 /// 命令面说不行（`ok` 为假）。把它印的话带出来。
 class LocalFailure implements Exception {
@@ -38,9 +38,9 @@ class LocalRepository implements StudioRepository {
     return outcome;
   }
 
-  /// 界面那一栏：界面不读给人看的话，只读这个。
+  /// 界面那一栏：界面不读给人看的话，只读这一栏。
   Map<String, Object?> _data(List<String> arguments) =>
-      outcomeData[_run(arguments)] ?? const {};
+      _run(arguments).data ?? const {};
 
   // ---- 任务（执行侧）----
 

@@ -8,6 +8,7 @@
 
 use crate::workflow::{self, Step, WorkflowFile};
 use quanttide_work::criterion::Criterion;
+use serde_json::{Value as Json, json};
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -195,6 +196,11 @@ impl Task {
             Err(_) => path.to_string_lossy().to_string(),
         }
     }
+}
+
+/// 任务原文转成 JSON（给窗口那一栏用）；转不动按 null。
+fn to_json(value: &Value) -> Json {
+    serde_json::to_value(value).unwrap_or(Json::Null)
 }
 
 fn text_of(value: &Value, key: &str) -> String {
@@ -709,7 +715,8 @@ pub fn state_line(task: &Task) -> String {
 
 // ---- 动作 ----
 
-use crate::outcome::{Result, short};
+use crate::paths::short;
+use quanttide_work::outcome::Outcome;
 
 pub fn task_new(
     root: &Path,
@@ -717,13 +724,13 @@ pub fn task_new(
     name: &str,
     workflow_name: &str,
     workflows: Option<&Path>,
-) -> Result {
+) -> Outcome {
     if name.trim().is_empty() {
-        return Result::lines(false, vec!["请先给这件任务起个名字".to_string()]);
+        return Outcome::lines(false, vec!["请先给这件任务起个名字".to_string()]);
     }
     let flow = workflow::open_workflow(data, workflow_name, workflows);
     if !flow.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!(
                 "没有这条工作流：{}（qtcloud-work workflow --list 看有哪些）",
@@ -733,7 +740,7 @@ pub fn task_new(
     }
     let existing = reopen(data, name.trim(), Some(root), workflows);
     if existing.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!(
                 "已经有这件任务：{}（换个名字，不覆盖）",
@@ -751,22 +758,22 @@ pub fn task_status(
     data: &Path,
     name: &str,
     workflows: Option<&Path>,
-) -> Result {
+) -> Outcome {
     if name.trim().is_empty() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec!["请先选一件任务（qtcloud-work task --list 看有哪些）".to_string()],
         );
     }
     let task = reopen(data, name, root, workflows);
     if !task.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!("没有这件任务：{}", short(data, &task.file()))],
         );
     }
     let done = task.done();
-    let mut result = Result::new(true);
+    let mut result = Outcome::new(true);
     result.columns = vec!["步骤".to_string(), "状态".to_string()];
     result.lines.push(format!("任务：{}", task.name));
     result.lines.push(format!(
@@ -804,6 +811,15 @@ pub fn task_status(
         short(data, &task.artifact(JOURNAL)),
         short(data, &task.artifact(LOG))
     ));
+    // 给窗口的那一栏：任务原文（装成领域对象要用）+ 三样产物的落点。
+    result.data = Some(json!({
+        "payload": to_json(&task.payload()),
+        "products": {
+            REPORT: short(data, &task.artifact(REPORT)),
+            JOURNAL: short(data, &task.artifact(JOURNAL)),
+            LOG: short(data, &task.artifact(LOG)),
+        },
+    }));
     let events = task.events();
     if !events.is_empty() {
         result.lines.push("流水（最近五条）：".to_string());
@@ -824,9 +840,9 @@ pub fn task_status(
     result
 }
 
-pub fn task_list(root: Option<&Path>, data: &Path, workflows: Option<&Path>) -> Result {
+pub fn task_list(root: Option<&Path>, data: &Path, workflows: Option<&Path>) -> Outcome {
     let found = listing(root, data, workflows);
-    let mut result = Result::new(true);
+    let mut result = Outcome::new(true);
     result.columns = vec![
         "任务".to_string(),
         "工作流".to_string(),
@@ -862,10 +878,10 @@ pub fn task_step(
     note: &str,
     auto: bool,
     workflows: Option<&Path>,
-) -> Result {
+) -> Outcome {
     let task: Task = reopen(data, name, root, workflows);
     if !task.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!("没有这件任务：{}", short(data, &task.file()))],
         );
@@ -873,18 +889,18 @@ pub fn task_step(
     let mut chosen = step.trim().to_string();
     if chosen.is_empty() {
         if !auto {
-            return Result::lines(
+            return Outcome::lines(
                 false,
                 vec!["请给步骤名（qtcloud-work task <名字> 看有哪些步骤）".to_string()],
             );
         }
         match task.next_step() {
-            None => return Result::lines(true, vec!["所有步骤都走过了".to_string()]),
+            None => return Outcome::lines(true, vec!["所有步骤都走过了".to_string()]),
             Some(next) => chosen = next.name(),
         }
     }
     let (ok, lines, rows) = execute(&task, &task.root, &chosen, note, auto);
-    let mut result = Result {
+    let mut result = Outcome {
         ok,
         lines,
         ..Default::default()
@@ -901,16 +917,16 @@ pub fn task_journal(
     name: &str,
     words: &str,
     workflows: Option<&Path>,
-) -> Result {
+) -> Outcome {
     let task = reopen(data, name, root, workflows);
     if !task.exists() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!("没有这件任务：{}", short(data, &task.file()))],
         );
     }
     if words.trim().is_empty() {
-        return Result::lines(
+        return Outcome::lines(
             false,
             vec![format!(
                 "日志要人来写：{}",
@@ -919,7 +935,7 @@ pub fn task_journal(
         );
     }
     narrate(&task, words);
-    Result::lines(
+    Outcome::lines(
         true,
         vec![
             format!("日志记下一段：{}", short(data, &task.artifact(JOURNAL))),

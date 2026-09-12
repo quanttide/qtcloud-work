@@ -1,6 +1,8 @@
-import 'local/dispatch.dart';
-import 'local/outcome.dart';
+import 'dart:convert';
+
 import 'package:quanttide_work/quanttide_work.dart' as qt;
+
+import 'local/dispatch.dart';
 
 /// 一次调用的结果：命令行那边是一个子进程的输出，这里是同一份信封。
 class RunOutput {
@@ -56,7 +58,9 @@ class CoreRunner implements Runner {
     );
     return RunOutput(
       exitCode: outcome.ok ? 0 : 1,
-      stdout: encodeOutcome(outcome, asJson: asJson),
+      stdout: asJson
+          ? jsonEncode(outcome.toJson())
+          : '${outcome.lines.join('\n')}\n',
     );
   }
 }

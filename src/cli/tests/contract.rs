@@ -126,7 +126,7 @@ fn json字段是契约() {
 fn 动作层不依赖入口层() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let layers = [
-        "outcome.rs",
+        "paths.rs",
         "artifact.rs",
         "audit.rs",
         "catalog.rs",

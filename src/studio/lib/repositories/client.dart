@@ -1,6 +1,6 @@
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
-import 'envelope.dart';
+import 'package:quanttide_work/quanttide_work.dart' show Outcome;
 import 'runner.dart';
 import 'studio_repository.dart';
 
@@ -8,7 +8,7 @@ import 'studio_repository.dart';
 class CliFailure implements Exception {
   const CliFailure(this.result);
 
-  final TableResult result;
+  final Outcome result;
 
   String get message =>
       result.lines.isEmpty ? '命令行没有成功，也没说为什么' : result.lines.join('\n');
@@ -17,7 +17,7 @@ class CliFailure implements Exception {
   String toString() => 'CliFailure: $message';
 }
 
-/// 命令行客户端：把命令跑起来，把统一信封（`ok` / `columns` / `rows` / `lines`）
+/// 命令行客户端：把命令跑起来，把结果（`ok` / `lines` / `columns` / `rows` / `data`）
 /// 读成工具箱里的领域对象。
 ///
 /// 界面不自己去读工作流与任务文件的原文——那是命令行的活。两套实现之一；
@@ -34,9 +34,9 @@ class QtcloudWork implements StudioRepository {
   final Runner runner;
   final String binary;
 
-  /// 跑一条命令，拿统一信封，不管 `ok`。核对定义要这一条——「有地方要改」
+  /// 跑一条命令，拿结果，不管 `ok`。核对定义要这一条——「有地方要改」
   /// 也是结果，不算出错。
-  Future<TableResult> envelope(List<String> arguments) async {
+  Future<Outcome> envelope(List<String> arguments) async {
     final output = await runner.run(binary, [
       '--root',
       workspace.root,
@@ -47,11 +47,11 @@ class QtcloudWork implements StudioRepository {
       '--json',
       ...arguments,
     ]);
-    return TableResult.fromStdout(output.stdout);
+    return Outcome.fromStdout(output.stdout);
   }
 
   /// 跑一条命令，要求成功；不行就抛 [CliFailure]。
-  Future<TableResult> call(List<String> arguments) async {
+  Future<Outcome> call(List<String> arguments) async {
     final result = await envelope(arguments);
     if (!result.ok) throw CliFailure(result);
     return result;
@@ -75,7 +75,8 @@ class QtcloudWork implements StudioRepository {
   @override
   Future<({qt.Task task, qt.Workflow workflow, Map<String, String> products})>
   task(String name) async {
-    final data = (await call(['task', name])).data;
+    final data =
+        (await call(['task', name])).data ?? const <String, Object?>{};
     final task = qt.Task.of(name, _payload(data));
     final products = Map<String, String>.from(
       (data['products'] as Map?) ?? const <String, Object?>{},
@@ -132,7 +133,8 @@ class QtcloudWork implements StudioRepository {
   Future<({qt.Workflow workflow, String path, String yaml})> workflow(
     String name,
   ) async {
-    final data = (await call(['workflow', name])).data;
+    final data =
+        (await call(['workflow', name])).data ?? const <String, Object?>{};
     return (
       workflow: qt.Workflow.of(name, _payload(data)),
       path: '${data['path'] ?? ''}',

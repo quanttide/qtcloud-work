@@ -1,5 +1,5 @@
+import 'paths.dart';
 import 'fs/fs.dart';
-import 'outcome.dart';
 import 'yaml.dart';
 
 /// 工作流定义：一串有序的步骤。
@@ -213,7 +213,7 @@ Outcome workflowShow(String data, String name, [String? workflows]) {
   final result = Outcome(true)
     ..columns = ['步骤', '谁执行', '怎么算完']
     ..lines.add('工作流：${flow.name}（${short(data, flow.file)}）');
-  outcomeData[result] = {
+  result.data = {
     'payload': flow.payload,
     'path': short(data, flow.file),
     'yaml': flow.exists ? readText(flow.file) : '',

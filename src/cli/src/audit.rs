@@ -90,9 +90,10 @@ use serde_json::json;
 // ---- 动作 ----
 
 use crate::catalog;
-use crate::outcome::{Result, short};
+use crate::paths::short;
+use quanttide_work::outcome::Outcome;
 
-pub fn audit(root: &Path, make: bool) -> Result {
+pub fn audit(root: &Path, make: bool) -> Outcome {
     let made = if make {
         crate::artifact::make(root, None)
     } else {
@@ -101,7 +102,7 @@ pub fn audit(root: &Path, make: bool) -> Result {
     let missing = crate::artifact::missing(root);
     let unregistered = catalog::build(root).unregistered(root);
     let ok = missing.is_empty() && unregistered.is_empty();
-    let mut result = Result {
+    let mut result = Outcome {
         ok,
         ..Default::default()
     };
@@ -136,7 +137,7 @@ pub fn audit(root: &Path, make: bool) -> Result {
             .lines
             .push("未登记的目录要么属于某一格（改资产表），要么不该在这儿。".to_string());
     }
-    result.payload = Some(json!({
+    result.data = Some(json!({
         "root": root.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
         "result": if ok { "通过" } else { "有问题" },
         "missing": missing.iter().map(|a| json!({"kind": a.kind, "name": a.name})).collect::<Vec<_>>(),

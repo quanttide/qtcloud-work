@@ -6,7 +6,7 @@ mod catalog;
 mod cli;
 mod help;
 mod material;
-mod outcome;
+mod paths;
 mod prompts;
 mod task;
 mod workflow;

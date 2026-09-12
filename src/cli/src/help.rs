@@ -3,7 +3,7 @@
 //! 与 `--help` 的分工：`--help` 是某个命令的选项全集（机器生成的用法），
 //! `help` 是这份导览——先告诉你有哪些命令、各属于哪一组，再看细节。
 
-use crate::outcome::Result;
+use quanttide_work::outcome::Outcome;
 
 /// 一组命令：分组名 + 组里每条的「名字、一句话」。
 const GROUPS: &[(&str, &[(&str, &str)])] = &[
@@ -63,8 +63,8 @@ pub fn topic(name: &str) -> Option<Vec<String>> {
 }
 
 /// 导览：三处位置、分组命令、下一步。
-pub fn guide() -> Result {
-    let mut result = Result::new(true);
+pub fn guide() -> Outcome {
+    let mut result = Outcome::new(true);
     result.lines = vec![
         "量潮工作云命令行——把知识工作做成可执行的编排。".to_string(),
         String::new(),

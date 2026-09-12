@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:qtcloud_work_studio/repositories/envelope.dart';
+import 'package:quanttide_work/quanttide_work.dart' show Outcome;
 import 'package:qtcloud_work_studio/repositories/runner.dart';
 import 'package:quanttide_work/quanttide_work.dart' as qt;
 
@@ -17,11 +17,11 @@ String fixture(String name) =>
 
 /// 真实输出里给界面那一栏（`data`）——界面从不读面向人的 `lines`。
 Map<String, Object?> fixtureData(String name) =>
-    TableResult.fromStdout(fixture(name)).data;
+    Outcome.fromStdout(fixture(name)).data ?? const <String, Object?>{};
 
 /// 真实输出里的表（`rows`）——名单类的命令用这一栏，没有 `data`。
 List<List<String>> fixtureRows(String name) =>
-    TableResult.fromStdout(fixture(name)).rows;
+    Outcome.fromStdout(fixture(name)).rows;
 
 /// 那一栏里托着的原文：任务文件 / 定义文件的内容，装成领域对象要用。
 Map<String, Object?> fixturePayload(String name) => Map<String, Object?>.from(

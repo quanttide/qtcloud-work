@@ -1,8 +1,8 @@
+import 'package:quanttide_work/quanttide_work.dart' show Outcome;
 import 'rules.dart';
 import 'workflows.dart';
 import 'help.dart';
 import 'host/host.dart';
-import 'outcome.dart';
 import 'tasks.dart';
 import 'task_run.dart';
 
