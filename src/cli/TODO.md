@@ -19,10 +19,13 @@ sh scripts/validate-line-count.sh
 
 - [ ] **`src/artifact/` 改名 `asset/`**：这一层按实是资产表，`artifact` 留给规格里的产物；目录、引用、`src/CONVENTIONS.md` 与 dev-guide 的 `artifact.md` 跟着改。判据：`src/` 下不再有 `artifact/`，`catalog` / `audit` 仍绿
 
-## 等工具箱
+## 校验
 
-- [ ] **工作流名校验**：工具箱 `validate` 收文件名，核 `name` 与文件名一致，本侧不再静默取不到。判据：定义里两者不一致时当场报错
-- [ ] **借一个空工作区**：工具箱把 `place` / `expanded` / `check` 收成关联函数后，删掉本侧 `Workspace::default()` 那行。判据：`src/task/mod.rs` 里不再有 `Workspace::default()`
+- [ ] **工作流名校验**：`workflow/yaml.rs::load` 里核 `name` 与文件名一致（文件名只有装载这一侧知道，工具箱拿不到）。判据：定义里两者不一致时当场报错
+
+## 等工具箱发新号
+
+- [ ] **借一个空工作区**：工具箱把 `place` / `expanded` / `check` 收成关联函数并发出新号后，cli 跟号并删掉 `Workspace::default()` 那行。判据：`src/task/mod.rs` 里不再有 `Workspace::default()`
 
 ## 发布线
 

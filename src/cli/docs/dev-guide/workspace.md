@@ -20,4 +20,4 @@
 
 ## 决定
 
-`place` / `expanded` / `check` 收成关联函数，端侧不再借空工作区。动手见 [TODO](../../TODO.md)。
+`place` / `expanded` / `check` 收成关联函数，端侧不再借空工作区；改在工具箱，cli 跟新号后删这行。见 [TODO](../../TODO.md)。
