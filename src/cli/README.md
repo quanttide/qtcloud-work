@@ -49,9 +49,10 @@ qtcloud-work --help
 
 ```bash
 cargo fmt --check
-cargo clippy --all-targets -- -D warnings
+cargo clippy --all-targets --locked -- -D warnings
 cargo test --locked
 sh scripts/validate-usecases.sh      # 文档用例与测试出处对账
+sh scripts/validate-line-count.sh    # src/ 下单文件超 250 行即红
 ```
 
 发布走 `qtcloud-devops`：`release audit` 预检、`release publish` 建 tag 与 Release；推 `cli/v*` tag 触发本仓 `release-cli` 工作流（校验、质量门禁、多平台产物、crates.io）。

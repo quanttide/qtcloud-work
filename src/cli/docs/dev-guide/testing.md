@@ -1,6 +1,14 @@
 # 测试与门禁
 
-五类测试与四条门禁命令（与 CI 同参数）。
+五类测试与五条门禁命令；门禁与 CI 同参数。
+
+```bash
+cargo fmt --check
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --locked
+sh scripts/validate-usecases.sh
+sh scripts/validate-line-count.sh
+```
 
 | 类 | 文件 | 挡什么 |
 | :-- | :-- | :-- |
