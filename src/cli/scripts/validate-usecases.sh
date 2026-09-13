@@ -23,8 +23,8 @@ echo "文档里的用例号：$(printf '%s' "$doc_cases" | tr '\n' ' ')"
 echo "测试里的出处号：$(printf '%s' "$test_cases" | tr '\n' ' ')"
 
 if [ -z "$doc_cases" ]; then
-	echo "文档里暂无用例，跳过对账。"
-	exit 0
+	echo "文档里没有用例，对账空转。" >&2
+	exit 1
 fi
 
 if [ "$doc_cases" = "$test_cases" ]; then
