@@ -15,6 +15,7 @@ sh scripts/validate-line-count.sh
 
 - [x] **许可清单**：列明 `Cargo.toml` 的每个依赖与理由。见 `docs/dev-guide/dependencies.md`
 - [x] **行数门禁**：`scripts/validate-line-count.sh`，`src/**/*.rs` 超 250 行即红；已进 CI
+- [ ] **跟工具箱新号**：`quanttide-work` 源许可已改 Apache-2.0，等下一号发布后跟号，并把 `dependencies.md` 里 beta.6 的 CC-BY-4.0 改成 Apache-2.0
 
 ## 文档与实现同构
 
@@ -37,5 +38,5 @@ sh scripts/validate-line-count.sh
 - [ ] **`prompts`**：cli 与 studio 两份，合一还是各留一份并写明差异
 - [ ] **发布线**：studio 与 cli 一条线还是两条（cli 那条已开）
 - [ ] **IaC 归属**：cli 的发布物（crates.io + 三平台二进制）与基础设施归本仓还是平台仓
-- [ ] **依赖许可**：`quanttide-work` 是 CC-BY-4.0、cli 是 Apache-2.0，二进制分发的兼容性；传递依赖的许可要不要列
+- [ ] **依赖许可**：传递依赖（`Cargo.lock` 那一层）的许可要不要列
 - [ ] **借一个空工作区**：工具箱把 `place` / `expanded` / `check` 收成关联函数后，删掉本侧 `Workspace::default()` 那行

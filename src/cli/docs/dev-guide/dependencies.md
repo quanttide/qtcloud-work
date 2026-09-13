@@ -17,4 +17,4 @@
 
 ## 待决
 
-`quanttide-work` 声明的许可是 CC-BY-4.0，cli 自己是 Apache-2.0。二进制分发时两者的兼容性待定，出处见 [TODO.md](../../TODO.md)。
+`quanttide-work 0.1.0-beta.6` 的声明许可是 CC-BY-4.0（工具箱源已改 Apache-2.0，随下一号发布）。等工具箱发新号，cli 跟号后把上表的 CC-BY-4.0 改成 Apache-2.0。
