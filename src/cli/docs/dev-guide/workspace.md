@@ -12,12 +12,8 @@
 
 `quanttide_work::workspace::Workspace` 是模型侧的工作区，把定义、任务、工件系在一起。核对、落点、流水判定三件都要拿整个工作区才做得了，本侧用 `Workspace::of(定义, 任务)` 组装，操作结果照搬。
 
-「在不在」由端侧判断，工作区不读文件系统——核对与落点都要本侧注入路径事实。
+「在不在」由端侧判断，工作区不读文件系统——核对与落点都要本侧注入路径事实。落点与核对不读工作区里装了什么，空工作区（`Workspace::default()`）与真工作区算出来一样。
 
 ## 测试
 
 缺省矩阵在 `tests/defaults.rs`——三个可省位置（`--root` / `--data` / `--workflows`）各缺一次的行为。
-
-## 决定
-
-`place` / `expanded` / `check` 不读 `self`，端侧用真工作区（`Task::workspace()` / `Workspace::of`）替掉 `Workspace::default()`。动手见 [TODO](../../TODO.md)。

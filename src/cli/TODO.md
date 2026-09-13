@@ -19,10 +19,6 @@ sh scripts/validate-line-count.sh
 
 - [ ] **工作流名校验**：`workflow/yaml.rs::load` 里核 `name` 与文件名一致（文件名只有装载这一侧知道，工具箱拿不到）。判据：定义里两者不一致时当场报错
 
-## 空工作区
-
-- [ ] **换成真工作区**：`src/task/mod.rs` 用 `Task::workspace()`、`src/workflow/check.rs` 用 `Workspace::of` 替掉 `Workspace::default()`（这三个都不读 `self`，beta.6 够）。判据：`src/` 里不再有 `Workspace::default()`
-
 ## 发布线
 
 - [ ] **两条线写明**：在 `apps/qtcloud-work/README.md` 的发布一节写明 cli 与 studio 各自一条线（tag、发布物与目标注册表）。判据：两条线的 tag 与注册表都写清
