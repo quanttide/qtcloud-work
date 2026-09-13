@@ -18,6 +18,6 @@
 
 缺省矩阵在 `tests/defaults.rs`——三个可省位置（`--root` / `--data` / `--workflows`）各缺一次的行为。
 
-## 待定
+## 决定
 
-`Workspace::place` / `expanded` / `check` 收 `&self`，本侧只能 `Workspace::default()` 现造一个。等工具箱把这三件收成关联函数，删掉这行。
+`place` / `expanded` / `check` 收成关联函数，端侧不再借空工作区。动手见 [TODO](../../TODO.md)。
