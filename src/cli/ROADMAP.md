@@ -2,12 +2,16 @@
 
 细则与判据见 [TODO.md](TODO.md)，体检数据见 [STATUS.md](STATUS.md)。
 
-| 阶段 | 做什么 | 达成标志 |
-| :-- | :-- | :-- |
-| 一 · 测试补缺 | 流水落点补测试 | 测试在、跑绿 |
-| 二 · 文档与实现同构 | `layers.md` 重写；`api-references/` 分命令与概念；用例对账去空转 | 文档结构与 `src/` 一一对得上；用例号两边非空且相等 |
-| 三 · 依赖与门禁 | 许可清单；行数门禁 | `Cargo.toml` 的依赖都在清单里；`src/**/*.rs` 超 250 行即红 |
+## 基线
 
-顺序依据：测试与用例号是文档同构的前提；门禁按写清的规矩立，排在文档之后。
+以下已达成，不进阶段：
 
-未定事项见 [TODO.md](TODO.md)。provider 的接口层等就位后另起一轮。
+- 测试补缺：`tests/task_start.rs` 断流水落点等于任务文件本身；
+- 文档与实现同构：`docs/dev-guide/layers.md` 对齐 `src/`；`docs/api-references/` 分 `commands/` 与 `concepts/`；用例对账非空且两边用例号一致；
+- 依赖与门禁：许可清单在 `docs/dev-guide/dependencies.md`；`scripts/validate-line-count.sh` 超 250 行即红，已进 CI。
+
+## 待决
+
+跨仓库的决策见 [TODO.md](TODO.md) 的「待决事项」。
+
+provider 的接口层等就位后另起一轮。
