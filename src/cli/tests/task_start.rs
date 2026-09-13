@@ -66,3 +66,21 @@ fn start_task_lays_down_files_and_context() {
         defaulted.crop()
     );
 }
+
+// 用例：一
+/// 流水不是产物：`Task::artifact("log")` 的落点是任务文件本身（规范 `piece/artifact.md`）。
+#[test]
+fn 流水落点是任务文件本身() {
+    let fix = Fixture::new("log-place");
+    fix.workflow("AI冒烟", 冒烟工作流);
+    let created = fix.run_full(true, &["task", "--new", "AI冒烟", "--workflow", "AI冒烟"]);
+    assert!(created.ok(), "task --new 没跑通: {}", created.crop());
+
+    let shown = fix.run_recorded(&["task", "AI冒烟", "--json"]);
+    assert!(shown.ok(), "task --json 没跑通: {}", shown.crop());
+    assert!(
+        shown.crop().contains("\"log\": \"tasks/AI冒烟.yaml\""),
+        "流水落点该是任务文件本身: {}",
+        shown.crop()
+    );
+}
