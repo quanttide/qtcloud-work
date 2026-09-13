@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- 任务进度条：`task <名字>`、`task --list` 与走一步（`--next` / `--done`）的结果印一条十格进度条（如 `[███░░░░░░░] 1/3`）。只落在人看的那一栏（`lines`），`columns` / `rows` / `data` 一个字不动，与 studio 对表不受影响。
+
 ### Changed
 
 - 工具箱跟到 `quanttide-work 0.1.0-beta.6`（两侧同号），两次破坏性变更改到位：

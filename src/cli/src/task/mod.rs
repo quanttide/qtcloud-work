@@ -10,6 +10,7 @@
 pub mod ai;
 pub mod execute;
 pub mod journal;
+pub mod progress;
 pub mod report;
 pub mod state;
 

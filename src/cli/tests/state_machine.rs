@@ -69,3 +69,27 @@ fn 流水序列决定下一步() {
         assert!(shown.contains(&want), "{name}：期望「{want}」\n{shown}");
     }
 }
+
+// 用例：一（起任务与走一步那件事的推演）
+#[test]
+fn 状态里带进度条() {
+    let fix = 三步();
+    fix.task_with("试一条", "试一条", &[("甲", true)]);
+    let shown = fix.run_recorded(&["task", "试一条"]).crop();
+    assert!(
+        shown.contains("进度：[███░░░░░░░] 1/3"),
+        "进度条该走过一格：\n{shown}"
+    );
+
+    let done = 三步();
+    done.task_with(
+        "试一条",
+        "试一条",
+        &[("甲", true), ("乙", true), ("丙", true)],
+    );
+    let full = done.run_recorded(&["task", "试一条"]).crop();
+    assert!(
+        full.contains("进度：[██████████] 3/3"),
+        "走完了该满格：\n{full}"
+    );
+}

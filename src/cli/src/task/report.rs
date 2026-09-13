@@ -1,6 +1,6 @@
 //! 任务聚合 / 动作：起任务、看状态、列任务、走一步、记日志。
 
-use super::{Task, execute, journal, state};
+use super::{Task, execute, journal, progress, state};
 use crate::workflow;
 use crate::workspace::short;
 use quanttide_work::outcome::Outcome;
@@ -78,9 +78,10 @@ pub fn task_status(
         task.workflow_name(),
         task.workflow().description()
     ));
-    result
-        .lines
-        .push(format!("  步骤：{} 个", task.steps().len()));
+    result.lines.push(format!(
+        "  进度：{}",
+        progress::bar(done.len(), task.steps().len())
+    ));
     for step in task.steps() {
         let state = if done.contains(&step.name()) {
             "✓"
@@ -141,11 +142,12 @@ pub fn task_list(root: Option<&Path>, data: &Path, workflows: Option<&Path>) -> 
         let next = state::next_step(task)
             .map(|s| s.name())
             .unwrap_or_else(|| "走完".to_string());
+        let progress = progress::bar(state::done(task).len(), task.steps().len());
         result
             .rows
             .push(vec![task.name.clone(), task.workflow_name(), next.clone()]);
         result.lines.push(format!(
-            "{:24} 工作流 {}　下一步：{next}",
+            "{:24} 工作流 {}　{progress}　下一步：{next}",
             task.name,
             task.workflow_name()
         ));
@@ -195,6 +197,10 @@ pub fn task_step(
     };
     result.columns = vec!["核对".to_string(), "结论".to_string(), "说明".to_string()];
     result.rows = rows.into_iter().map(|(a, b, c)| vec![a, b, c]).collect();
+    result.lines.push(format!(
+        "进度：{}",
+        progress::bar(state::done(&task).len(), task.steps().len())
+    ));
     result.lines.push(state::state_line(&task));
     result
 }
