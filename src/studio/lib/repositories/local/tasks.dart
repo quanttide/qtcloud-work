@@ -88,13 +88,13 @@ class Task {
   ///
   /// 工具箱给的是**相对工作区根的路径**；接上哪一处目录是窗口的事：
   /// 任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）。
-  String artifact(String kind) {
+  String artifact(String category) {
     // 流水不是产物——它就是任务文件（规范 `piece/artifact.md`）
-    if (kind == logKind) return file;
+    if (category == logKind) return file;
     final task = shared;
     // 落点只按名字算，不看工作区里装了什么——借一个空的把规矩走工具箱那一份。
-    final place = qt.Workspace().place(task, qt.Artifact.named(kind));
-    final base = task.declared(kind) == null ? data : root;
+    final place = qt.Workspace().place(task, qt.Artifact.named(category));
+    final base = task.declared(category) == null ? data : root;
     return place.startsWith('/') ? place : '$base/$place';
   }
 
@@ -156,10 +156,10 @@ Task createTask(
     };
     task.save(payload);
   }
-  for (final kind in [reportKind, journalKind]) {
-    final declared = (task.artifacts()[kind] ?? '').trim().isNotEmpty;
-    if (declared && !fs.fileExists(task.artifact(kind))) {
-      fs.writeText(task.artifact(kind), '# $kind：$name\n');
+  for (final category in [reportKind, journalKind]) {
+    final declared = (task.artifacts()[category] ?? '').trim().isNotEmpty;
+    if (declared && !fs.fileExists(task.artifact(category))) {
+      fs.writeText(task.artifact(category), '# $category：$name\n');
     }
   }
   return task;

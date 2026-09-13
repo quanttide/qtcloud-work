@@ -10,6 +10,7 @@
 
 ### Changed
 
+- 产物类别的字段与 JSON 键由 `kind` 改名 `category`（`catalog --json` 每条、`audit --json` 的 `missing` 每条）；中文标签「种类」改「类别」；studio 侧同批改。`--json` 键名属破坏性变更，随版本号走。
 - 工具箱跟到 `quanttide-work 0.1.0-beta.6`（两侧同号），两次破坏性变更改到位：
   - **落点**改走 `quanttide_work::workspace::Workspace::place`——工具箱只给**相对工作区根的路径**，接哪一处目录由本仓定：任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）；流水不是产物，仍是任务文件本身
   - **流水判定**改走 `Workspace::done_steps` / `next_step` / `state_line`（按名字从工作区里取定义），定义核对改走 `Workspace::check`（`Finding.ok` 成了三态：过 / 不过 / 未核，退回了「○ 未核」的写法）

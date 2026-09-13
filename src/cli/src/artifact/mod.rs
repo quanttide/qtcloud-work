@@ -35,7 +35,7 @@ pub const PROCEDURAL: [(&str, &str); 9] = [
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Asset {
-    pub kind: String,
+    pub category: String,
     pub name: String,
 }
 
@@ -43,8 +43,8 @@ pub fn assets() -> Vec<Asset> {
     STATED
         .iter()
         .chain(PROCEDURAL.iter())
-        .map(|(kind, name)| Asset {
-            kind: kind.to_string(),
+        .map(|(category, name)| Asset {
+            category: category.to_string(),
             name: name.to_string(),
         })
         .collect()
@@ -126,7 +126,7 @@ pub fn make(root: &Path, wanted: Option<&[Asset]>) -> Vec<PathBuf> {
         let _ = std::fs::create_dir_all(&path);
         let readme = path.join("README.md");
         if !readme.is_file() {
-            let _ = std::fs::write(&readme, format!("# 量潮知识工作{}\n", asset.kind));
+            let _ = std::fs::write(&readme, format!("# 量潮知识工作{}\n", asset.category));
         }
         created.push(path);
     }

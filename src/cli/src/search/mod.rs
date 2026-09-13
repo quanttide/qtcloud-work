@@ -44,8 +44,8 @@ pub fn search(root: &Path, name: &str, show: bool) -> Outcome {
     let mut result = Outcome::new(true);
     for entry in matches {
         let rel = short(root, &entry.path);
-        result.lines.push(format!("[{}] {rel}", entry.kind));
-        result.rows.push(vec![entry.kind.clone(), rel]);
+        result.lines.push(format!("[{}] {rel}", entry.category));
+        result.rows.push(vec![entry.category.clone(), rel]);
         if show {
             if entry.path.is_dir() {
                 let listed: Vec<String> = std::fs::read_dir(&entry.path)
@@ -70,6 +70,6 @@ pub fn search(root: &Path, name: &str, show: bool) -> Outcome {
             }
         }
     }
-    result.columns = vec!["种类".to_string(), "路径".to_string()];
+    result.columns = vec!["类别".to_string(), "路径".to_string()];
     result
 }

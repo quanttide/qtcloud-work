@@ -67,7 +67,7 @@ pub(crate) enum Command {
         #[arg(long)]
         show: bool,
     },
-    /// 按资产种类列出工作区里的全部条目
+    /// 按资产类别列出工作区里的全部条目
     #[command(
         after_help = "例子：\n  qtcloud-work catalog\n  qtcloud-work catalog --json\n细节看 docs/api-references/catalog.md"
     )]

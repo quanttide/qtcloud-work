@@ -82,15 +82,15 @@ impl Task {
     ///
     /// 工具箱给的是**相对工作区根的路径**；接上哪一处目录是命令行的事：
     /// 任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）。
-    pub fn artifact(&self, kind: &str) -> PathBuf {
+    pub fn artifact(&self, category: &str) -> PathBuf {
         // 流水不是产物——它就是任务文件（规范 `piece/artifact.md`）
-        if kind == crate::task::journal::LOG {
+        if category == crate::task::journal::LOG {
             return self.file();
         }
         let task = self.shared();
         // 落点只按名字算，不看工作区里装了什么——借一个空的把规矩走工具箱那一份。
-        let place = Workspace::default().place(&task, &Artifact::named(kind));
-        let base = if task.declared(kind).is_some() {
+        let place = Workspace::default().place(&task, &Artifact::named(category));
+        let base = if task.declared(category).is_some() {
             &self.root
         } else {
             &self.data

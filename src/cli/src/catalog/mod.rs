@@ -21,7 +21,7 @@ const FACADE: [&str; 3] = ["README.md", "CHANGELOG.md", "LICENSE"];
 
 #[derive(Debug, Clone)]
 pub struct Entry {
-    pub kind: String,
+    pub category: String,
     pub path: PathBuf,
     pub names: BTreeSet<String>,
 }
@@ -31,9 +31,9 @@ pub struct Catalog {
 }
 
 impl Catalog {
-    pub fn add(&mut self, kind: &str, path: PathBuf, names: BTreeSet<String>) {
+    pub fn add(&mut self, category: &str, path: PathBuf, names: BTreeSet<String>) {
         self.entries.push(Entry {
-            kind: kind.to_string(),
+            category: category.to_string(),
             path,
             names,
         });
@@ -68,13 +68,13 @@ impl Catalog {
     }
 }
 
-/// 目录的自带格式：JSON——每条含种类、路径与全部名字。
+/// 目录的自带格式：JSON——每条含类别、路径与全部名字。
 pub fn payload(root: &Path, catalog: &Catalog) -> Json {
     json!({
         "root": root.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
         "count": catalog.entries.len(),
         "entries": catalog.entries.iter().map(|entry| json!({
-            "kind": entry.kind,
+            "category": entry.category,
             "path": short(root, &entry.path),
             "names": entry.names.iter().cloned().collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
@@ -162,7 +162,7 @@ pub fn build(root: &Path) -> Catalog {
     for asset in crate::artifact::assets() {
         for path in crate::artifact::locate(root, &asset) {
             let mut names: BTreeSet<String> = BTreeSet::new();
-            names.insert(asset.kind.clone());
+            names.insert(asset.category.clone());
             names.insert(asset.name.clone());
             if let Some(name) = path.file_name() {
                 names.insert(name.to_string_lossy().to_string());
@@ -170,7 +170,7 @@ pub fn build(root: &Path) -> Catalog {
             if let Some(alias) = cn_name(&path) {
                 names.insert(alias);
             }
-            catalog.add(&asset.kind, path.clone(), names);
+            catalog.add(&asset.category, path.clone(), names);
             let mut docs = Vec::new();
             documents(&path, &mut docs);
             docs.sort();
@@ -182,7 +182,7 @@ pub fn build(root: &Path) -> Catalog {
                 if let Some(title) = title_of(&md) {
                     doc_names.insert(title);
                 }
-                catalog.add(&asset.kind, md, doc_names);
+                catalog.add(&asset.category, md, doc_names);
             }
         }
     }
@@ -199,11 +199,11 @@ pub fn catalog(root: &Path) -> Outcome {
         ok: true,
         ..Default::default()
     };
-    result.columns = vec!["种类".to_string(), "路径".to_string()];
+    result.columns = vec!["类别".to_string(), "路径".to_string()];
     for entry in &found.entries {
         let rel = short(root, &entry.path);
-        result.lines.push(format!("[{}] {rel}", entry.kind));
-        result.rows.push(vec![entry.kind.clone(), rel]);
+        result.lines.push(format!("[{}] {rel}", entry.category));
+        result.rows.push(vec![entry.category.clone(), rel]);
     }
     result.data = Some(payload(root, &found));
     result

@@ -59,7 +59,7 @@ pub(crate) fn audit(make: bool, cli: &Cli) -> i32 {
         lines.extend(
             missing
                 .iter()
-                .map(|a| format!("会补建：{}（{}）", a.kind, a.name)),
+                .map(|a| format!("会补建：{}（{}）", a.category, a.name)),
         );
         return emit(Outcome::lines(true, lines), cli);
     }

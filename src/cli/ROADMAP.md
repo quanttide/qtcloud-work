@@ -76,7 +76,7 @@ sh scripts/validate-usecases.sh
 
 - `docs/dev-guide/layers.md` 仍是旧说法（还提 `outcome.rs`、还写"拟建"）——段五 5.1
 - `validate-usecases.sh` 目前空转（文档侧没有用例号，脚本靠跳过通过）——段五 5.5
-- **类别当成了名字**：规格新立「产物类别」（`report` / `journal` 是**类别**，一件产物的**名字**如《量潮知识工作报告》），工具箱的 `Artifact` 只认名字+规格；本侧 `Task::artifact(kind)` 仍把类别当产物名传给 `Artifact::named`（只拿来算落点）。平台按新定义重理「类别 / 名字」两轴时一并改。
+- **类别当成了名字**：规格新立「产物类别」（`report` / `journal` 是**类别**，一件产物的**名字**如《量潮知识工作报告》），工具箱的 `Artifact` 只认名字+规格；本侧 `Task::artifact(category)` 仍把类别当产物名传给 `Artifact::named`（只拿来算落点）。平台按新定义重理「类别 / 名字」两轴时一并改。
 
 **端侧适配留下的三处**（2026-09-12 跟到工具箱 `0.1.0-beta.6` 时发现，不阻塞）：
 

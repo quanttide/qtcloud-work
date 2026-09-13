@@ -7,7 +7,7 @@
 | API | 做什么 |
 | :-- | :-- |
 | [search](search.md) | 按名找文档 |
-| [catalog](catalog.md) | 按资产种类列条目 |
+| [catalog](catalog.md) | 按资产类别列条目 |
 | [audit](audit.md) | 审计资产表与工作区 |
 | [material](material.md) | 材料的四字段与阶段 |
 | [workflow](workflow.md) | 工作流的定义与六个动作 |

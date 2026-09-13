@@ -110,7 +110,7 @@ pub fn audit(root: &Path, make: bool) -> Outcome {
     for asset in &missing {
         result.rows.push(vec![
             "缺资产".to_string(),
-            format!("{}（{}）", asset.kind, asset.name),
+            format!("{}（{}）", asset.category, asset.name),
         ]);
     }
     for path in &unregistered {
@@ -140,7 +140,7 @@ pub fn audit(root: &Path, make: bool) -> Outcome {
     result.data = Some(json!({
         "root": root.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
         "result": if ok { "通过" } else { "有问题" },
-        "missing": missing.iter().map(|a| json!({"kind": a.kind, "name": a.name})).collect::<Vec<_>>(),
+        "missing": missing.iter().map(|a| json!({"category": a.category, "name": a.name})).collect::<Vec<_>>(),
         "unregistered": unregistered.iter().map(|p| short(root, p)).collect::<Vec<_>>(),
     }));
     result

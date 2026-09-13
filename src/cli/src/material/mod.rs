@@ -147,8 +147,8 @@ pub fn materials(root: &Path, rels: Option<&[String]>) -> Vec<(String, Material)
             .collect();
     }
     let mut found = Vec::new();
-    for kind in ["journal", "profile"] {
-        let base = root.join("data").join(kind);
+    for category in ["journal", "profile"] {
+        let base = root.join("data").join(category);
         if !base.is_dir() {
             continue;
         }

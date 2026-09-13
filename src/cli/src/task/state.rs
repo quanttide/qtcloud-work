@@ -63,16 +63,16 @@ pub fn create(
             serde_yaml::to_string(&Value::Mapping(payload)).unwrap_or_default(),
         );
     }
-    for kind in [crate::task::journal::REPORT, crate::task::journal::JOURNAL] {
+    for category in [crate::task::journal::REPORT, crate::task::journal::JOURNAL] {
         let declared = task
             .artifacts()
-            .get(kind)
+            .get(category)
             .is_some_and(|v| !v.trim().is_empty());
-        if declared && !task.artifact(kind).is_file() {
-            if let Some(parent) = task.artifact(kind).parent() {
+        if declared && !task.artifact(category).is_file() {
+            if let Some(parent) = task.artifact(category).parent() {
                 let _ = std::fs::create_dir_all(parent);
             }
-            let _ = std::fs::write(task.artifact(kind), format!("# {kind}：{name}\n"));
+            let _ = std::fs::write(task.artifact(category), format!("# {category}：{name}\n"));
         }
     }
     task
