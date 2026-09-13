@@ -23,9 +23,9 @@ sh scripts/validate-line-count.sh
 
 - [ ] **工作流名校验**：`workflow/yaml.rs::load` 里核 `name` 与文件名一致（文件名只有装载这一侧知道，工具箱拿不到）。判据：定义里两者不一致时当场报错
 
-## 等工具箱发新号
+## 空工作区
 
-- [ ] **借一个空工作区**：工具箱把 `place` / `expanded` / `check` 收成关联函数并发出新号后，cli 跟号并删掉 `Workspace::default()` 那行。判据：`src/task/mod.rs` 里不再有 `Workspace::default()`
+- [ ] **换成真工作区**：`src/task/mod.rs` 用 `Task::workspace()`、`src/workflow/check.rs` 用 `Workspace::of` 替掉 `Workspace::default()`（这三个都不读 `self`，beta.6 够）。判据：`src/` 里不再有 `Workspace::default()`
 
 ## 发布线
 
