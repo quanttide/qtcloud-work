@@ -15,10 +15,6 @@ sh scripts/validate-line-count.sh
 
 - [ ] **按名字算**：`Task::artifact(category)` 改成按产物名字算（规格 `piece/artifact.md`：产物 = 名字 + 规格，类别不参与落点）；任务的 `artifacts` 声明与 `--json` 键跟进。判据：类别不再当名字传给 `Artifact::named`
 
-## 命名
-
-- [ ] **`src/artifact/` 改名 `asset/`**：这一层按实是资产表，`artifact` 留给规格里的产物；目录、引用、`src/CONVENTIONS.md` 与 dev-guide 的 `artifact.md` 跟着改。判据：`src/` 下不再有 `artifact/`，`catalog` / `audit` 仍绿
-
 ## 校验
 
 - [ ] **工作流名校验**：`workflow/yaml.rs::load` 里核 `name` 与文件名一致（文件名只有装载这一侧知道，工具箱拿不到）。判据：定义里两者不一致时当场报错
