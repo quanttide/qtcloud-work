@@ -11,3 +11,7 @@
 ## 审计什么
 
 `audit` 比资产表与工作区：资产表有而工作区无（`artifact::missing`）、工作区有而未登记（`catalog::unregistered`）。`--make` 补建缺的文档格，独立仓库那三格不凭空建。
+
+## 测试
+
+判据矩阵在 `tests/criteria_matrix.rs`——谁执行（agent / human）× 怎么走（`--next` / `--done`）× 判据三类。

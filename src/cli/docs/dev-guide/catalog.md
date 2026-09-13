@@ -14,4 +14,8 @@
 
 ## 依赖方向
 
-`search → catalog` 单向，`catalog` 不得依赖 `search`（有测试钉住）。
+`search → catalog` 单向，`catalog` 不得依赖 `search`。
+
+## 测试
+
+依赖方向由 `tests/contract.rs` 的「动作层不依赖入口层」钉住。

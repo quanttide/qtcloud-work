@@ -2,7 +2,7 @@
 
 程序怎么继续长。使用与命令看[使用指南](../user-guide/index.md)，字段与 schema 看[接口参考](../api-references/index.md)。
 
-`src/` 顶层按三类落位：聚合 / 领域服务 / 适配。判据与命名规矩在 [`src/CONVENTIONS.md`](../../src/CONVENTIONS.md)；下面是落点图，图里每一项都对应实际目录或文件。
+`src/` 顶层按三类落位：聚合 / 领域服务 / 适配。判据与命名规矩在 [`src/CONVENTIONS.md`](../../src/CONVENTIONS.md)；构建、门禁与依赖见 [README](../../README.md)。下面是落点图，图里每一项都对应实际目录或文件。
 
 ```text
 src/
@@ -45,12 +45,5 @@ src/
 边界外的东西与入口。
 
 - [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）、provider 探活（`health`）。
-
-## 横切
-
-- [testing](testing.md)——五类测试与五条门禁命令；
-- [extending](extending.md)——加动作、加判据、接 provider，以及不做什么；
-- [dependencies](dependencies.md)——每个依赖的用途与许可；
-- [decisions](decisions.md)——待决事项，按背景 / 选项 / 影响 / 建议。
 
 crate 在 `apps/qtcloud-work/src/cli/`，Rust 加 clap，二进制名 `qtcloud-work`。provider 的正式接口层等就位后另起一轮。

@@ -35,3 +35,7 @@
 ```
 
 一步算过 = 这一步所有 `rule` 通过、所有 `agent` 判为通过；`human` 只列闸门，不影响过不过。交给 AI 跑的步骤，AI 没跑成即不过。人为记一步（`--done`）时 `agent` 判据算「待判」，不挡这一步。定义里的判据先换占位再跑，所以工作流不写死任务名。
+
+## 测试
+
+状态真值表在 `tests/state_machine.rs`——审查 ✗、重走通过、乱序、名字不在定义里这些边界；场景在 `tests/task_start.rs` / `tests/agent_step.rs` / `tests/human_step.rs`。

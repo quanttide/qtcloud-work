@@ -13,7 +13,7 @@
 - 文档与门禁补齐：
   - 接口参考一个命令一篇（扁平）；工作区的布局与资产表并入使用指南的「工作区」一篇。
   - 使用指南恢复「用例」一篇（五件真事），`validate-usecases.sh` 的对账不再空转。
-  - 开发指南按 `src/` 的领域重排（聚合 / 领域服务 / 适配各一篇）；新增 `docs/dev-guide/dependencies.md` 列明每个依赖与许可。
+  - 开发指南按 `src/` 的领域重排（聚合 / 领域服务 / 适配各一篇）；依赖与许可列进 README。
   - 门禁补到五条并与 CI 一致：clippy 改 `--all-targets -- -D warnings`，新增 `validate-line-count.sh`（`src/**/*.rs` 超 250 行即红），用例对账与行数门禁进 CI。
 - 产物类别的字段与 JSON 键由 `kind` 改名 `category`（`catalog --json` 每条、`audit --json` 的 `missing` 每条）；中文标签「种类」改「类别」；studio 侧同批改。`--json` 键名属破坏性变更，随版本号走。
 - 工具箱跟到 `quanttide-work 0.1.0-beta.6`（两侧同号），两次破坏性变更改到位：

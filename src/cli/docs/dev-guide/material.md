@@ -18,3 +18,7 @@
 阶段不占字段，由资产位置承担：落在 `journal` 下的是「原始」，其余是「材料」。缺字段时动作 `ok=false`。
 
 不给路径就扫 `data/journal` 与 `data/profile` 下的 md。
+
+## 测试
+
+场景在 `tests/material_intake.rs`——语境条目粗加工进材料，两道 human 闸门。
