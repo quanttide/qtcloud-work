@@ -58,7 +58,7 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// 按名找文档
     #[command(
-        after_help = "例子：\n  qtcloud-work search 材料\n  qtcloud-work search 材料 --show\n细节看 docs/api-references/commands/search.md"
+        after_help = "例子：\n  qtcloud-work search 材料\n  qtcloud-work search 材料 --show\n细节看 docs/api-references/search.md"
     )]
     Search {
         /// 要找的名字
@@ -69,12 +69,12 @@ pub(crate) enum Command {
     },
     /// 按资产类别列出工作区里的全部条目
     #[command(
-        after_help = "例子：\n  qtcloud-work catalog\n  qtcloud-work catalog --json\n细节看 docs/api-references/commands/catalog.md"
+        after_help = "例子：\n  qtcloud-work catalog\n  qtcloud-work catalog --json\n细节看 docs/api-references/catalog.md"
     )]
     Catalog,
     /// 审计工作区：资产表有而工作区无、工作区有而未登记
     #[command(
-        after_help = "例子：\n  qtcloud-work audit\n  qtcloud-work audit --make --dry-run\n细节看 docs/api-references/commands/audit.md"
+        after_help = "例子：\n  qtcloud-work audit\n  qtcloud-work audit --make --dry-run\n细节看 docs/api-references/audit.md"
     )]
     Audit {
         /// 补建缺的文档格
@@ -83,7 +83,7 @@ pub(crate) enum Command {
     },
     /// 列材料的四字段与阶段
     #[command(
-        after_help = "例子：\n  qtcloud-work material\n  qtcloud-work material data/journal/iGuo/2026-09-11.md\n细节看 docs/api-references/commands/material.md"
+        after_help = "例子：\n  qtcloud-work material\n  qtcloud-work material data/journal/iGuo/2026-09-11.md\n细节看 docs/api-references/material.md"
     )]
     Material {
         /// 要看的路径；不给就扫 data/journal 与 data/profile 下的 md
@@ -91,7 +91,7 @@ pub(crate) enum Command {
     },
     /// 工作流：串联的步骤
     #[command(
-        after_help = "用法是「不看名字看标志」：--list 列、--new 写、--check 核、--export 存、--import 导；给了名字就是看这一条。\n\n配套：--new 要带 --steps（逗号分开）；--check / --export 要带名字；--import 要带文件，重名用 --as 换一个。\n\n例子：\n  qtcloud-work workflow --list\n  qtcloud-work workflow --new 试一条 --steps 甲,乙 --note 试\n  qtcloud-work workflow 试一条 --check\n细节看 docs/api-references/commands/workflow.md"
+        after_help = "用法是「不看名字看标志」：--list 列、--new 写、--check 核、--export 存、--import 导；给了名字就是看这一条。\n\n配套：--new 要带 --steps（逗号分开）；--check / --export 要带名字；--import 要带文件，重名用 --as 换一个。\n\n例子：\n  qtcloud-work workflow --list\n  qtcloud-work workflow --new 试一条 --steps 甲,乙 --note 试\n  qtcloud-work workflow 试一条 --check\n细节看 docs/api-references/workflow.md"
     )]
     Workflow {
         /// 工作流名
@@ -123,7 +123,7 @@ pub(crate) enum Command {
     },
     /// 任务：工作流的一次执行实例
     #[command(
-        after_help = "用法是「不看名字看标志」：--list 列、--new 起、--next 走一步、--done 人为记一步、--journal 写日志；给了名字就是看这一件。\n\n配套：--new 要带 --workflow；--done 可带步骤名（不给就记现场那一步）；--note 只跟 --next / --done 走。\n\n例子：\n  qtcloud-work task --new 试一条 --workflow 试一条\n  qtcloud-work task 试一条 --next\n  qtcloud-work task 试一条 --done 甲 --note 人做的\n细节看 docs/api-references/commands/task.md"
+        after_help = "用法是「不看名字看标志」：--list 列、--new 起、--next 走一步、--done 人为记一步、--journal 写日志；给了名字就是看这一件。\n\n配套：--new 要带 --workflow；--done 可带步骤名（不给就记现场那一步）；--note 只跟 --next / --done 走。\n\n例子：\n  qtcloud-work task --new 试一条 --workflow 试一条\n  qtcloud-work task 试一条 --next\n  qtcloud-work task 试一条 --done 甲 --note 人做的\n细节看 docs/api-references/task.md"
     )]
     Task {
         /// 任务名
@@ -152,7 +152,7 @@ pub(crate) enum Command {
     },
     /// 导览：按用途列出命令；给了话题就说那一条的要点
     #[command(
-        after_help = "例子：\n  qtcloud-work help\n  qtcloud-work help task\n细节看 docs/api-references/commands/help.md"
+        after_help = "例子：\n  qtcloud-work help\n  qtcloud-work help task\n细节看 docs/api-references/help.md"
     )]
     Help {
         /// 要看要点的话题（命令名）
@@ -160,7 +160,7 @@ pub(crate) enum Command {
     },
     /// 探活已部署的 provider
     #[command(
-        after_help = "例子：\n  qtcloud-work health\n  qtcloud-work --server http://localhost:8080 health\n细节看 docs/api-references/commands/health.md"
+        after_help = "例子：\n  qtcloud-work health\n  qtcloud-work --server http://localhost:8080 health\n细节看 docs/api-references/health.md"
     )]
     Health,
 }

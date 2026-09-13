@@ -1,27 +1,21 @@
 # 接口参考
 
-签名、字段与落点的**接口参考**，一个 API 一篇。怎么用、怎么走一遍看[使用指南](../user-guide/index.md)；程序分层看[开发指南](../dev-guide/index.md)。
+签名、字段与落点的**接口参考**，一个命令一篇。怎么用、怎么走一遍看[使用指南](../user-guide/index.md)；程序分层看[开发指南](../dev-guide/index.md)。
 
-## 命令参考
-
-一个命令一篇：
+## API 索引
 
 | API | 做什么 |
 | :-- | :-- |
-| [search](commands/search.md) | 按名找文档 |
-| [catalog](commands/catalog.md) | 按资产类别列条目 |
-| [audit](commands/audit.md) | 审计资产表与工作区 |
-| [material](commands/material.md) | 材料的四字段与阶段 |
-| [workflow](commands/workflow.md) | 工作流的定义与六个动作 |
-| [task](commands/task.md) | 任务的一次执行与六个动作 |
-| [help](commands/help.md) | 导览：按用途列出命令 |
-| [health](commands/health.md) | provider 探活 |
+| [search](search.md) | 按名找文档 |
+| [catalog](catalog.md) | 按资产类别列条目 |
+| [audit](audit.md) | 审计资产表与工作区 |
+| [material](material.md) | 材料的四字段与阶段 |
+| [workflow](workflow.md) | 工作流的定义与六个动作 |
+| [task](task.md) | 任务的一次执行与六个动作 |
+| [help](help.md) | 导览：按用途列出命令 |
+| [health](health.md) | provider 探活 |
 
-## 概念参考
-
-不是命令、讲清一个概念的：
-
-- [工作区](concepts/workspace.md)——落点、资产表与结果形状。
+工作区的布局与资产表见[使用指南·工作区](../user-guide/workspace.md)。
 
 ## 全局选项
 

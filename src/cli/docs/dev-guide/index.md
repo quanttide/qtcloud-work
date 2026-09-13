@@ -1,23 +1,56 @@
 # 开发指南
 
-程序怎么继续长。使用与命令看[使用指南](../user-guide/index.md)，字段与 schema 看[接口参考](../api-references/index.md)（命令参考与概念参考两类）。
+程序怎么继续长。使用与命令看[使用指南](../user-guide/index.md)，字段与 schema 看[接口参考](../api-references/index.md)。
 
-这份指南按四篇拆开：
-
-- [分层](layers.md)——一层一件事、动作与对象同住；
-- [状态机与数据流](state.md)——状态从流水推出来、走一步做了什么；
-- [测试与门禁](testing.md)——五类测试与五条门禁命令；
-- [依赖与许可](dependencies.md)——每个依赖的用途与许可；
-- [待决事项](decisions.md)——尚未定的决策，按背景 / 选项 / 影响 / 建议梳理；
-- [扩展与边界](extending.md)——加动作、加判据、接 provider，以及不做什么。
-
-crate 在 `apps/qtcloud-work/src/cli/`，Rust 加 clap，二进制名 `qtcloud-work`。当前只有一条 provider 探活命令；这一轮把实验室 `kg` 里跑通的本地知识工作做法搬进来，provider 的接口层等就位后另起一轮。
+`src/` 顶层按三类落位：聚合 / 领域服务 / 适配。判据与命名规矩在 [`src/CONVENTIONS.md`](../../src/CONVENTIONS.md)；下面是落点图，图里每一项都对应实际目录或文件。
 
 ```text
-src/cli/
-├── Cargo.toml          包装：bin 名 qtcloud-work
-├── src/                源码（分层见下）
-├── tests/              用例测试：一个场景一个文件，夹具在 common/
-├── scripts/            版本与变更校验（发布用）、用例对账
-└── docs/               user-guide / dev-guide / api-references
+src/
+├── main.rs        入口：一行，把命令行交给 cli
+├── cli.rs         适配：clap 定义、定位、发射
+├── cli/           适配：子命令分派（handlers/）与发射（emit.rs）
+├── help.rs        适配：导览
+├── prompts.rs     适配：给智能体的话术
+├── health.rs      适配：provider 探活
+├── task/          聚合：任务
+├── workflow/      聚合：工作流
+├── catalog/       聚合：目录
+├── artifact/      聚合：资产表
+├── material/      聚合：材料
+├── workspace/     聚合：工作区
+├── search/        领域服务：按名找文档
+└── audit/         领域服务：判据与审计
 ```
+
+## 聚合
+
+有自己的定义：身份、生命周期、字段规矩。
+
+- [task](task.md)——一次执行的状态、流水与产物落点；
+- [workflow](workflow.md)——YAML 定义、schema 与动作；
+- [catalog](catalog.md)——扫成名字索引；
+- [artifact](artifact.md)——资产表二十格与落点；
+- [material](material.md)——材料的四字段与阶段；
+- [workspace](workspace.md)——三处位置与路径显示。
+
+## 领域服务
+
+没有自己的定义，跨聚合只做一件事。
+
+- [search](search.md)——按名找文档，依赖 `catalog`；
+- [audit](audit.md)——跑机械判据、审计资产表与工作区。
+
+## 适配
+
+边界外的东西与入口。
+
+- [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）、provider 探活（`health`）。
+
+## 横切
+
+- [testing](testing.md)——五类测试与五条门禁命令；
+- [extending](extending.md)——加动作、加判据、接 provider，以及不做什么；
+- [dependencies](dependencies.md)——每个依赖的用途与许可；
+- [decisions](decisions.md)——待决事项，按背景 / 选项 / 影响 / 建议。
+
+crate 在 `apps/qtcloud-work/src/cli/`，Rust 加 clap，二进制名 `qtcloud-work`。provider 的正式接口层等就位后另起一轮。
