@@ -28,6 +28,10 @@
 
 任一件超阈即触发转聚合：把长文件按**事**拆成同目录多件，`mod.rs` 只留类型与出口。拆的时候行为不变——命令面、输出信封（`ok` / `lines` / `columns` / `rows` / `data`）、报错文字都不许改。
 
+## 与 studio 对表
+
+cli 与 studio 是同一件事的两侧，算出的结果要能对得上。对表只比 `ok` / `columns` / `rows` / `data` 四样，不比 `lines`——`lines` 是给人看的那一栏，两侧措辞与排版可以不同。
+
 ## 测试按用例组织
 
 测试不是按模块组织的，是按**用例**组织的：`tests/` 下按用例切文件（`agent_step` / `state_machine` / `task_start` …），共用夹具在 `tests/common/`。每个测试上面一行 `// 用例：<号>`，使用指南 `docs/user-guide/*.md` 里标题形如 `## 用例 <号>、…`；两边的用例号集合必须相等，由 `scripts/validate-usecases.sh` 对账。
