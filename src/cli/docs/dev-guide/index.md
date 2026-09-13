@@ -31,7 +31,7 @@ src/
 - [catalog](catalog.md)——扫成名字索引；
 - [artifact](artifact.md)——资产表二十格与落点；
 - [material](material.md)——材料的四字段与阶段；
-- [workspace](workspace.md)——三处位置与路径显示。
+- [workspace](workspace.md)——工作区根与数据仓的定位、路径显示。
 
 ## 领域服务
 
