@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 import 'package:qtcloud_work_studio/views/step_chain.dart';
 
 import '../support/fixtures.dart';

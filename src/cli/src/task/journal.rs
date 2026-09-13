@@ -1,5 +1,6 @@
-//! 任务聚合 / 日志：时间戳、字段读取、日志叙事。
+//! 任务聚合 / 日志：流水事件、时间戳、字段读取、日志叙事。
 
+use serde_yaml::Value as Yaml;
 use std::process::Command;
 
 pub const LOG: &str = "log";
@@ -47,4 +48,27 @@ pub fn narrate(task: &super::Task, words: &str) {
         &words.trim().chars().take(40).collect::<String>(),
         true,
     );
+}
+
+/// 流水里的一条：什么时候、哪一步、一句话、过没过。
+///
+/// 流水只增不改（规范 `process/task.md`·语法）；「走过哪几步」由工作区按
+/// 事件里的步骤名判（`crate::workspace::progress`）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JournalEvent {
+    pub at: String,
+    pub step: String,
+    pub detail: String,
+    pub ok: bool,
+}
+
+impl JournalEvent {
+    pub fn of(value: &Yaml) -> JournalEvent {
+        JournalEvent {
+            at: text_of(value, "at"),
+            step: text_of(value, "step"),
+            detail: text_of(value, "detail"),
+            ok: value.get("ok").and_then(|v| v.as_bool()).unwrap_or(false),
+        }
+    }
 }

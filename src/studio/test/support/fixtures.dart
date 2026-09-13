@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Outcome;
 import 'package:qtcloud_work_studio/repositories/local/run_context.dart';
 
 /// 测试用的那处工作区——就是工具箱里的运行上下文。

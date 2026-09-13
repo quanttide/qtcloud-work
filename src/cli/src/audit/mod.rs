@@ -20,7 +20,7 @@ use std::path::Path;
 use std::process::Command;
 
 // 判据的翻译（说明怎么写、四种判法怎么认）在工具箱里；这里只剩「真去跑」。
-pub use quanttide_work::criterion::{RuleItem as Item, RuleKind as Kind, items_of};
+pub use crate::criterion::{RuleItem as Item, RuleKind as Kind, items_of};
 
 /// 跑一条判据，返回（是否通过，说明）。
 pub fn check(root: &Path, item: &Item) -> (bool, String) {
@@ -90,8 +90,8 @@ use serde_json::json;
 // ---- 动作 ----
 
 use crate::catalog;
+use crate::outcome::Outcome;
 use crate::workspace::short;
-use quanttide_work::outcome::Outcome;
 
 pub fn audit(root: &Path, make: bool) -> Outcome {
     let made = if make {

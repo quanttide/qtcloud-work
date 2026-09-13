@@ -1,13 +1,13 @@
-import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Outcome;
 import 'paths.dart';
 import 'workflows.dart';
 import 'fs/fs.dart' as fs;
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 import 'yaml.dart';
 
-/// 工作区那几件操作（落点、定义核对、流水判定）是工具箱的扩展方法——
-/// 这里再导一次，界面与测试不必各自去引工具箱。
-export 'package:quanttide_work/quanttide_work.dart'
+/// 工作区那几件操作（落点、定义核对、流水判定）是本仓领域模型的扩展方法——
+/// 这里再导一次，界面与测试不必各自去引 `quanttide_work.dart`。
+export 'package:qtcloud_work_studio/quanttide_work.dart'
     show WorkspaceCheck, WorkspacePlace, WorkspaceProgress;
 
 /// 任务：工作流的一次执行实例。
@@ -44,7 +44,7 @@ class Task {
 
   bool get exists => fs.fileExists(file);
 
-  /// 这件任务在工具箱里的样子（内容那一层交给工具箱）。
+  /// 这件任务在领域模型里的样子（内容那一层在 `task/model.dart`）。
   qt.Task get shared => qt.Task.of(payload());
 
   Map payload() {
@@ -80,19 +80,19 @@ class Task {
     save(body);
   }
 
-  /// 这次工作的边界：把这条任务与它跑的定义装在一起（工具箱按名字取工作流算流水）。
+  /// 这次工作的边界：把这条任务与它跑的定义装在一起（领域模型按名字取工作流算流水）。
   qt.Workspace workspace() =>
       qt.Workspace(workflows: [workflow().shared], tasks: [shared]);
 
-  /// 这次执行往哪写这种产物——落点按名字在工具箱里算（规范「任务 / 语法」·落点）。
+  /// 这次执行往哪写这种产物——落点按名字在领域模型里算（规范「任务 / 语法」·落点）。
   ///
-  /// 工具箱给的是**相对工作区根的路径**；接上哪一处目录是窗口的事：
+  /// 领域模型给的是**相对工作区根的路径**；接上哪一处目录是窗口的事：
   /// 任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）。
   String artifact(String category) {
     // 流水不是产物——它就是任务文件（规范 `piece/artifact.md`）
     if (category == logKind) return file;
     final task = shared;
-    // 落点只按名字算，不看工作区里装了什么——借一个空的把规矩走工具箱那一份。
+    // 落点只按名字算，不看工作区里装了什么——借一个空的把规矩走领域模型那一份。
     final place = qt.Workspace().place(task, qt.Artifact.named(category));
     final base = task.declared(category) == null ? data : root;
     return place.startsWith('/') ? place : '$base/$place';
@@ -110,7 +110,7 @@ class Task {
   List<Map> events() =>
       (payload()['log'] as List?)?.whereType<Map>().toList() ?? const [];
 
-  /// 哪些步骤走过了：算法在工具箱的工作区聚合里（附加判定投票、重新执行从头算）。
+  /// 哪些步骤走过了：算法在领域模型的工作区聚合里（附加判定投票、重新执行从头算）。
   List<String> done() => workspace().doneSteps(shared);
 
   Step? nextStep() {
@@ -360,7 +360,7 @@ Outcome taskList(String? root, String data, String? workflows) {
 }
 
 /// 一件任务与它的定义装在一起——界面那几处要算流水与状态行
-/// （工具箱按名字取工作流，所以定义得跟任务一起装进去）。
+/// （领域模型按名字取工作流，所以定义得跟任务一起装进去）。
 qt.Workspace workspaceOf(qt.Task task, qt.Workflow? flow) =>
     qt.Workspace(workflows: [?flow], tasks: [task]);
 

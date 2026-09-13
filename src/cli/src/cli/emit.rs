@@ -2,7 +2,7 @@
 
 use super::Cli;
 use crate::catalog;
-use quanttide_work::outcome::Outcome;
+use crate::outcome::Outcome;
 use serde_json::Value as Json;
 
 pub(crate) fn emit(result: Outcome, cli: &Cli) -> i32 {

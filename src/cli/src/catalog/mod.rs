@@ -191,7 +191,7 @@ pub fn build(root: &Path) -> Catalog {
 
 // ---- 动作（看目录）----
 
-use quanttide_work::outcome::Outcome;
+use crate::outcome::Outcome;
 
 pub fn catalog(root: &Path) -> Outcome {
     let found = build(root);

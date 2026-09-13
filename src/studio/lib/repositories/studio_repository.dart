@@ -1,8 +1,8 @@
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 
 /// 工作台的数据边界：任务、工作流、探活。界面与 Bloc 只依赖这一份接口。
 ///
-/// 交出来的就是工具箱里的领域对象——一条定义是 [qt.Workflow]，一件任务是 [qt.Task]。
+/// 交出来的就是本仓的领域对象——一条定义是 [qt.Workflow]，一件任务是 [qt.Task]。
 /// 界面要的派生值（走过几步、下一步、进度、判据条数）由领域对象自己算，
 /// 不另造一套模型。
 ///

@@ -4,10 +4,10 @@ import 'yaml.dart';
 
 /// 工作流定义：一串有序的步骤。
 ///
-/// 定义这一类**领域模型**（字段表、校验、步骤与判据的视图、定义核对）都在工具箱
-/// `quanttide_work` 里——两侧共用一份规矩。这一层只剩工作室自己的两件事：
+/// 定义这一类**领域模型**（字段表、校验、步骤与判据的视图、定义核对）都在本仓
+/// `lib/quanttide_work.dart` 里。这一层只剩工作室自己的两件事：
 /// 文件读写（`<工作流目录>/<名字>.yaml`）与把动作写成信封。
-export 'package:quanttide_work/quanttide_work.dart'
+export 'package:qtcloud_work_studio/quanttide_work.dart'
     show
         Step,
         Workflow,
@@ -24,7 +24,7 @@ export 'package:quanttide_work/quanttide_work.dart'
         placeholderNames,
         looksLikeSection;
 
-import 'package:quanttide_work/quanttide_work.dart';
+import 'package:qtcloud_work_studio/quanttide_work.dart';
 
 /// 这份文件不像一份工作流（与命令行的 `WorkflowError` 同名同义）。
 class WorkflowError implements Exception {
@@ -38,7 +38,7 @@ class WorkflowError implements Exception {
 
 /// 读一份定义：文件读进来、YAML 解开、照 schema 验一遍。
 ///
-/// 校验的规矩在工具箱里——报错文字与命令行一字不差。
+/// 校验的规矩在领域模型里——报错文字与命令行一字不差。
 Object loadDefinition(String path) {
   final file = path.split('/').last;
   final String text;
@@ -56,7 +56,7 @@ Object loadDefinition(String path) {
   try {
     Workflow.fromValue(payload);
   } on DefinitionError catch (error) {
-    // 报错文字在工具箱里，文件由这一层给（与命令行一字不差）
+    // 报错文字在领域模型里，文件由这一层给（与命令行一字不差）
     throw WorkflowError(error.message(file));
   }
   return payload!;
@@ -66,7 +66,7 @@ Object loadDefinition(String path) {
 String workflowsDir(String data, [String? workflows]) =>
     workflows ?? '$data/workflows';
 
-/// 一条定义**连同它的文件位置**（工具箱那份只管内容，不管文件）。
+/// 一条定义**连同它的文件位置**（领域模型那份只管内容，不管文件）。
 class WorkflowFile {
   WorkflowFile({
     required this.name,
@@ -93,7 +93,7 @@ class WorkflowFile {
     return this;
   }
 
-  /// 内容那一层交给工具箱（工作流名取自定义里的 `name` 字段）。
+  /// 内容那一层交给领域模型（工作流名取自定义里的 `name` 字段）。
   Workflow get shared => Workflow.of(payload);
 
   String get description => shared.description;

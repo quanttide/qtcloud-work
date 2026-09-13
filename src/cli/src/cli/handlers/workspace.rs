@@ -7,9 +7,9 @@ use crate::catalog;
 use crate::health;
 use crate::help;
 use crate::material;
+use crate::outcome::Outcome;
 use crate::search;
 use crate::workspace;
-use quanttide_work::outcome::Outcome;
 
 pub(crate) fn help(topic: Option<&str>, cli: &Cli) -> i32 {
     match topic {

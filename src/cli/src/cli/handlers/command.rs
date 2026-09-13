@@ -1,10 +1,10 @@
 //! 工作流与任务那一组的子命令分派。
 
 use super::super::{Cli, emit, fail};
+use crate::outcome::Outcome;
 use crate::task;
 use crate::workflow;
 use crate::workspace;
-use quanttide_work::outcome::Outcome;
 
 pub(crate) struct WorkflowArgs<'a> {
     pub(crate) name: Option<&'a str>,

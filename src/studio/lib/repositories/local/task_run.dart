@@ -1,6 +1,6 @@
-import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Outcome;
 import 'paths.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 
 import 'rules.dart';
 import 'workflows.dart';
@@ -28,7 +28,7 @@ prompt.Facts factsOf(Task task, Step step) => prompt.Facts(
   artifacts: task.artifactsDir,
 );
 
-/// 交给 AI 的那一段话：说什么、不说什么是定死的，话本身在工具箱里。
+/// 交给 AI 的那一段话：说什么、不说什么是定死的，话本身在 `prompts.dart` 里。
 String promptFor(Task task, Step step) =>
     prompt.promptFor(factsOf(task, step), step.criteria);
 
@@ -86,13 +86,13 @@ List<(String, String, String)> judgeByAi(
   return rows;
 }
 
-/// 一个占位换成哪条路径：工具箱认的那几个名字，按工作区根视角写出来，
+/// 一个占位换成哪条路径：领域模型认的那几个名字，按工作区根视角写出来，
 /// 判据与 `run` 里的命令直接可用。
 String? placeOf(Task task, String name) {
   final path = switch (name) {
     // 产物目录不是产物，另有落点
     'artifacts' => task.artifactsDir,
-    // 产物按名字算（`log` 是任务文件本身，也在工具箱的落点里）
+    // 产物按名字算（`log` 是任务文件本身，也在领域模型的落点里）
     _ => qt.placeholderNames.contains(name) ? task.artifact(name) : null,
   };
   return path == null ? null : relativeToRoot(task, path);

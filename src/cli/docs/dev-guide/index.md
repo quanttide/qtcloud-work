@@ -12,12 +12,18 @@ src/
 ├── help.rs        适配：导览
 ├── prompts.rs     适配：给智能体的话术
 ├── health.rs      适配：provider 探活
-├── task/          聚合：任务
-├── workflow/      聚合：工作流
+├── outcome.rs     领域模型：结果信封
+├── criterion/     领域模型：判据（模型 / 读法 / 翻成要跑什么）
+├── executor.rs    领域模型：执行者取值
+├── paths.rs       领域模型：占位
+├── fields.rs      领域模型：定义字段表
+├── error.rs       领域模型：定义读不通的错误
+├── task/          聚合：任务（model.rs 领域模型 + 平台侧读写与动作）
+├── workflow/      聚合：工作流（model.rs / read.rs 领域模型 + yaml / check / actions）
 ├── catalog/       聚合：目录
-├── artifact/      聚合：资产表
+├── artifact/      聚合：资产表（mod.rs）与产物实例（model.rs）
 ├── material/      聚合：材料
-├── workspace/     聚合：工作区
+├── workspace/     聚合：工作区（model / place / progress / check + 平台定位）
 ├── search/        领域服务：按名找文档
 └── audit/         领域服务：判据与审计
 ```
@@ -29,7 +35,7 @@ src/
 - [task](task.md)——一次执行的状态、流水与产物落点；
 - [workflow](workflow.md)——YAML 定义、schema 与动作；
 - [catalog](catalog.md)——扫成名字索引；
-- [artifact](artifact.md)——资产表二十格与落点；
+- [artifact](artifact.md)——资产表二十格与落点，产物实例（名字 + 规格）；
 - [material](material.md)——材料的四字段与阶段；
 - [workspace](workspace.md)——工作区根与数据仓的定位、路径显示。
 

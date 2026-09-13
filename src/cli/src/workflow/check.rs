@@ -1,7 +1,7 @@
 //! 工作流聚合 / 定义核对：声明与判据对不对得上。
 
 use super::WorkflowFile;
-use quanttide_work::workspace::{Finding, Workspace};
+use crate::workspace::{Finding, Workspace};
 use std::path::Path;
 
 /// 核对一条工作流：判据里的路径在不在；描述里提到的报告小节有没有判据覆盖。

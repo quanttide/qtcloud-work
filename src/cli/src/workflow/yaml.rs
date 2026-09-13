@@ -1,6 +1,6 @@
 //! 工作流聚合 / YAML 读写与 schema 校验。
 
-use quanttide_work::workflow as shared;
+use super::validate;
 use serde_yaml::Value;
 use std::fmt;
 use std::path::Path;
@@ -23,8 +23,7 @@ pub fn dump(value: &Value) -> String {
 
 /// 读一份定义：不是映射、缺字段、取值不对，当场报错。
 ///
-/// 校验的规矩在工具箱里（`quanttide_work::workflow::validate`）——两侧共用一份，
-/// 报错文字也一字不差。
+/// 校验的规矩在 `super::validate`——一处定义，报错文字一字不差。
 pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
     let file = path
         .file_name()
@@ -34,7 +33,7 @@ pub fn load(path: &Path) -> std::result::Result<Value, WorkflowError> {
         std::fs::read_to_string(path).map_err(|e| WorkflowError(format!("{file} 读不了：{e}")))?;
     let payload: Value = serde_yaml::from_str(&text)
         .map_err(|e| WorkflowError(format!("{file} 不是合法的 YAML：{e}")))?;
-    if let Err(error) = shared::validate(&payload) {
+    if let Err(error) = validate(&payload) {
         return Err(WorkflowError(error.message(&file)));
     }
     Ok(payload)

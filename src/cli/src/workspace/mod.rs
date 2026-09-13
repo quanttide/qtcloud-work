@@ -1,7 +1,16 @@
-//! 工作区：三处位置与落点。
+//! 工作区：一次工作的边界，把定义与任务系在一起。
 //!
-//! 「工作区根 / 数据仓」的默认值在这里定一处；结果本身在工具箱里，
-//! 路径怎么显示给人看（相对工作区根写短一点）也归这里。
+//! 模型（[`Workspace`]）与跨着定义与现场的三件（定义核对 [`check`]、落点 [`place`]、
+//! 流水判定 [`progress`]）随领域模型并回本模块；平台侧的「工作区根 / 数据仓」默认值
+//! 与路径怎么显示给人看（相对工作区根写短一点）也归这里。
+
+mod check;
+mod model;
+mod place;
+mod progress;
+
+pub use check::Finding;
+pub use model::Workspace;
 
 use std::path::{Path, PathBuf};
 

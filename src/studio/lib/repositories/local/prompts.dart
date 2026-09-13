@@ -1,8 +1,8 @@
-import 'package:quanttide_work/quanttide_work.dart' show Criterion;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Criterion;
 
 /// 给智能体的两段话：走一步要它做什么、审一遍要它按什么判。
 ///
-/// 这两段话是产品的一部分——说什么、不说什么是定死的。原先抽在工具箱里
+/// 这两段话是产品的一部分——说什么、不说什么是定死的。原先抽在领域模型里
 /// 两侧共用，后来决定**只是工作台这一侧的说法**，就搬回这里。
 
 /// 这一步的判据清单：每条一行「谁判：说明」。

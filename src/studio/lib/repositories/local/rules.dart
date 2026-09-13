@@ -5,11 +5,11 @@ import 'host/host.dart';
 ///
 /// 规则引擎的判据是**字段**，不是一行小语法：`path` 存在、`absent` 不存在、
 /// `file` + `contains` 含这段文字、`run` 这条命令退出码为零。路径相对工作区根。
-// 判据的翻译（说明怎么写、四种判法怎么认）在工具箱里；这里只剩「真去跑」。
-export 'package:quanttide_work/quanttide_work.dart'
+// 判据的翻译（说明怎么写、四种判法怎么认）在领域模型里；这里只剩「真去跑」。
+export 'package:qtcloud_work_studio/quanttide_work.dart'
     show RuleKind, RuleItem, itemsOf;
 
-import 'package:quanttide_work/quanttide_work.dart';
+import 'package:qtcloud_work_studio/quanttide_work.dart';
 
 /// 跑一条判据，返回（是否通过，说明）。
 (bool, String) checkRule(String root, RuleItem item) {

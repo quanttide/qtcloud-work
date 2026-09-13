@@ -4,6 +4,8 @@
 
 ## 落点
 
+- `workflow/model.rs`——领域模型：`Step` / `Workflow`；
+- `workflow/read.rs`——读法与语法校验：`of` / `validate`；
 - `workflow/mod.rs`——类型与出入口：`WorkflowFile`（定义连同它的文件位置）、动作出口；
 - `workflow/yaml.rs`——YAML 读写与 schema 校验：`load` / `dump` / `WorkflowError`；
 - `workflow/check.rs`——定义核对：判据里的路径在不在、描述提到的小节有没有覆盖；
@@ -11,7 +13,7 @@
 
 ## 规矩
 
-- 字段表、取值、语法校验、定义核对都在工具箱 `quanttide-work` 里，两侧共用一份；本侧只管文件读写与信封。
+- 模型在 `model`，读法与语法校验在 `read`，定义核对在 `check`；本侧只管文件读写与信封。
 - 定义要有固定意义：字段名与取值由 schema 定死，不认识的字段直接报错。
 - 定义是数据不是代码：加一步、减一步、改判据、换执行者，动 YAML 即可，程序一行不改。
 - 定义不写死任务名：判据里的占位跑起来才换成本次任务的真实路径（见 [task](task.md)）。
@@ -19,7 +21,7 @@
 
 ## 判据三类
 
-判据挂在步骤上，按谁判分三类：`rule` 由程序按字段判四种判法、`agent` 照说明审、`human` 进闸门。判据的语法与翻译在工具箱，本侧只负责真去跑（见 [audit](audit.md)）。
+判据挂在步骤上，按谁判分三类：`rule` 由程序按字段判四种判法、`agent` 照说明审、`human` 进闸门。判据的语法与翻译在 `crate::criterion`，本侧只负责真去跑（见 [audit](audit.md)）。
 
 ## 测试
 

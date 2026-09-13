@@ -1,4 +1,4 @@
-import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Outcome;
 import 'rules.dart';
 import 'workflows.dart';
 import 'help.dart';

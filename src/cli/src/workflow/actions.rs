@@ -1,8 +1,8 @@
 //! 工作流聚合 / 五个动作：写、看、导出、导入、列。
 
 use super::{all_ok, check, create, describe, export, import_workflow, listing, open_workflow};
+use crate::outcome::Outcome;
 use crate::workspace::short;
-use quanttide_work::outcome::Outcome;
 use serde_json::{Value as Json, json};
 use serde_yaml::Value;
 use std::path::Path;

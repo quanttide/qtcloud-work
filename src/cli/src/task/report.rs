@@ -1,9 +1,9 @@
 //! 任务聚合 / 动作：起任务、看状态、列任务、走一步、记日志。
 
 use super::{Task, execute, journal, progress, state};
+use crate::outcome::Outcome;
 use crate::workflow;
 use crate::workspace::short;
-use quanttide_work::outcome::Outcome;
 use serde_json::json;
 use std::path::Path;
 

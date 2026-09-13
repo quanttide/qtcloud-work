@@ -1,0 +1,109 @@
+//! 工作流聚合 / 读法：从定义里的字段读出 `Step` / `Workflow`，顺带把语法过一遍。
+//!
+//! 读法：`of` / `Step::of` 只读不校验（用在已经校验过的定义上）；
+//! [`validate`] 把语法过一遍，读不通当场报错。
+//! 规矩的出处是 `docs/specification/process/workflow.md`·语法。
+//! 字段表与取值助手在 `crate::fields`，错误在 `crate::error`。
+
+use super::model::{Step, Workflow};
+use crate::criterion::{criterion_of, read_criterion};
+use crate::error::{DefinitionError, Fault, Position};
+use crate::executor::{AGENT, EXECUTORS};
+use crate::fields::{STEP_FIELDS, TOP_FIELDS, text_of, unknown_fields};
+use serde_yaml::Value as Yaml;
+
+impl Step {
+    /// 从定义里的字段读出（不校验）。用在已经校验过的定义上。
+    pub fn of(value: &Yaml) -> Step {
+        let criteria = value
+            .get("criteria")
+            .and_then(|v| v.as_sequence())
+            .map(|items| items.iter().map(criterion_of).collect())
+            .unwrap_or_default();
+        let mut executor = text_of(value, "executor");
+        if executor.is_empty() {
+            executor = AGENT.to_string();
+        }
+        Step {
+            name: text_of(value, "name"),
+            description: text_of(value, "description"),
+            executor,
+            criteria,
+        }
+    }
+}
+
+impl Workflow {
+    /// 从定义里的字段读出（不校验）；工作流名取自 `name` 字段。
+    pub fn of(payload: &Yaml) -> Workflow {
+        Workflow {
+            name: text_of(payload, "name"),
+            description: text_of(payload, "description"),
+            steps: payload
+                .get("steps")
+                .and_then(|v| v.as_sequence())
+                .map(|items| items.iter().map(Step::of).collect())
+                .unwrap_or_default(),
+        }
+    }
+}
+
+/// 语法校验：不是映射、缺字段、取值不对，当场报错。
+pub fn validate(payload: &Yaml) -> Result<(), DefinitionError> {
+    let top = payload
+        .as_mapping()
+        .ok_or_else(|| DefinitionError::new(Position::Top, Fault::TopNotMapping))?;
+    if text_of(payload, "name").is_empty() {
+        return Err(DefinitionError::new(Position::Top, Fault::MissingName));
+    }
+    let steps = payload
+        .get("steps")
+        .and_then(|v| v.as_sequence())
+        .filter(|items| !items.is_empty())
+        .ok_or_else(|| DefinitionError::new(Position::Top, Fault::MissingSteps))?;
+    let unknown = unknown_fields(top, &TOP_FIELDS);
+    if !unknown.is_empty() {
+        return Err(DefinitionError::new(
+            Position::Top,
+            Fault::UnknownTopFields(unknown),
+        ));
+    }
+    for (index, step) in steps.iter().enumerate() {
+        validate_step(step, index + 1)?;
+    }
+    Ok(())
+}
+
+/// 一个步骤的语法校验。`position` 只用来说话。
+fn validate_step(value: &Yaml, position: usize) -> Result<(), DefinitionError> {
+    let at = || Position::Step(position);
+    let step_map = value
+        .as_mapping()
+        .ok_or_else(|| DefinitionError::new(at(), Fault::MissingStepName))?;
+    if text_of(value, "name").is_empty() {
+        return Err(DefinitionError::new(at(), Fault::MissingStepName));
+    }
+    let extra = unknown_fields(step_map, &STEP_FIELDS);
+    if !extra.is_empty() {
+        return Err(DefinitionError::new(at(), Fault::UnknownStepFields(extra)));
+    }
+    let mut executor = text_of(value, "executor");
+    if executor.is_empty() {
+        executor = AGENT.to_string();
+    }
+    if !EXECUTORS.contains(&executor.as_str()) {
+        return Err(DefinitionError::new(
+            at(),
+            Fault::BadStepExecutor { got: executor },
+        ));
+    }
+    let criteria: &[Yaml] = match value.get("criteria") {
+        None | Some(Yaml::Null) => &[],
+        Some(Yaml::Sequence(items)) => items.as_slice(),
+        Some(_) => return Err(DefinitionError::new(at(), Fault::CriteriaNotList)),
+    };
+    for (order, criterion) in criteria.iter().enumerate() {
+        read_criterion(criterion, position, order + 1)?;
+    }
+    Ok(())
+}

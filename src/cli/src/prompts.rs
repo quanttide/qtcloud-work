@@ -3,7 +3,7 @@
 //! 这两段话是产品的一部分——说什么、不说什么是定死的。原先抽在工具箱里
 //! 两侧共用，后来决定**只是命令行这一侧的说法**，就搬回这里。
 
-use quanttide_work::criterion::Criterion;
+use crate::criterion::Criterion;
 
 /// 这一步的判据清单：每条一行「谁判：说明」。
 pub fn criteria_text(criteria: &[Criterion]) -> String {

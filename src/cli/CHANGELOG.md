@@ -10,6 +10,7 @@
 
 ### Changed
 
+- **收回领域模型**：取消对 crates.io `quanttide-work` 的依赖，把工具箱抽走的 Rust 领域模型并回本仓——`workflow/{model,read}`、`task/model`、`workspace/{model,place,progress,check}`、`criterion/`、`artifact/model`，以及 `outcome` / `error` / `executor` / `paths` / `fields`。并进 bin 后按减法删掉本仓用不到的公开项（`to_yaml` / `from_value` / `Outcome::from_json` 等）；`Task`（领域模型）与 `task::Task`（带位置句柄）同名不同物，用 `crate::task::model::Task` 限定。
 - 文档与门禁补齐：
   - 接口参考一个命令一篇（扁平）；工作区的布局与资产表并入使用指南的「工作区」一篇。
   - 使用指南恢复「用例」一篇（五件真事），`validate-usecases.sh` 的对账不再空转。

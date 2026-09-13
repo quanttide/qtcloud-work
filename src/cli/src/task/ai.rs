@@ -1,8 +1,8 @@
 //! 任务聚合 / 交给 AI 的两段话与智能体审查。
 
 use super::Task;
+use crate::criterion::Criterion;
 use crate::workflow::Step;
-use quanttide_work::criterion::Criterion;
 use std::path::Path;
 use std::process::Command;
 

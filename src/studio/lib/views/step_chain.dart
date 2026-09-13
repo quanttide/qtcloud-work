@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 
 import 'executor_label.dart';
 

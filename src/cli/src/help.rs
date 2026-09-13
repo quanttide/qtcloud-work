@@ -3,7 +3,7 @@
 //! 与 `--help` 的分工：`--help` 是某个命令的选项全集（机器生成的用法），
 //! `help` 是这份导览——先告诉你有哪些命令、各属于哪一组，再看细节。
 
-use quanttide_work::outcome::Outcome;
+use crate::outcome::Outcome;
 
 /// 一组命令：分组名 + 组里每条的「名字、一句话」。
 const GROUPS: &[(&str, &[(&str, &str)])] = &[

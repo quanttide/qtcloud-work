@@ -23,10 +23,17 @@ flutter build web --release --dart-define=APP_VERSION=0.1.0
 lib/
 ├── main.dart           装配：读环境、起工作台
 ├── app.dart            工作台外壳：顶栏 + 侧栏 + 当前那一屏
-├── repositories/       数据边界：交出来的就是工具箱里的领域对象
+├── quanttide_work.dart 领域模型出口：产物 / 判据 / 工作流 / 任务 / 工作区 / 结果
+├── artifact/           领域模型：产物实例（名字 + 规格）
+├── criterion/          领域模型：判据
+├── workflow/           领域模型：工作流
+├── task/               领域模型：任务与流水
+├── workspace/          领域模型：工作区（落点 / 流水 / 核对）
+├── outcome.dart 等     领域模型横切件：结果 / 错误 / 执行者 / 占位 / 字段表
+├── repositories/       数据边界：交出来的就是本仓的领域对象
 │   ├── studio_repository.dart   接口（界面与 Bloc 只依赖它）
 │   └── local/           实现：命令面（dispatch / 导览）与平台读写（fs / host / env / YAML、判据执行）
-│                        结果（`Outcome`）与路径怎么显示，在工具箱与 `local/paths.dart`
+│                        路径怎么显示在 `local/paths.dart`
 ├── states/             状态：workbench_bloc.dart（状态 + 事件 + Bloc 一个文件）
 ├── screens/            三个页面：任务、流程、设置
 └── views/              页面里可复用的块（`executor_label.dart` 是执行者怎么说）

@@ -4,6 +4,7 @@
 
 ## 落点
 
+- `task/model.rs`——领域模型：`Task`（内容那一层）与流水事件；
 - `task/mod.rs`——类型与出入口：任务文件读写、产物落点（`artifact`）、闸门项、流水、运行上下文；
 - `task/state.rs`——状态推导：走过哪些步、下一步、状态行；
 - `task/execute.rs`——走一步：展开占位、跑判据、记流水、写闸门；
@@ -24,7 +25,7 @@
 
 ## 状态与走一步
 
-一条流水算走过，要 `ok` 为真且步骤名在定义里；第一个没走过的步骤是下一步。推导算法在工具箱的工作区聚合（`Workspace::done_steps` / `next_step` / `state_line`），本侧只调，不各算各的。
+一条流水算走过，要 `ok` 为真且步骤名在定义里；第一个没走过的步骤是下一步。推导算法在本仓工作区聚合（`crate::workspace` 的 `Workspace::done_steps` / `next_step` / `state_line`），本侧只调，不各算各的。
 
 ```text
 工作流定义 ──> 任务引用它 ──> 走一步

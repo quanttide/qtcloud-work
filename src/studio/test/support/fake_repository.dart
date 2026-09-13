@@ -1,5 +1,5 @@
 import 'package:qtcloud_work_studio/repositories/studio_repository.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 
 import 'fixtures.dart';
 

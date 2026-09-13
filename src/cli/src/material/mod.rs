@@ -180,7 +180,7 @@ fn collect_markdown(base: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-use quanttide_work::outcome::Outcome;
+use crate::outcome::Outcome;
 use serde_json::json;
 // ---- 动作 ----
 

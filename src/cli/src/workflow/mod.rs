@@ -3,27 +3,29 @@
 //! 定义要有**固定的意义**，所以是 YAML 而不是散文：字段名、字段取值、判据种类都由 schema
 //! 定死，不认识的字段直接报错。
 //!
-//! 定义这一类**领域模型**（字段表、校验、步骤与判据的视图、定义核对）都在工具箱
-//! `quanttide-work` 里——两侧共用一份规矩。这一层只剩命令行自己的两件事：
-//! 文件读写（`<工作流目录>/<名字>.yaml`）与把动作写成信封。
+//! 定义这一类**领域模型**（模型、读法与语法校验）在 `model` / `read` 里，本仓自持。
+//! 这一层另管命令行自己的两件事：文件读写（`<工作流目录>/<名字>.yaml`）与把动作写成信封。
 //!
-//! 子件按事分：YAML 读写与 schema 校验在 `yaml`、定义核对在 `check`、五个动作在 `actions`。
+//! 子件按事分：模型在 `model`、读法与语法校验在 `read`、YAML 读写与装载在 `yaml`、
+//! 定义核对在 `check`、五个动作在 `actions`。
 
 mod actions;
 mod check;
+mod model;
+mod read;
 mod yaml;
 
 pub use actions::{
     workflow_check, workflow_export, workflow_import, workflow_list, workflow_new, workflow_show,
 };
 pub use check::{all_ok, check, describe};
+pub use model::{Step, Workflow};
+pub use read::validate;
 pub use yaml::{WorkflowError, load, text_of};
 
-// 字段表与取值：一处定义、两侧共用（工具箱 `quanttide-work`）。
-pub use quanttide_work::executor::{AGENT, HUMAN, RULE};
-pub use quanttide_work::workflow::Step;
+// 执行者取值：一处定义，本仓自持。
+pub use crate::executor::{AGENT, HUMAN, RULE};
 
-use quanttide_work::workflow::Workflow as SharedWorkflow;
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 
@@ -71,8 +73,8 @@ impl WorkflowFile {
     }
 
     /// 内容那一层交给工具箱（工作流名取自定义里的 `name` 字段）。
-    pub fn shared(&self) -> SharedWorkflow {
-        SharedWorkflow::of(&self.payload)
+    pub fn shared(&self) -> Workflow {
+        Workflow::of(&self.payload)
     }
 
     pub fn description(&self) -> String {

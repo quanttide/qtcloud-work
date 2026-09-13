@@ -4,6 +4,7 @@
 
 ## [Unreleased]
 
+- **收回领域模型**：取消对 pub.dev `quanttide_work` 的依赖，把工具箱抽走的 Dart 领域模型并回本仓——`lib/quanttide_work.dart` 为出口，`artifact/` / `criterion/` / `workflow/` / `task/` / `workspace/` 与根下 `outcome` / `error` / `executor` / `paths` / `fields`；本仓 import 改走 `package:qtcloud_work_studio/quanttide_work.dart`。
 - toolkit 升到 `quanttide_work 0.1.0-beta.6`（与 cli 同号），跟着改到位：
   - **`RunContext` 从工具箱退出**（位置不进模型）：三处位置改由工作台自己在 `repositories/local/run_context.dart` 里定，界面与仓储都引这一份
   - **落点**改走 `WorkspacePlace.place`：工具箱只给相对工作区根的路径，接目录的规矩与命令行相同（声明过的按工作区根接、没声明的按数据仓接；流水不是产物，是任务文件本身）

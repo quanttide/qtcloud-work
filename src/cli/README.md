@@ -65,14 +65,13 @@ sh scripts/validate-line-count.sh    # src/ 下单文件超 250 行即红
 
 | 依赖 | 版本 | 许可 | 用途 |
 | :-- | :-- | :-- | :-- |
-| `quanttide-work` | 0.1.0-beta.6 | CC-BY-4.0 | 领域模型与结果信封（`outcome` / `task` / `workflow` / `workspace` / `artifact`），cli 与 studio 共用 |
 | `clap` | 4 | MIT OR Apache-2.0 | 命令行解析（derive） |
 | `serde` | 1 | MIT OR Apache-2.0 | 序列化派生，供 `serde_json` / `serde_yaml` 用 |
 | `serde_json` | 1 | MIT OR Apache-2.0 | `--json` 输出与窗口那一栏的结构化数据 |
 | `serde_yaml` | 0.9 | MIT OR Apache-2.0 | 工作流与任务文件的 YAML 读写 |
 | `ureq` | 2 | MIT OR Apache-2.0 | provider 探活（`health`）的同步 HTTP 客户端 |
 
-`quanttide-work 0.1.0-beta.6` 的声明许可是 CC-BY-4.0（工具箱源已改 Apache-2.0，随下一号发布）；等工具箱发新号，cli 跟号后改成 Apache-2.0。传递依赖（`Cargo.lock` 那一层）不列，需要审计时用 `cargo deny` 或 `cargo license` 现场生成。
+领域模型（`outcome` / `criterion` / `workflow` / `task` / `workspace` / `artifact`）随本仓源码一并维护，不再引外部包。传递依赖（`Cargo.lock` 那一层）不列，需要审计时用 `cargo deny` 或 `cargo license` 现场生成。
 
 ## 许可
 

@@ -1,8 +1,8 @@
 //! 任务聚合 / 走一步：展开占位、跑判据、记流水、写闸门。
 
 use super::{Task, ai};
-use quanttide_work::criterion::Criterion;
-use quanttide_work::paths::PLACEHOLDER_NAMES;
+use crate::criterion::Criterion;
+use crate::paths::PLACEHOLDER_NAMES;
 use std::path::Path;
 
 /// 一个占位换成哪条路径：工具箱认的那几个名字，按工作区根视角写出来，

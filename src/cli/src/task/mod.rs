@@ -6,19 +6,23 @@
 //! 这一件装任务本身：类型、文件读写、上下文与流水。子件按事分：
 //! 状态推导在 `state`、走一步在 `execute`、交给 AI 的两段话在 `ai`、
 //! 动作在 `report`、日志在 `journal`。
+//!
+//! 领域模型那份 `Task`（内容那一层）在 `model`——与本文件的 `Task`（带位置的
+//! 句柄）同名不同物，故只 `mod model`，用 `crate::task::model::Task` 限定。
 
 pub mod ai;
 pub mod execute;
 pub mod journal;
+pub(crate) mod model;
 pub mod progress;
 pub mod report;
 pub mod state;
 
 pub use report::{task_journal, task_list, task_new, task_status, task_step};
 
+use crate::artifact::Artifact;
 use crate::workflow::{self, Step, WorkflowFile};
-use quanttide_work::artifact::Artifact;
-use quanttide_work::workspace::Workspace;
+use crate::workspace::Workspace;
 use serde_yaml::{Mapping, Value};
 use std::path::{Path, PathBuf};
 
@@ -146,9 +150,9 @@ impl Task {
             .unwrap_or_default()
     }
 
-    /// 这件任务在工具箱里的样子（内容那一层交给工具箱）。
-    pub fn shared(&self) -> quanttide_work::task::Task {
-        quanttide_work::task::Task::of(&self.payload())
+    /// 这件任务在领域模型里的样子（内容那一层交给 `model`）。
+    pub fn shared(&self) -> crate::task::model::Task {
+        crate::task::model::Task::of(&self.payload())
     }
 
     /// 记一笔流水：读任务文件、追加一条、写回去（流水只增不改）。

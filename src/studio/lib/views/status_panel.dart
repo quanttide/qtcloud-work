@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 import '../repositories/local/tasks.dart';
 
 /// 状态面板：任务页右栏，从上到下五块。（见 doc/views/status-panel.md）
 ///
-/// 走过的步骤、下一步、进度都由工具箱的任务聚合算——界面只管画。
+/// 走过的步骤、下一步、进度都由领域模型的任务聚合算——界面只管画。
 class StatusPanel extends StatelessWidget {
   const StatusPanel({
     super.key,

@@ -14,7 +14,13 @@
 
 举例：`catalog` 有自己的定义（条目与快照语义），所以是聚合；`search` 只用 `catalog` 建的名字索引做一件事，所以是服务。`artifact` 是**定义型聚合**——它定的是有哪些标准产物、各落在哪，改它即改规范。
 
-聚合件不与适配件同层：`src/` 顶层只剩目录、少量适配件与 `main.rs`。
+聚合件不与适配件同层：`src/` 顶层只剩目录、少量适配件、领域模型与 `main.rs`。
+
+领域模型随聚合并回本仓：每个聚合目录里，模型在 `model.rs`（`task/`、`workspace/`、`artifact/`），
+读法与校验在 `read.rs`（`workflow/`），跨定义与现场的操作用独立文件（`workspace/` 的
+`place.rs` / `progress.rs` / `check.rs`）。跨聚合的中立件在根下：`criterion/`（判据）与
+`outcome.rs`（结果）、`error.rs`（定义错误）、`executor.rs`（执行者取值）、`paths.rs`（占位）、
+`fields.rs`（字段表）。
 
 ## 命名
 

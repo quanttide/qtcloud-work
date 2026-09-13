@@ -1,5 +1,5 @@
-import 'package:quanttide_work/quanttide_work.dart' show Outcome;
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Outcome;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 
 import '../studio_repository.dart';
 import 'dispatch.dart';
@@ -18,7 +18,7 @@ class LocalFailure implements Exception {
 }
 
 /// 实现：不起命令面、不编信封，直接把命令派给 `dispatch`，
-/// 再从结构化那一栏拿回任务与定义的原文，装成工具箱的领域对象。
+/// 再从结构化那一栏拿回任务与定义的原文，装成本仓的领域对象。
 ///
 /// 与 `bin/qtcloud.dart` 算的是同一套结果——同一处工作区、同一条命令面。
 class LocalRepository implements StudioRepository {

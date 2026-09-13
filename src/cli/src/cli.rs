@@ -1,8 +1,8 @@
 //! 量潮知识工作云 CLI —— 入口与发射。
 //!
 //! 这一层只做三件事：clap 定义、定位（工作区 / 数据仓 / 工作流目录）、把结果发射出去。
-//! 参数分派与业务调用下移到 `handlers`；算法都在聚合与服务里，结果都走工具箱那一层
-//! （`quanttide_work::outcome`），命令行与窗口共用。
+//! 参数分派与业务调用下移到 `handlers`；算法都在聚合与服务里，结果都走
+//! `crate::outcome::Outcome` 那一层。
 
 mod emit;
 mod handlers;

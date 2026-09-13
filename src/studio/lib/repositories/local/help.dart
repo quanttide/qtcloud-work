@@ -1,4 +1,4 @@
-import 'package:quanttide_work/quanttide_work.dart' show Outcome;
+import 'package:qtcloud_work_studio/quanttide_work.dart' show Outcome;
 
 /// 导览：按用途把命令分组，列成一张人读得懂的清单。
 ///

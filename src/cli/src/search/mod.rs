@@ -3,8 +3,8 @@
 //! 依赖方向单向：`search → catalog`，`catalog` 不得依赖 `search`。
 
 use crate::catalog::{self, Entry};
+use crate::outcome::Outcome;
 use crate::workspace::short;
-use quanttide_work::outcome::Outcome;
 use std::collections::BTreeSet;
 use std::path::Path;
 

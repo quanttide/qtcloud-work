@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:quanttide_work/quanttide_work.dart' as qt;
+import 'package:qtcloud_work_studio/quanttide_work.dart' as qt;
 import 'package:qtcloud_work_studio/screens/task_screen.dart';
 
 import '../support/fixtures.dart';
