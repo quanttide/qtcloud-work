@@ -45,7 +45,30 @@
 
 ## 六、文档与测试
 
-- [ ] **接口参考与开发指南对表**：`docs/api-references/task.md` → `order.md`（动作改动词式）、`workflow.md` 同改；`docs/dev-guide/task.md` → `work-order.md`，工作记录另起一篇；`docs/api-references/index.md` 的 API 索引与全局选项跟改（含 `--artifacts`）。
-- [ ] **用例号对账**：`tests/` 按用例切文件、上方一行 `// 用例：<号>`，与 `docs/user-guide/*.md` 的 `## 用例 <号>、…` 相等；跑 `scripts/validate-usecases.sh` 核。
-- [ ] **数据迁移**：`data/tasks/*.yaml`（v1 格式，带 `log` / `gates` / `root`）翻成工单格式；`data/workflows/*.yaml` 不带凭证，直接读得进，不用动。
-- [ ] **与 studio 对表**：新增与改动的动作，`ok` / `columns` / `rows` / `data` 四样与 studio 对得上（不比 `lines`）。
+### 测试
+
+现状：`tests/` 12 件、约 1000 行，按用例切（`agent_step` / `task_start` / `state_machine` / `criteria` / `human_step` / `defaults` / `run_context` …），每条测试上方一行 `// 用例：<号>`。
+
+- [ ] **改名与改意的**：`tests/task_start.rs` → `order_start.rs`（起步即封面落笔即封，`id` / `workflow_id` / `created_at` 账本方查填）；`tests/agent_step.rs` / `tests/human_step.rs` → `order_next.rs` / `order_done.rs`（机器路径、人的路径含闸门放行）；`tests/state_machine.rs` 的「流水序列 → 下一步」真值表改成「`records` 的 `step` 序列 → 下一步」，不再按 `·审` / `·判` 后缀投票。
+- [ ] **重写的**：`tests/run_context.rs` 整篇换——现在测的是「运行上下文随任务记着」，位置不进模型后这几件事不存在了；改成测装载：不给 `--root` 往上找 `data/journal`、账本缺省落 `$XDG_DATA_HOME/qtcloud-work/workspaces/<键>`、`--data` / `--artifacts` 指到哪就落哪，并加一条「只读动作不在任何根上建文件」。`tests/defaults.rs` 的缺省矩阵从三项（`--root` / `--data` / `--workflows`）变四项（加 `--artifacts`），断言换成新缺省。
+- [ ] **新增的**：
+  - `tests/records.rs`：追加幂等（同 `id` 即拒）、`seq` 自 1 起不跳号、`step_id` 按 `step` 查填、时间倒序即拒、只增不改（旧记录原样在账上，以最新一条为准）；
+  - `tests/credentials.rs`：定义落盘文件里没有 `id`；读时按「工作区 id + 名字」派生，两次读一样；同名跨工作区凭证不同；工单与工作记录照旧带凭证；
+  - `tests/events.rs`：三件事各落一行 JSONL，负载带工作区 `id`、工单 `id` / `name` / `workflow_id`、记录 `id` / `seq` / `step_id` 与全文；重放同 `id` 不二次落账。
+- [ ] **跟改的**：`tests/contract.rs`（契约快照，新动作与 `data` 字段变更要覆盖，「动作层不依赖入口层」那条要包住新动作）；`tests/criteria.rs` / `tests/criteria_matrix.rs`（落点引用按 `--artifacts` 展开）；`tests/definition_check.rs`（补两条：判据路径须在区内、描述里点到的小节须有 `contains` 覆盖）；`tests/common/mod.rs` 的起任务夹具改成起工单（备 `records` 与 `workspace.yaml`）。
+- [ ] **用例号对账**：`docs/user-guide/*.md` 的 `## 用例 <号>、…` 与 `tests/*.rs` 的 `// 用例：<号>` 两边集合必须相等，`scripts/validate-usecases.sh` 核。现有五条（起一件任务并走一步 / 三类判据各判各的 / 比对两份课程档案 / 把语境条目收进材料 / 人做的步骤人记一笔）改标题（任务 → 工单、人记一笔 → 闸门放行），并按需增开：流水只增不改、凭证按名派生、产物落点。
+
+### 文档
+
+- [ ] **接口参考·动作面**：`docs/api-references/task.md` → `order.md`，动作改动词式（`create` / `show` / `list` / `next` / `done` / `journal` / `delete`），每个动作写清参数、落盘与拒绝条件；`workflow.md` 的动作表同改，导出仍是原样文件、导入撞名即拒这两条保留。
+- [ ] **接口参考·输出契约**：`order` 的 `--json` 里 `data` 不得再有 `log` / `gates` / `start`；`workflow`（名字）与新增 `workflow_id` 分开；新动作 `delete` 的 `data` 与退出码写进契约（`--json` 字段只加不改、要改先加新留旧）。
+- [ ] **接口参考·全局选项**：`docs/api-references/index.md` 的 API 索引表（task → order）与全局选项跟改：加 `--artifacts`，`--data` 缺省改成 `$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>`，并写明「位置不进模型，全部由启动参数装载」。
+- [ ] **开发指南**：`docs/dev-guide/task.md` 拆成 `work-order.md` 与 `work-record.md`（前者封面与推导，后者记账与只增不改）；`workspace.md` 补工作区身份与三处位置（根 / 账本 / 产物）；`artifact.md` 的落点规矩从「相对工作区根」改成「相对产物落点」；`docs/dev-guide/index.md` 的落点图跟着改。
+- [ ] **规矩落座**：把两条规矩写进开发指南——「定义里不抄别处拥有的事实（分类目录、落点、名字一律指过去）」写 `workflow.md`；「账本归 CLI、产物归工作区」写 `workspace.md`。
+- [ ] **使用指南**：`docs/user-guide/{index,task,workflow,workspace,usecases}.md` 里的命令示例、全局选项说明与用例标题跟着改。
+
+### 数据与发布
+
+- [ ] **数据迁移**：`data/tasks/review-ui-shot.yaml`、`data/tasks/review-ui-shot-v2.yaml` 两张 v1 工单翻成新格式——补 `id` / `workflow_id` / `created_at`，`log` 逐条变 `records`（按序补 `seq` 与 `step_id`），删 `gates` 与 `root` / `data` / `workflows` 三个上下文字段。`data/workflows/*.yaml`（`optimize-workflow.yaml` / `review-ui-shot.yaml`）不带凭证，不用动；`data/artifacts/` 与 `data/materials/` 是内容，也不动。
+- [ ] **门禁与版本**：命令面变了要记 `CHANGELOG.md`（`scripts/validate-changelog.sh` 核）、版本与 CHANGELOG 头一行一致（`scripts/validate-version.sh` 核）；拆 `task/` 时盯住单文件 ≤250 行（`scripts/validate-line-count.sh` 核，`task/mod.rs` 197 行、`task/report.rs` 242 行已经贴线，加 `records` 与 `events` 很容易超）。
+- [ ] **与 studio 对表**：新增动作（`order delete`）与改名字段（`data` 里 `log` → `records`、`start` / `gates` 去掉）要在 studio 侧同步；两侧只比 `ok` / `columns` / `rows` / `data` 四样，不比 `lines`。
