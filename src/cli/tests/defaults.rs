@@ -1,14 +1,15 @@
-//! 缺省参数矩阵：三个可省的位置（--root / --data / --workflows）各缺一次。
+//! 缺省矩阵：四个可省的位置（--root / --data / --workflows / --artifacts）各缺一次，
+//! 缺省各是什么——根用当前目录、账本落 XDG 工作区键、工作流目录跟账本、产物落根下 `artifacts/`。
 //!
-//! 用例：一（起一件任务并走一步）、用例：三（运行上下文随任务记着）
+//! 用例：一（起一件工单并走一步）、用例：八（产物落点）
 
 mod common;
 
-use common::Fixture;
+use common::{Fixture, 冒烟工作流};
 
 #[test]
-fn 三处位置缺省各是什么行为() {
-    // 一、工作区动作不写 --root：用当前目录，并把用的是哪个根印出来
+fn 四处位置缺省各是什么行为() {
+    // 一、不写 --root：用当前目录，并把用的是哪个根印出来
     let fix = Fixture::new("defaults");
     fix.file("data/insight/试.md", "# 试\n");
     let found = fix.run(false, &["search", "试"]);
@@ -19,51 +20,80 @@ fn 三处位置缺省各是什么行为() {
         found.crop()
     );
 
-    // 二、工作区动作显式给 --root：用给的那个
-    fix.workflow("试一条", "name: 试一条\ndescription: 试\nsteps:\n- name: 一步\n  description: 一步\n  criteria: []\n");
-    let other = fix.root.join("别的根");
-    std::fs::create_dir_all(&other).expect("建别的根");
-    std::fs::create_dir_all(other.join("data/insight")).expect("建目录");
-    std::fs::write(other.join("data/insight/别的.md"), "# 别的\n").expect("写文档");
-    let explicit = fix.run(
-        false,
-        &["--root", other.to_str().unwrap(), "search", "别的"],
-    );
-    assert!(explicit.ok(), "显式给就该用它: {}", explicit.crop());
-    assert!(
-        explicit.crop().contains("别的根"),
-        "该印出给的那个根: {}",
-        explicit.crop()
-    );
-
-    // 三、任务动作只给 --data：工作区与工作流目录都取任务里记的
-    fix.workflow("试一条", "name: 试一条\ndescription: 试\nsteps:\n- name: 一步\n  description: 一步\n  criteria: []\n");
-    fix.run_full(true, &["task", "--new", "试一条", "--workflow", "试一条"]);
-    let only_data = fix.run_recorded(&["task", "试一条"]);
-    assert!(
-        only_data.ok(),
-        "只给数据仓就该开得起来: {}",
-        only_data.crop()
-    );
-    assert!(
-        only_data.crop().contains("下一步：一步"),
-        "{}",
-        only_data.crop()
-    );
-
-    // 四、任务动作给了别的 --root：命令行优先
-    let elsewhere = fix.root.join("另一个工作区");
-    std::fs::create_dir_all(&elsewhere).expect("建工作区");
-    let overridden = fix.run(
-        false,
+    // 二、不写 --data：账本落 $XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/
+    fix.workflow("AI冒烟", 冒烟工作流);
+    fix.pi("printf '你好\\n' > 问候.md\necho 通过");
+    let created = fix.run(
+        true,
         &[
-            "--root",
-            elsewhere.to_str().unwrap(),
-            "--data",
-            fix.data.to_str().unwrap(),
-            "task",
-            "试一条",
+            "--workflows",
+            fix.flows.to_str().unwrap(),
+            "order",
+            "create",
+            "AI冒烟",
+            "--workflow",
+            "AI冒烟",
         ],
     );
-    assert!(overridden.ok(), "命令行给了就该优先: {}", overridden.crop());
+    assert!(created.ok(), "{}", created.crop());
+    let workspaces = fix.xdg.join("qtcloud-work/workspaces");
+    let mut books: Vec<_> = std::fs::read_dir(&workspaces)
+        .expect("账本仓该在 XDG 底下")
+        .map(|entry| entry.expect("读账本仓").path())
+        .collect();
+    assert_eq!(books.len(), 1, "一个工作区键一本账");
+    let ledger = books.pop().expect("恰好一本");
+    assert!(
+        ledger.join("workorders/AI冒烟.yaml").is_file(),
+        "工单落在缺省账本里: {}",
+        ledger.display()
+    );
+
+    // 三、不写 --workflows：定义跟在账本里（账本的 workflows/）
+    let listed = fix.run(
+        false,
+        &[
+            "--data",
+            fix.data.to_str().unwrap(),
+            "workflow",
+            "create",
+            "账本里的",
+            "--steps",
+            "甲",
+        ],
+    );
+    assert!(listed.ok(), "{}", listed.crop());
+    assert!(
+        fix.data.join("workflows/账本里的.yaml").is_file(),
+        "不给 --workflows，定义该落进账本"
+    );
+    let shown = fix.run(
+        false,
+        &[
+            "--data",
+            fix.data.to_str().unwrap(),
+            "workflow",
+            "show",
+            "账本里的",
+        ],
+    );
+    assert!(shown.ok(), "读也该从账本读: {}", shown.crop());
+
+    // 四、不写 --artifacts：产物落 <根>/artifacts/（{{report}} 按缺省展开）
+    fix.workflow(
+        "写报告",
+        "name: 写报告\ndescription: 试\nsteps:\n- name: 写\n  description: 把结论写进报告\n  criteria:\n  - executor: rule\n    description: 结论在\n    file: '{{report}}'\n    contains: 结论\n",
+    );
+    common::write(
+        &fix.root.join("artifacts/report/写报告.md"),
+        "# 报告\n## 结论\n成了\n",
+    );
+    let made = fix.run_ledger(&["order", "create", "写报告", "--workflow", "写报告"]);
+    assert!(made.ok(), "{}", made.crop());
+    let stepped = fix.run_ledger(&["order", "next", "写报告"]);
+    assert!(
+        stepped.ok(),
+        "{{report}} 缺省该展开到 <根>/artifacts: {}",
+        stepped.crop()
+    );
 }

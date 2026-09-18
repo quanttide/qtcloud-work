@@ -4,16 +4,16 @@
 
 ## 一 · 测试与门禁（先绿再提交）
 
-- [ ] **工作区选定接口**：装载顺序定为 命令行 > `QTCLOUD_WORK_ROOT` > 向上搜索——跨工作区干活或从外部操作时不必每条命令带 `--root`；动 `src/workspace/mod.rs`（`Locate::resolve` 的缺省链）与 `src/cli.rs`，`defaults.rs` / `run_context.rs` 的装载矩阵补「环境变量指哪就落哪」一行。
-- [ ] **补夹具**：`tests/common/mod.rs` 的 `Fixture` 补起工单、备流水、认闸门的方法（`records` 等新测试调的 `run_recorded` / `task_yaml` / `gates`）。缺这些，七个测试文件编译不过。
-- [ ] **删旧测试**：`tests/task_start.rs` / `agent_step.rs` / `human_step.rs`——`order_start` / `order_next` / `order_done` 已接替，删除即消掉三处编译错。
-- [ ] **`run_context.rs` 整篇换**：位置不进模型后，「运行上下文随任务记着」不存在了，改成测装载——不给 `--root` 往上找 `data/journal`、账本缺省落 `$XDG_DATA_HOME/qtcloud-work/workspaces/<键>`、`--data` / `--artifacts` 指到哪就落哪；加一条「只读动作不在任何根上建文件」。
-- [ ] **`defaults.rs`**：缺省矩阵从三项变四项（加 `--artifacts`），断言换新缺省。
-- [ ] **`material_intake.rs` 跟改**：随夹具改名。
-- [ ] **`contract.rs` 跟改**：新动作与 `data` 字段变更要覆盖；「动作层不依赖入口层」那条包住新动作。
-- [ ] **新增 `tests/events.rs`**：三件事各落一行 JSONL，负载带工作区 `id`、工单 `id` / `name` / `workflow_id`、记录 `id` / `seq` / `step_id` 与全文；事件文件只增不改，去重是下游的事。
-- [ ] **用例增开三条**：流水只增不改、凭证按名派生、产物落点——`docs/user-guide/usecases.md` 的 `## 用例` 与 `tests/*.rs` 的 `// 用例：<号>` 两边同增；现有五条改标题（任务 → 工单、人记一笔 → 闸门放行）。`scripts/validate-usecases.sh` 核。
-- [ ] **门禁全绿**：`cargo fmt --check`（当前 `src/cli/commands.rs` 不过）→ `cargo clippy --all-targets --locked -- -D warnings` → `cargo test --locked` → `validate-usecases.sh` / `validate-line-count.sh`。
+- [x] **工作区选定接口**：装载顺序定为 命令行 > `QTCLOUD_WORK_ROOT` > 向上搜索——跨工作区干活或从外部操作时不必每条命令带 `--root`；动 `src/workspace/mod.rs`（`Locate::resolve` 的缺省链）与 `src/cli.rs`，`defaults.rs` / `run_context.rs` 的装载矩阵补「环境变量指哪就落哪」一行。
+- [x] **补夹具**：`tests/common/mod.rs` 的 `Fixture` 补 `run_in`（指定目录与环境变量跑，装载矩阵靠它）、`run_ledger` 带上定义目录；另缺省摆一枚「不该被调到」的 `pi` 失败桩——测试忘摆桩就当场炸，绝不落到机器上的真 `pi`（曾致测试暗调真模型二十秒）。
+- [x] **删旧测试**：`tests/task_start.rs` / `agent_step.rs` / `human_step.rs`——`order_start` / `order_next` / `order_done` 已接替，删除即消掉三处编译错。
+- [x] **`run_context.rs` 整篇换**：位置不进模型后，「运行上下文随任务记着」不存在了，改成测装载——不给 `--root` 往上找 `data/journal`、账本缺省落 `$XDG_DATA_HOME/qtcloud-work/workspaces/<键>`、`--data` / `--artifacts` 指到哪就落哪；加一条「只读动作不在任何根上建文件」。
+- [x] **`defaults.rs`**：缺省矩阵从三项变四项（加 `--artifacts`），断言换新缺省。
+- [x] **`material_intake.rs` 跟改**：随夹具改名。
+- [x] **`contract.rs` 跟改**：新动作与 `data` 字段变更要覆盖；「动作层不依赖入口层」那条包住新动作。
+- [x] **新增 `tests/events.rs`**：三件事各落一行 JSONL，负载带工作区 `id`、工单 `id` / `name` / `workflow_id`、记录 `id` / `seq` / `step_id` 与全文；事件文件只增不改，去重是下游的事。
+- [x] **用例增开三条**：流水只增不改（六）、凭证按名派生（七）、产物落点（八）——`docs/user-guide/usecases.md` 的 `## 用例` 与 `tests/*.rs` 的 `// 用例：<号>` 两边同增；现有五条改标题（任务 → 工单、人记一笔 → 闸门放行）；用例三（比对两份课程档案）另立 `order_flow.rs` 安家。`scripts/validate-usecases.sh` 核。
+- [x] **门禁全绿**：`cargo fmt --check`（当前 `src/cli/commands.rs` 不过）→ `cargo clippy --all-targets --locked -- -D warnings` → `cargo test --locked` → `validate-usecases.sh` / `validate-line-count.sh`。
 
 ## 二 · 文档
 

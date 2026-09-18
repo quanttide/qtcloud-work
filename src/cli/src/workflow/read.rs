@@ -25,6 +25,7 @@ impl Step {
             executor = AGENT.to_string();
         }
         Step {
+            id: text_of(value, "id"),
             name: text_of(value, "name"),
             description: text_of(value, "description"),
             executor,
@@ -37,6 +38,7 @@ impl Workflow {
     /// 从定义里的字段读出（不校验）；工作流名取自 `name` 字段。
     pub fn of(payload: &Yaml) -> Workflow {
         Workflow {
+            id: text_of(payload, "id"),
             name: text_of(payload, "name"),
             description: text_of(payload, "description"),
             steps: payload

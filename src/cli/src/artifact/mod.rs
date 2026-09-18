@@ -139,16 +139,3 @@ pub fn make(root: &Path, wanted: Option<&[Asset]>) -> Vec<PathBuf> {
     }
     created
 }
-
-/// 工作区根：从起点往上找，直到看见数据层。
-pub fn repo_root() -> Result<PathBuf, String> {
-    let mut dir = std::env::current_dir().map_err(|e| e.to_string())?;
-    loop {
-        if dir.join("data").join("journal").is_dir() {
-            return Ok(dir);
-        }
-        if !dir.pop() {
-            return Err("未找到第二大脑仓库根（应在含 data/journal 的目录下使用）".to_string());
-        }
-    }
-}

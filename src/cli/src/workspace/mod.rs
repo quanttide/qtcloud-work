@@ -1,40 +1,63 @@
-//! 工作区：一次工作的边界，把定义与任务系在一起。
+//! 工作区聚合：一次工作的边界——身份、落点、流水判定与定义核对。
 //!
-//! 模型（[`Workspace`]）与跨着定义与现场的三件（定义核对 [`check`]、落点 [`place`]、
-//! 流水判定 [`progress`]）随领域模型并回本模块；平台侧的「工作区根 / 数据仓」默认值
-//! 与路径怎么显示给人看（相对工作区根写短一点）也归这里。
+//! 领域那一侧只认内容（定义与工单），不认位置；位置由平台装载（[`Locate`]）。
+//! 子件按事分：身份与位置装载在 `locate`、产物落点在 `place`、
+//! 流水判定（进度与完结只推导）在 `progress`、定义核对在 `check`。
+//! 出处：`docs/specification/place/workspace.md`。
 
-mod check;
-mod model;
-mod place;
-mod progress;
+pub mod check;
+pub mod locate;
+pub mod place;
+pub mod progress;
 
-pub use check::Finding;
-pub use model::Workspace;
+pub use check::check;
+pub use locate::Locate;
 
+use crate::sha1::sha1_hex;
 use std::path::{Path, PathBuf};
 
-/// 工作区根：给了就用给的，没给就用当前目录。
-pub fn root(cli_root: Option<&Path>) -> std::result::Result<PathBuf, String> {
-    match cli_root {
-        Some(root) => Ok(root.to_path_buf()),
-        None => std::env::current_dir().map_err(|e| e.to_string()),
+/// 工作区根：装载顺序 命令行 > 环境变量 `QTCLOUD_WORK_ROOT` > 向上搜索——
+/// 跨工作区干活不必每条命令带 `--root`，也不用站在根里。
+pub fn root(cli_root: Option<&Path>) -> PathBuf {
+    if let Some(root) = cli_root {
+        return root.to_path_buf();
     }
+    if let Some(root) = std::env::var_os("QTCLOUD_WORK_ROOT")
+        .map(PathBuf::from)
+        .filter(|root| !root.as_os_str().is_empty())
+    {
+        return root;
+    }
+    locate::repo_root()
 }
 
-/// 数据仓：任务与产物草稿落在这里。
-///
-/// 不给 `--data` 就用当前目录下的 `data/`——开发环境的默认位置，不进版本库；
-/// 用哪个数据仓印到标准错误，免得结果落在哪里靠猜。
-pub fn data_dir(cli_data: Option<&Path>) -> std::result::Result<PathBuf, String> {
-    if let Some(data) = cli_data {
-        return Ok(data.to_path_buf());
-    }
-    let data = std::env::current_dir()
-        .map_err(|e| e.to_string())?
-        .join("data");
-    eprintln!("用的是数据仓：{}（没给 --data）", data.display());
-    Ok(data)
+/// 工作区键：由工作区根的路径派生——可读名加短码。账本是「这台机器上的这个工作区」的账。
+pub fn workspace_key(root: &Path) -> String {
+    let resolved = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    format!(
+        "{}-{}",
+        resolved
+            .file_name()
+            .map(|name| name.to_string_lossy().to_string())
+            .unwrap_or_default(),
+        &sha1_hex(&resolved.to_string_lossy())[..8]
+    )
+}
+
+/// 账本缺省位置：`$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/`。
+pub fn account(root: &Path) -> PathBuf {
+    let home = std::env::var("XDG_DATA_HOME")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            std::env::var("HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| PathBuf::from("."))
+        });
+    home.join("qtcloud-work")
+        .join("workspaces")
+        .join(workspace_key(root))
 }
 
 /// 路径怎么显示给人看：相对工作区根写短一点，不在根底下就原样。

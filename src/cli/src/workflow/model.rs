@@ -12,6 +12,8 @@ use crate::executor::{AGENT, HUMAN, RULE};
 /// 一个工作步骤：叫什么、做什么、谁执行、怎么算完。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Step {
+    /// 全球凭证：定义里不写，读时按「工作流凭证 + 名字」派生（`crate::ids`）。
+    pub id: String,
     pub name: String,
     pub description: String,
     pub executor: String,
@@ -19,23 +21,6 @@ pub struct Step {
 }
 
 impl Step {
-    /// 这一步的执行者是不是人。
-    pub fn human(&self) -> bool {
-        self.executor == HUMAN
-    }
-
-    pub fn name(&self) -> String {
-        self.name.clone()
-    }
-
-    pub fn description(&self) -> String {
-        self.description.clone()
-    }
-
-    pub fn executor(&self) -> String {
-        self.executor.clone()
-    }
-
     pub fn criteria(&self) -> Vec<Criterion> {
         self.criteria.clone()
     }
@@ -64,12 +49,28 @@ impl Step {
 /// 工作流聚合：一串步骤（不含文件位置——那是各自包的事）。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Workflow {
+    /// 全球凭证：定义里不写，读时按「工作区 id + 名字」派生（`crate::ids`）。
+    pub id: String,
     pub name: String,
     pub description: String,
     pub steps: Vec<Step>,
 }
 
 impl Workflow {
+    /// 凭证现算：工作流按「工作区 id + 名字」、步骤按「工作流凭证 + 名字」派生。
+    /// 定义文件不带凭证；在人写的那份上不添字，凭证只在读进内存时补上。
+    pub fn credentials(mut self, workspace_id: &str) -> Workflow {
+        if self.id.is_empty() {
+            self.id = crate::ids::derive("workflow", &[workspace_id, &self.name]);
+        }
+        for step in &mut self.steps {
+            if step.id.is_empty() {
+                step.id = crate::ids::derive("step", &[&self.id, &step.name]);
+            }
+        }
+        self
+    }
+
     pub fn description(&self) -> String {
         self.description.clone()
     }

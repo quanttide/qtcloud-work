@@ -5,5 +5,5 @@
 mod command;
 mod workspace;
 
-pub(crate) use command::{TaskArgs, WorkflowArgs, task, workflow};
+pub(crate) use command::{order, workflow};
 pub(crate) use workspace::{audit, catalog, health, help, material, search};

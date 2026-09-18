@@ -1,5 +1,4 @@
-//! 场景：一步挂三类判据——rule 当场核、agent 照说明审、human 原样进闸门，谁判就写谁。
-//!
+//! 场景：一步挂三类判据——rule 当场核、agent 照判准审、human 进待拍板清单，谁判就写谁。
 
 mod common;
 
@@ -16,19 +15,41 @@ fn one_step_with_three_kinds_of_criteria() {
     fix.pi("printf '规矩是死的，人是活的。\\n' > 话.md\necho 通过");
     fix.run_full(
         true,
-        &["task", "--new", "三类判据", "--workflow", "三类判据"],
+        &["order", "create", "三类判据", "--workflow", "三类判据"],
     );
 
-    let stepped = fix.run_recorded(&["task", "三类判据", "--next"]);
-    assert!(stepped.ok(), "--next 没跑通: {}", stepped.crop());
-    let record = fix.task_yaml("三类判据");
+    let stepped = fix.run_ledger(&["order", "next", "三类判据"]);
+    assert!(stepped.ok(), "order next 没跑通: {}", stepped.crop());
+    // rule 与 agent 都过了，但这站挂着闸——程序不记账，等人放行。
+    let order = fix.order_yaml("三类判据");
     assert!(
-        record.contains("step: 写一句") && record.contains("ok: true"),
-        "rule 与 agent 都过了才算这一步过:\n{record}"
+        order.contains("records: []"),
+        "闸门没过不记账，流水里不该有这一笔:\n{order}"
     );
-    let gates = fix.gates("三类判据");
+
+    // 带闸门的站：程序核过的这半算数，放行那半等人。
+    let shown = fix.run_ledger(&["order", "show", "三类判据"]);
+    let view = shown.crop();
     assert!(
-        gates.contains("创始人认可"),
-        "human 判据该原样进闸门:\n{gates}"
+        view.contains("闸门：写一句：创始人认可"),
+        "human 判据该进待拍板清单:\n{view}"
+    );
+    assert!(
+        view.contains("下一步：写一句"),
+        "等人放行时下一步还是它:\n{view}"
+    );
+
+    // 放行之后：这一站才算走过。
+    let released = fix.run_ledger(&["order", "done", "三类判据", "写一句", "--note", "认可"]);
+    assert!(released.ok(), "放行没跑通: {}", released.crop());
+    let final_view = fix.run_ledger(&["order", "show", "三类判据"]);
+    assert!(
+        final_view.crop().contains("走完了"),
+        "放行后该走完: {}",
+        final_view.crop()
+    );
+    assert!(
+        fix.order_yaml("三类判据").contains("is_succeeded: true"),
+        "放行记的这一笔该是过了"
     );
 }

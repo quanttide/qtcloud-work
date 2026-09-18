@@ -1,10 +1,11 @@
 //! 路径：占位认哪几个、怎么换。
 //!
 //! 中立处：`criterion`（判据的字段里怎么写占位）与 `workspace`（落点、定义核对）向它对齐。
-//! 换成哪条路径由调用方给（`workspace` 按任务声明与默认处算）；这里只管认名字与替换。
+//! 换成哪条路径由调用方给（`order::execute` 按产物落点算）；这里只管认名字与替换。
+//! `log` 占位随流水字段一起撤——流水是账本里的 `records`，不再是产物。
 
-/// 定义里只认这四个占位。
-pub const PLACEHOLDER_NAMES: [&str; 4] = ["artifacts", "report", "journal", "log"];
+/// 定义里只认这三个占位。
+pub const PLACEHOLDER_NAMES: [&str; 3] = ["artifacts", "report", "journal"];
 
 /// 一条文字里的占位名（`{{name}}` 的 name，按出现次序，重复的也留）。
 pub fn placeholders_in(value: &str) -> Vec<String> {

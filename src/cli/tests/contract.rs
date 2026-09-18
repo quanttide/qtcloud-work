@@ -37,7 +37,7 @@ fn 子命令清单是契约() {
         }
     }
     let want = [
-        "search", "catalog", "audit", "material", "workflow", "task", "health", "help",
+        "search", "catalog", "audit", "material", "workflow", "order", "health", "help",
     ];
     for name in want {
         assert!(
@@ -59,7 +59,7 @@ fn 导览列出全部命令() {
     let out = fix.run(false, &["help"]);
     assert!(out.ok(), "help 没跑通: {}", out.crop());
     for name in [
-        "search", "catalog", "audit", "material", "workflow", "task", "health", "help",
+        "search", "catalog", "audit", "material", "workflow", "order", "health", "help",
     ] {
         assert!(out.crop().contains(name), "导览少了 {name}: {}", out.crop());
     }
@@ -72,7 +72,7 @@ fn 导览列出全部命令() {
 fn 每条命令的帮助都有例子() {
     let fix = Fixture::new("help-examples");
     for name in [
-        "search", "catalog", "audit", "material", "workflow", "task", "help", "health",
+        "search", "catalog", "audit", "material", "workflow", "order", "help", "health",
     ] {
         let out = fix.run(false, &[name, "--help"]);
         assert!(out.ok(), "{name} --help 没跑通: {}", out.crop());
@@ -119,6 +119,28 @@ fn json字段是契约() {
             material.crop()
         );
     }
+
+    // order 的 data 是新模型的契约：有 id / workflow_id / records，没有 v1 的 log / gates / start。
+    let made = fix.run_ledger(&["workflow", "create", "试一条", "--steps", "一步"]);
+    assert!(made.ok(), "{}", made.crop());
+    let made = fix.run_ledger(&["order", "create", "试一条", "--workflow", "试一条"]);
+    assert!(made.ok(), "{}", made.crop());
+    let shown = fix.run_ledger(&["order", "show", "试一条", "--json"]);
+    assert!(shown.ok(), "{}", shown.crop());
+    for key in ["\"id\"", "\"workflow_id\"", "\"records\""] {
+        assert!(
+            shown.stdout().contains(key),
+            "order --json 少了 {key}: {}",
+            shown.crop()
+        );
+    }
+    for gone in ["\"log\"", "\"gates\"", "\"start\""] {
+        assert!(
+            !shown.stdout().contains(gone),
+            "order --json 不该再有 v1 字段 {gone}: {}",
+            shown.crop()
+        );
+    }
 }
 
 /// 依赖方向：聚合与服务不依赖入口层（重构搬家时最容易被顺手破坏的一条）。
@@ -127,22 +149,34 @@ fn 动作层不依赖入口层() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let layers = [
         "workspace/mod.rs",
+        "workspace/check.rs",
+        "workspace/locate.rs",
+        "workspace/place.rs",
+        "workspace/progress.rs",
+        "order/mod.rs",
+        "order/actions.rs",
+        "order/execute.rs",
+        "order/inspect.rs",
+        "order/journal.rs",
+        "order/model.rs",
+        "order/record.rs",
+        "order/ai.rs",
+        "workflow/mod.rs",
+        "workflow/actions.rs",
+        "workflow/model.rs",
+        "workflow/read.rs",
+        "workflow/yaml.rs",
+        "events.rs",
+        "ids.rs",
+        "artifact/mod.rs",
+        "artifact/model.rs",
+        "criterion/mod.rs",
+        "criterion/model.rs",
         "search/mod.rs",
         "health.rs",
-        "artifact/mod.rs",
         "audit/mod.rs",
         "catalog/mod.rs",
         "material/mod.rs",
-        "workflow/mod.rs",
-        "workflow/yaml.rs",
-        "workflow/check.rs",
-        "workflow/actions.rs",
-        "task/mod.rs",
-        "task/state.rs",
-        "task/journal.rs",
-        "task/ai.rs",
-        "task/execute.rs",
-        "task/report.rs",
     ];
     for file in layers {
         let text = std::fs::read_to_string(src.join(file)).expect("读源码");

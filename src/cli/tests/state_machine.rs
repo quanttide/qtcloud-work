@@ -1,6 +1,7 @@
-//! 状态真值表：状态从流水推出来，所以「流水序列 → 下一步」该有一张表。
+//! 状态真值表：进度与完结只推导，所以「records 的 step 序列 → 下一步」该有一张表。
+//! 不再按 `·审` / `·判` 后缀投票——流水里一笔记一件事，过没过看 `is_succeeded`。
 //!
-//! 用例：一（起任务与走一步那件事的推演），用例：五（人为地记一步）
+//! 用例：一（起工单与走一步那件事的推演），用例：五（人记一笔）
 
 mod common;
 
@@ -16,28 +17,18 @@ fn 三步() -> Fixture {
 }
 
 #[test]
-fn 流水序列决定下一步() {
-    /// 一格：名字、流水序列、期望的下一步（「走完」表示全部走过）。
+fn records序列决定下一步() {
+    /// 一格：名字、records 序列（步骤名、过没过）、期望的下一步（「走完」表示全部走过）。
     type Case = (&'static str, Vec<(&'static str, bool)>, &'static str);
     let cases: Vec<Case> = vec![
         ("什么都没记", vec![], "甲"),
-        ("只执行过", vec![("甲", true)], "乙"),
+        ("记过一笔", vec![("甲", true)], "乙"),
+        ("这笔没过", vec![("甲", false)], "甲"),
         (
-            "执行过了、审查判 ✗",
-            vec![("甲", true), ("甲·审", false)],
-            "甲",
-        ),
-        (
-            "审查 ✗ 后重走一次都 ok",
-            vec![
-                ("甲", true),
-                ("甲·审", false),
-                ("甲", true),
-                ("甲·审", true),
-            ],
+            "没过之后重走一笔过了",
+            vec![("甲", false), ("甲", true)],
             "乙",
         ),
-        ("执行本身就没成", vec![("甲", false)], "甲"),
         (
             "后一步先记了（乱序）",
             vec![("丙", true), ("甲", true)],
@@ -45,24 +36,19 @@ fn 流水序列决定下一步() {
         ),
         (
             "三步都过",
-            vec![
-                ("甲", true),
-                ("甲·审", true),
-                ("乙", true),
-                ("甲·审", true),
-                ("丙", true),
-            ],
+            vec![("甲", true), ("乙", true), ("丙", true)],
             "走完",
         ),
-        ("名字不在定义里的流水不算数", vec![("查无此步", true)], "甲"),
+        ("名字不在定义里的记录不算数", vec![("查无此步", true)], "甲"),
     ];
-    for (name, log, want) in cases {
+    for (name, records, want) in cases {
         let fix = 三步();
-        fix.task_with("试一条", "试一条", &log);
-        let view = fix.run_recorded(&["task", "试一条"]);
+        let workflow_id = fix.workflow_id("试一条");
+        fix.order_with("试一条", &workflow_id, &records);
+        let view = fix.run_ledger(&["order", "show", "试一条"]);
         let shown = view.crop();
         let want = if want == "走完" {
-            "都走过了".to_string()
+            "走完了：3 个步骤都过了".to_string()
         } else {
             format!("下一步：{want}")
         };
@@ -70,26 +56,21 @@ fn 流水序列决定下一步() {
     }
 }
 
-// 用例：一（起任务与走一步那件事的推演）
+// 用例：一（起工单与走一步那件事的推演）
 #[test]
 fn 状态里带进度条() {
     let fix = 三步();
-    fix.task_with("试一条", "试一条", &[("甲", true)]);
-    let shown = fix.run_recorded(&["task", "试一条"]).crop();
-    assert!(
-        shown.contains("进度：[███░░░░░░░] 1/3"),
-        "进度条该走过一格：\n{shown}"
-    );
+    let seeded = fix.run_ledger(&["workflow", "create", "试一条", "--steps", "甲,乙,丙"]);
+    assert!(seeded.ok(), "{}", seeded.crop());
+    let workflow_id = fix.workflow_id("试一条");
+    fix.order_with("试一条", &workflow_id, &[("甲", true)]);
 
-    let done = 三步();
-    done.task_with(
-        "试一条",
-        "试一条",
-        &[("甲", true), ("乙", true), ("丙", true)],
-    );
-    let full = done.run_recorded(&["task", "试一条"]).crop();
+    let shown = fix.run_ledger(&["order", "show", "试一条"]).crop();
+    assert!(shown.contains("进度：1/3"), "进度该走过一格：\n{shown}");
+
+    let listed = fix.run_ledger(&["order", "list"]).crop();
     assert!(
-        full.contains("进度：[██████████] 3/3"),
-        "走完了该满格：\n{full}"
+        listed.contains("[███░░░░░░░] 1/3"),
+        "清单上的进度条该走过三格：\n{listed}"
     );
 }

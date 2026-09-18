@@ -1,6 +1,6 @@
 //! 工作区与导览那一组的子命令分派。
 
-use super::super::{Cli, emit, fail};
+use super::super::{Cli, emit};
 use crate::artifact;
 use crate::audit;
 use crate::catalog;
@@ -34,14 +34,14 @@ pub(crate) fn health(cli: &Cli) {
 }
 
 pub(crate) fn search(name: &str, show: bool, cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref()).unwrap_or_else(|e| fail(&e));
+    let root = workspace::root(cli.root.as_deref());
     let result =
         search::search(&root, name, show).with_first(format!("工作区：{}", root.display()));
     emit(result, cli)
 }
 
 pub(crate) fn catalog(cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref()).unwrap_or_else(|e| fail(&e));
+    let root = workspace::root(cli.root.as_deref());
     emit(
         catalog::catalog(&root).with_first(format!("工作区：{}", root.display())),
         cli,
@@ -49,7 +49,7 @@ pub(crate) fn catalog(cli: &Cli) -> i32 {
 }
 
 pub(crate) fn audit(make: bool, cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref()).unwrap_or_else(|e| fail(&e));
+    let root = workspace::root(cli.root.as_deref());
     if cli.dry_run {
         let missing = artifact::missing(&root);
         let mut lines = vec![
@@ -70,7 +70,7 @@ pub(crate) fn audit(make: bool, cli: &Cli) -> i32 {
 }
 
 pub(crate) fn material(paths: &[String], cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref()).unwrap_or_else(|e| fail(&e));
+    let root = workspace::root(cli.root.as_deref());
     let paths = if paths.is_empty() { None } else { Some(paths) };
     emit(
         material::material(&root, paths).with_first(format!("工作区：{}", root.display())),

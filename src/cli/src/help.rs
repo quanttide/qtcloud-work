@@ -19,23 +19,27 @@ const GROUPS: &[(&str, &[(&str, &str)])] = &[
     (
         "工作流（定义侧）",
         &[
-            ("workflow --list", "有哪些工作流"),
-            ("workflow --new <名字> --steps 甲,乙", "写一条工作流"),
-            ("workflow <名字>", "看步骤、谁执行、几条判据"),
-            ("workflow <名字> --check", "核对判据里的路径与描述里的小节"),
-            ("workflow <名字> --export <文件>", "原样带走一份"),
-            ("workflow --import <文件> [--as 名字]", "导进来一份"),
+            ("workflow create <名字> --steps 甲,乙", "写一条工作流"),
+            ("workflow list", "有哪些工作流"),
+            ("workflow show <名字>", "看步骤、谁执行、几条判据"),
+            (
+                "workflow check <名字>",
+                "定义核对：路径在区内、小节有判据覆盖",
+            ),
+            ("workflow export <名字> <文件>", "原样带走一份"),
+            ("workflow import <文件> [--as 名字]", "导进来一份"),
         ],
     ),
     (
-        "任务（执行侧）",
+        "工单（执行侧）",
         &[
-            ("task --list", "有哪些任务、下一步"),
-            ("task --new <名字> --workflow <工作流>", "起一件任务"),
-            ("task <名字>", "步骤状态与流水"),
-            ("task <名字> --next", "走下一步"),
-            ("task <名字> --done <步骤> [--note 一句话]", "人为地记一步"),
-            ("task <名字> --journal <一段话>", "日志收叙事"),
+            ("order list", "有哪些工单、进度、下一步"),
+            ("order create <名字> --workflow <工作流>", "开工单"),
+            ("order show <名字>", "封面加全量流水"),
+            ("order next <名字>", "走下一步"),
+            ("order done <名字> <步骤>", "人记一笔（闸门放行走这里）"),
+            ("order journal <名字> <一段话>", "日志收叙事"),
+            ("order delete <名字>", "删一张白纸（有账不销）"),
         ],
     ),
     (
@@ -73,7 +77,7 @@ pub fn guide() -> Outcome {
     for (group, items) in GROUPS {
         result.lines.push((*group).to_string());
         for (usage, what) in *items {
-            result.lines.push(format!("  {usage:42} {what}"));
+            result.lines.push(format!("  {usage:44} {what}"));
             result
                 .rows
                 .push(vec![group.to_string(), usage.to_string(), what.to_string()]);
@@ -81,7 +85,7 @@ pub fn guide() -> Outcome {
         result.lines.push(String::new());
     }
     result.lines.push(
-        "三处位置：--root 工作区 / --data 数据仓 / --workflows 工作流目录（缺省见 `--help`）。"
+        "三处位置：--root 工作区 / --data 账本 / --artifacts 产物落点（缺省见 `--help`）。"
             .to_string(),
     );
     result.lines.push("话题：`qtcloud-work help <命令>` 看它一句话要点；`qtcloud-work <命令> --help` 看全部选项。".to_string());

@@ -1,9 +1,11 @@
-//! 用例测试共用的夹具（Rust 惯例：共用代码放 tests/common/）：临时工作区、数据仓、工作流目录、`pi` 桩，与跑命令的壳。
+//! 用例测试共用的夹具（Rust 惯例：共用代码放 tests/common/）：临时工作区、账本、
+//! 工作流目录、产物落点、`pi` 桩，与跑命令的壳。
 //!
 //! 每个场景一个测试文件，共用的东西放这里；文件之间互不依赖，加一个场景就加一个文件。
 
 #![allow(dead_code)]
 
+use serde_json::Value as Json;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -34,6 +36,9 @@ impl Run {
     pub fn ok(&self) -> bool {
         self.code == Some(0)
     }
+    pub fn stdout(&self) -> &str {
+        &self.stdout
+    }
     pub fn crop(&self) -> String {
         format!(
             "exit={:?}\n--- stdout ---\n{}\n--- stderr ---\n{}",
@@ -44,14 +49,16 @@ impl Run {
     }
 }
 
-/// 一个临时工作区：根目录、数据仓、工作流目录、`pi` 桩目录各一份。
+/// 一个临时工作区：根、账本、工作流目录、产物落点、`pi` 桩各一份。
 ///
-/// 数据仓与工作流目录故意分开放（草稿仓与固定资产目录各一处），
-/// 让「运行上下文随任务记着」这条能被真验到。
+/// 账本与工作流目录故意分开放（账本与固定资产目录各一处）；
+/// 每次跑都把 `XDG_DATA_HOME` 指进临时目录，缺省账本不会写到真机器上。
 pub struct Fixture {
     pub root: PathBuf,
     pub data: PathBuf,
     pub flows: PathBuf,
+    pub artifacts: PathBuf,
+    pub xdg: PathBuf,
     stub: PathBuf,
 }
 
@@ -70,12 +77,17 @@ impl Fixture {
         }
         std::fs::create_dir_all(&root).expect("建临时目录");
         let fix = Fixture {
-            data: root.join("data/context/qtcloud-work"),
+            data: root.join("ledger"),
             flows: root.join("data/profile/iGuo/workflows"),
+            artifacts: root.join("outputs"),
+            xdg: root.join("xdg"),
             stub: root.join("stub"),
             root,
         };
         std::fs::create_dir_all(&fix.flows).expect("建工作流目录");
+        // 缺省摆一个「不该被调到」的桩：测试忘了 `fix.pi()`，真调到 `pi` 就当场炸，
+        // 绝不落到机器上的真 `pi`（慢，还会误判通过）。
+        fix.pi("echo 测试里没摆 pi 桩：先 fix.pi() >&2\nexit 3");
         fix
     }
 
@@ -101,10 +113,49 @@ impl Fixture {
         }
     }
 
-    /// 跑可执行文件。`stub` 为真时把 `pi` 桩前置进 PATH。
+    /// 跑可执行文件。`stub` 为真时把 `pi` 桩前置进 PATH；`XDG_DATA_HOME` 一律指进临时目录。
     pub fn run(&self, stub: bool, args: &[&str]) -> Run {
+        self.run_in(&self.root, &[], stub, args)
+    }
+
+    /// 带上三处位置跑（工作区、账本、工作流目录、产物落点都显式给）。
+    pub fn run_full(&self, stub: bool, args: &[&str]) -> Run {
+        let mut full: Vec<&str> = vec![
+            "--root",
+            self.root.to_str().unwrap(),
+            "--data",
+            self.data.to_str().unwrap(),
+            "--workflows",
+            self.flows.to_str().unwrap(),
+            "--artifacts",
+            self.artifacts.to_str().unwrap(),
+        ];
+        full.extend_from_slice(args);
+        self.run(stub, &full)
+    }
+
+    /// 只给账本与定义目录跑（工作区根与产物落点靠缺省）。
+    /// 交给 `pi` 的地方一律用桩顶替，免得测试依赖真模型。
+    pub fn run_ledger(&self, args: &[&str]) -> Run {
+        let mut full: Vec<&str> = vec![
+            "--data",
+            self.data.to_str().unwrap(),
+            "--workflows",
+            self.flows.to_str().unwrap(),
+        ];
+        full.extend_from_slice(args);
+        self.run(true, &full)
+    }
+
+    /// 在指定目录、带指定环境变量跑：缺省根的向上搜索与 `QTCLOUD_WORK_ROOT` 靠它。
+    pub fn run_in(&self, dir: &Path, vars: &[(&str, &str)], stub: bool, args: &[&str]) -> Run {
         let mut cmd = Command::new(bin());
-        cmd.current_dir(&self.root).args(args);
+        cmd.current_dir(dir)
+            .args(args)
+            .env("XDG_DATA_HOME", &self.xdg);
+        for (key, value) in vars {
+            cmd.env(key, value);
+        }
         if stub {
             let joined = match std::env::var_os("PATH") {
                 Some(p) => format!("{}:{}", self.stub.display(), p.to_string_lossy()),
@@ -120,58 +171,43 @@ impl Fixture {
         }
     }
 
-    /// 带上三处位置跑（工作区、数据仓、工作流目录都显式给）。
-    pub fn run_full(&self, stub: bool, args: &[&str]) -> Run {
-        let mut full: Vec<&str> = vec![
-            "--root",
-            self.root.to_str().unwrap(),
-            "--data",
-            self.data.to_str().unwrap(),
-            "--workflows",
-            self.flows.to_str().unwrap(),
-        ];
-        full.extend_from_slice(args);
-        self.run(stub, &full)
+    pub fn order_yaml(&self, name: &str) -> String {
+        read(&self.data.join("workorders").join(format!("{name}.yaml")))
     }
 
-    /// 只给数据仓跑（工作区与工作流目录靠任务里记的上下文）。
-    /// 交给 `pi` 的地方一律用桩顶替，免得测试依赖真模型。
-    pub fn run_recorded(&self, args: &[&str]) -> Run {
-        let mut full: Vec<&str> = vec!["--data", self.data.to_str().unwrap()];
-        full.extend_from_slice(args);
-        self.run(true, &full)
+    /// 派生凭证：从 `workflow show --json` 的 `data.workflow_id` 读出。
+    pub fn workflow_id(&self, name: &str) -> String {
+        let shown = self.run_ledger(&["workflow", "show", name, "--json"]);
+        assert!(shown.ok(), "workflow show 没跑通: {}", shown.crop());
+        let payload: Json =
+            serde_json::from_str(shown.stdout().trim()).expect("workflow show 的 JSON 读不出来");
+        payload["data"]["workflow_id"]
+            .as_str()
+            .expect("data.workflow_id 缺了")
+            .to_string()
     }
 
-    pub fn task_yaml(&self, name: &str) -> String {
-        read(&self.data.join("tasks").join(format!("{name}.yaml")))
-    }
-
-    /// 直接写一件任务（给定流水），用来摆状态：真值表靠它。
-    pub fn task_with(&self, name: &str, workflow: &str, log: &[(&str, bool)]) {
-        let flows = self
-            .flows
-            .strip_prefix(&self.root)
-            .map(|p| p.display().to_string())
-            .unwrap_or_default();
+    /// 直接写一件工单（给定流水），用来摆状态：真值表靠它。
+    ///
+    /// `workflow_id` 用 [`Self::workflow_id`] 取真值；记录的 id / step_id 用占位 UUID——
+    /// 账本只验格式，不验它们是哪一枚派生出来的。
+    pub fn order_with(&self, name: &str, workflow_id: &str, records: &[(&str, bool)]) {
         let mut body = format!(
-            "name: {name}\nstart: 2026-09-11 10:00\nworkflow: {workflow}\nroot: {}\ndata: data/context/qtcloud-work\nworkflows: {flows}\nlog:\n",
-            self.root.display()
+            "id: 11111111-1111-4111-8111-111111111111\nname: {name}\ndescription: 试\nworkflow_id: {workflow_id}\ncreated_at: 2026-09-11T10:00:00\nrecords:\n"
         );
-        for (step, ok) in log {
+        for (index, (step, ok)) in records.iter().enumerate() {
             body.push_str(&format!(
-                "- at: 2026-09-11 10:00\n  step: {step}\n  detail: 试\n  ok: {ok}\n"
+                "- id: 22222222-2222-4222-8222-{:012x}\n  seq: {}\n  created_at: 2026-09-11T10:0{}\n  order_id: 11111111-1111-4111-8111-111111111111\n  step: {step}\n  step_id: 33333333-3333-4333-8333-{:012x}\n  description: 试\n  is_succeeded: {ok}\n",
+                index,
+                index + 1,
+                index,
+                index
             ));
         }
-        body.push_str("gates: []\nartifacts: {}\n");
-        self.file(
-            &format!("data/context/qtcloud-work/tasks/{name}.yaml"),
+        write(
+            &self.data.join("workorders").join(format!("{name}.yaml")),
             &body,
         );
-    }
-
-    /// 闸门项：记在任务文件里，不在产物里。
-    pub fn gates(&self, name: &str) -> String {
-        self.task_yaml(name)
     }
 }
 

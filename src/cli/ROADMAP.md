@@ -40,6 +40,6 @@ sh scripts/validate-usecases.sh && sh scripts/validate-line-count.sh
 
 ## 当前状态
 
-阶段一至五与数据迁移已在工作区实施完毕（尚未提交）：`src/order/` 取代 `src/task/`（名称定为 `order`），凭证派生（`src/ids.rs`）、事件落账（`src/events.rs`）、账本与产物的缺省位置、动词式命令面、`data/workorders/` 新格式均已落地。剩余集中在阶段六——测试与文档还没跟上：`tests/common` 夹具未改齐，七个测试文件编译不过；旧测试与新测试并存；`docs/` 仍是 task 时代的样子；门禁 fmt 与 test 当前不过。阶段二有一处补漏排进收尾清单：工作区选定缺一层接口，定为环境变量 `QTCLOUD_WORK_ROOT`（装载顺序：命令行 > 环境变量 > 向上搜索），见 [TODO.md](TODO.md) 一。
+阶段一至五与数据迁移已实施，阶段六的测试与门禁已收尾：40 条测试全过，fmt / clippy（`-D warnings`）/ 用例对账（8 条）/ 行数门禁全绿。实施中另补两处规格落实：人做的步骤 `order next` 不抢做（轮到人，`order done` 记一笔）；定义核对不把占位路径当作写下的位置。剩余集中在文档与发布：接口参考、开发指南、使用指南跟改，CHANGELOG 与版本号，studio 对表（见 [TODO.md](TODO.md) 二、三）。
 
 提交按段原子进行，每段勾销 [TODO.md](TODO.md) 对应条目并更新本节；全部勾清后本路线图归基线。
