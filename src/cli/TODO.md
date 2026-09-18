@@ -26,6 +26,6 @@
 
 ## 三 · 发布
 
-- [ ] **行数门禁**：`src/order/mod.rs` 214 行，已贴 250 行的线；加东西先看 `scripts/validate-line-count.sh`。
-- [ ] **CHANGELOG 与版本**：命令面 `task` → `order`、`data` 字段变更、缺省位置变更都是破坏性变更，记 `CHANGELOG.md`（`scripts/validate-changelog.sh` 核），版本与头一行一致（`scripts/validate-version.sh` 核）。
+- [x] **行数门禁**：`src/order/mod.rs` 214 行，已贴 250 行的线；加东西先看 `scripts/validate-line-count.sh`。
+- [x] **CHANGELOG 与版本**：命令面 `task` → `order`、`data` 字段变更、缺省位置变更都是破坏性变更，记 `CHANGELOG.md`（`scripts/validate-changelog.sh` 核），版本与头一行一致（`scripts/validate-version.sh` 核）。
 - [ ] **与 studio 对表**：新增动作（`order delete`）与改名字段（`data` 里 `log` → `records`、`start` / `gates` 去掉）在 studio 侧同步；两侧只比 `ok` / `columns` / `rows` / `data` 四样，不比 `lines`。

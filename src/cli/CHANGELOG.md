@@ -4,32 +4,33 @@
 
 ## [Unreleased]
 
+## [0.1.0-beta.2] - 2026-09-19
+
+按新规格对表：模型拆分、凭证分层、位置归位、命令面动词式。命令面与 `--json` 字段都是破坏性变更。
+
 ### Added
 
-- 任务进度条：`task <名字>`、`task --list` 与走一步（`--next` / `--done`）的结果印一条十格进度条（如 `[███░░░░░░░] 1/3`）。只落在人看的那一栏（`lines`），`columns` / `rows` / `data` 一个字不动，与 studio 对表不受影响。
+- 工单进度条：`order show` / `order list` 与走一步、人记一笔的结果印十格进度条（如 `[███░░░░░░░] 1/3`），只落 `lines`。
+- 工作区选定接口：环境变量 `QTCLOUD_WORK_ROOT`——装载顺序 命令行 > 环境变量 > 向上搜索。
+- 领域事件：`WorkflowCreated` / `WorkOrderCreated` / `WorkRecorded` 各落一行 JSONL 到账本仓 `events.jsonl`，去重由下游按 `id` 做。
+- `order delete`：删白纸——流水非空即拒，有账不销。
+- 定义核对补两条：判据写下的路径须在区内；描述点到的小节须有 `contains` 覆盖（占位运行时展开，不核）。
 
 ### Changed
 
-- **收回领域模型**：取消对 crates.io `quanttide-work` 的依赖，把工具箱抽走的 Rust 领域模型并回本仓——`workflow/{model,read}`、`task/model`、`workspace/{model,place,progress,check}`、`criterion/`、`artifact/model`，以及 `outcome` / `error` / `executor` / `paths` / `fields`。并进 bin 后按减法删掉本仓用不到的公开项（`to_yaml` / `from_value` / `Outcome::from_json` 等）；`Task`（领域模型）与 `task::Task`（带位置句柄）同名不同物，用 `crate::task::model::Task` 限定。
-- 文档与门禁补齐：
-  - 接口参考一个命令一篇（扁平）；工作区的布局与资产表并入使用指南的「工作区」一篇。
-  - 使用指南恢复「用例」一篇（五件真事），`validate-usecases.sh` 的对账不再空转。
-  - 开发指南按 `src/` 的领域重排（聚合 / 领域服务 / 适配各一篇）；依赖与许可列进 README。
-  - 门禁补到五条并与 CI 一致：clippy 改 `--all-targets -- -D warnings`，新增 `validate-line-count.sh`（`src/**/*.rs` 超 250 行即红），用例对账与行数门禁进 CI。
-- 产物类别的字段与 JSON 键由 `kind` 改名 `category`（`catalog --json` 每条、`audit --json` 的 `missing` 每条）；中文标签「种类」改「类别」；studio 侧同批改。`--json` 键名属破坏性变更，随版本号走。
-- 工具箱跟到 `quanttide-work 0.1.0-beta.6`（两侧同号），两次破坏性变更改到位：
-  - **落点**改走 `quanttide_work::workspace::Workspace::place`——工具箱只给**相对工作区根的路径**，接哪一处目录由本仓定：任务里声明过的按工作区根接（能指到正式仓），没声明的按数据仓接（草稿区）；流水不是产物，仍是任务文件本身
-  - **流水判定**改走 `Workspace::done_steps` / `next_step` / `state_line`（按名字从工作区里取定义），定义核对改走 `Workspace::check`（`Finding.ok` 成了三态：过 / 不过 / 未核，退回了「○ 未核」的写法）
-  - **判据里的占位**展开改用工具箱那一套（`Criterion::expanded` 收「名字 → 路径」的解析函数）：本仓不再自己扫 `{{…}}`，只答「这个名字换成哪条路径」，且给的是工作区根视角（`run` 里的命令直接可用）
-  - 工作流读写对齐工具箱：`Workflow::of(值)` 的工作流名取自 `name` 字段（不再是文件名），语法校验收工具箱的结构化报错（`DefinitionError::message(file)`）；`text_of` 本仓自备
-- 删掉 `RunContext` 相关的转发（工具箱不再有那个类型）：任务里记的三处位置（`root` / `data` / `workflows`）仍是本仓自己的运行数据，读写不变
+- **命令面动词式**：`task --new / <名字> / --next / --done / --journal / --list` 改 `order create / show / list / next / done / journal / delete`；`workflow --new / --list / <名字> / --check` 改 `workflow create / list / show / check`。与规格端点表一一对应——端点表里没有的操作，命令行里也没有。
+- **模型对表**：`Task` 拆成工单（封面）与工作记录（流水）；`gates` 不落字段，由定义加流水推导；封面落笔即封；进度与完结只由推导得出。人做的步骤 `order next` 不抢做，轮到 `order done`。
+- **凭证分层**：定义不写 `id`，按「工作区 id + 名字」派生（uuid5，命名空间钉死，各平台一致）；工单与工作记录的凭证由程序发。
+- **位置归位**：位置不进模型；账本归 CLI（缺省 `$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/`），产物归工作区（缺省 `<工作区根>/artifacts/`，新增 `--artifacts`）；工作区身份 `workspace.yaml` 首跑生成，`id` 供凭证派生用。
+- 提示词带流水：执行者与复查者都看得到前面已被裁决的内容，不再重复执行已裁决的判据。
+- **收回领域模型**：取消对 crates.io `quanttide-work` 的依赖，领域模型并回本仓自持，按减法删掉用不到的公开项。
+- 产物类别的字段与 JSON 键 `kind` 改 `category`（`catalog --json` 每条、`audit --json` 的 `missing` 每条）；中文标签「种类」改「类别」。
+- 命令 `find` 改名 `search`（按名找文档）。
+- `--json` 统一为结果信封：`ok` / `lines` / `columns` / `rows`，原文托在 `data`；`order` 的 `data` 带 `id` / `workflow_id` / `records`，不再有 `log` / `gates` / `start`。
 
-- 命令 `find` 改名 `search`（按名找文档）：命令面、导览、README 与接口参考（`docs/api-references/search.md`）同步；命令面已发布，属破坏性变更，随版本号走。
-- 结果改用工具箱 `quanttide_work::outcome::Outcome`（规范「过程 / 结果」那一节结成的模型）；本地的 `outcome.rs` 只留「路径怎么显示给人看」，改成 `paths.rs`
-- `--json` 一律是这个结果：`ok` / `lines` / `columns` / `rows` 四样，原文托在 `data` 里（原先 `audit` / `catalog` / `material` 吐的是裸原文）；旧键按「只加不改」在顶层再留一轮，下一轮删
-- `task <名字>` 与 `workflow <名字>` 的结果补上 `data`：任务原文与三样产物的落点、定义原文与其位置——窗口从这一栏装领域对象
-- `--out` 落的是原文那一栏（`data` 的内容），形状不变
-- 声明表正名为 `artifacts`（原先叫 `products`）：任务文件里的键、`--json` 那一栏的键、`--new` 写下的键都跟着改；落点算法收进工具箱的 `Task::artifact`，本地只剩「路径怎么显示」与「建空骨架」
+### Removed
+
+- 工单文件里的 `root` / `data` / `workflows` 上下文字段与 `gates` / `start` 字段；判据占位 `{{log}}`。
 
 ## [0.1.0-beta.1] - 2026-09-11
 

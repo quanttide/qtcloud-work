@@ -40,6 +40,6 @@ sh scripts/validate-usecases.sh && sh scripts/validate-line-count.sh
 
 ## 当前状态
 
-阶段一至五与数据迁移已实施；阶段六的测试、门禁与文档已收尾：40 条测试全过，fmt / clippy（`-D warnings`）/ 用例对账（8 条）/ 行数门禁全绿，接口参考、开发指南、使用指南与 README 已对齐新模型。实施中另补两处规格落实：人做的步骤 `order next` 不抢做（轮到人，`order done` 记一笔）；定义核对不把占位路径当作写下的位置。剩余只有发布：CHANGELOG 与版本号、studio 对表（见 [TODO.md](TODO.md) 三）。
+阶段一至五与数据迁移已实施；阶段六的测试、门禁与文档已收尾：40 条测试全过，fmt / clippy（`-D warnings`）/ 用例对账（8 条）/ 行数门禁全绿，接口参考、开发指南、使用指南与 README 已对齐新模型。实施中另补两处规格落实：人做的步骤 `order next` 不抢做（轮到人，`order done` 记一笔）；定义核对不把占位路径当作写下的位置。发布侧 CHANGELOG 与版本号已落（`0.1.0-beta.2`）；剩余只有 studio 对表——studio 侧是同等规模的镜像移植，单独立一段做（见 [TODO.md](TODO.md) 三）。
 
 提交按段原子进行，每段勾销 [TODO.md](TODO.md) 对应条目并更新本节；全部勾清后本路线图归基线。
