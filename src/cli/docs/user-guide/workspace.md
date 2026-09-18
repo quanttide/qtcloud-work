@@ -18,17 +18,22 @@
 ## 文件布局
 
 ```text
-<数据仓>/
-├── workflows/<工作流>.yaml      定义：步骤与判据（可用 --workflows 另指）
-├── tasks/<任务>.yaml            任务：start + workflow + 运行上下文 + log + gates + artifacts
+$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/   # 账本：归 CLI
+├── workspace.yaml               工作区身份：id 供凭证派生，首跑生成
+├── events.jsonl                 领域事件：开工作流、开单、记账各一行
+├── workorders/<工单>.yaml       工单：封面（id / workflow_id / created_at）+ 流水
+└── workflows/                   工作流目录的缺省位置
+
+<工作区根>/                                        # 工作区：内容
+├── data/profile/iGuo/workflows/ 定义常是固定资产，--workflows 另指这里
 └── artifacts/
-    ├── report/<任务>.md         报告：程序维护「执行记录」「闸门项」两节
-    └── journal/<任务>.md        日志：叙事，人写
+    ├── report/<工单>.md         报告：写它的人或智能体写
+    └── journal/<工单>.md        日志：叙事，人写
 ```
 
-工作流默认放在数据仓的 `workflows/`；定义常是固定资产，用 `--workflows` 可另指一处（例如 `data/profile/iGuo/workflows/`）。
+三处位置各归谁：**账本归 CLI**（缺省落 XDG 工作区键，程序每跑一趟都写，不入版控；`--data` 指到仓库就等于入版控），**产物归工作区**（缺省 `<工作区根>/artifacts/`，是内容，跟着工作区走），**位置不进模型**（工单文件里没有路径，换机器、挪仓库，重新装载即可）。跨工作区干活不必每条命令带 `--root`：设 `QTCLOUD_WORK_ROOT`，装载顺序为命令行 > 环境变量 > 向上搜索。
 
-程序**不写产物的任何一节**：报告、日志都由写它们的人或智能体来写。产物落点先看任务里的 `artifacts` 声明，没声明就落草稿区 `artifacts/<类别>/<任务>.md`；声明了就按声明落（可指正式仓）。声明了落点的产物，起任务时程序只备一份空骨架。
+程序**不写产物的任何一节**：报告、日志都由写它们的人或智能体来写，落点由「产物落点 + 工单名」算出；判据里的 `{{report}}` / `{{journal}}` / `{{artifacts}}` 就指到这里。
 
 ## 资产与目录
 

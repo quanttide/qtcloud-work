@@ -17,12 +17,12 @@
 
 ## 二 · 文档
 
-- [ ] **接口参考·动作面**：`docs/api-references/task.md` → `order.md`，动词式（`create` / `show` / `list` / `next` / `done` / `journal` / `delete`），每个动作写清参数、落盘与拒绝条件；`workflow.md` 的动作表同改，导出原样文件、导入撞名即拒两条保留。
-- [ ] **接口参考·输出契约**：`order` 的 `--json` 里 `data` 不得再有 `log` / `gates` / `start`；`workflow`（名字）与 `workflow_id` 分开；新动作 `delete` 的 `data` 与退出码写进契约（`--json` 字段只加不改、要改先加新留旧）。
-- [ ] **接口参考·全局选项**：`docs/api-references/index.md` 的 API 索引表（task → order）与全局选项跟改：加 `--artifacts`，`--data` 缺省改成 `$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>`，写明「位置不进模型，全部由启动参数装载」与环境变量的装载顺序（命令行 > `QTCLOUD_WORK_ROOT` > 向上搜索）。
-- [ ] **开发指南**：`docs/dev-guide/task.md` 拆成 `work-order.md`（封面与推导）与 `work-record.md`（记账与只增不改）；`workspace.md` 补工作区身份与三处位置（根 / 账本 / 产物）；`artifact.md` 的落点从「相对工作区根」改成「相对产物落点」；`index.md` 的落点图跟着改。
-- [ ] **规矩落座**：「定义里不抄别处拥有的事实（分类目录、落点、名字一律指过去）」写进 dev-guide 的 `workflow.md`；「账本归 CLI、产物归工作区」写进 `workspace.md`。
-- [ ] **使用指南**：`docs/user-guide/{index,task,workflow,workspace,usecases}.md` 的命令示例、全局选项说明与用例标题跟着改。
+- [x] **接口参考·动作面**：`docs/api-references/task.md` → `order.md`，动词式（`create` / `show` / `list` / `next` / `done` / `journal` / `delete`），每个动作写清参数、落盘与拒绝条件；`workflow.md` 的动作表同改，导出原样文件、导入撞名即拒两条保留。
+- [x] **接口参考·输出契约**：`order` 的 `--json` 里 `data` 不得再有 `log` / `gates` / `start`；`workflow`（名字）与 `workflow_id` 分开；新动作 `delete` 的 `data` 与退出码写进契约（`--json` 字段只加不改、要改先加新留旧）。
+- [x] **接口参考·全局选项**：`docs/api-references/index.md` 的 API 索引表（task → order）与全局选项跟改：加 `--artifacts`，`--data` 缺省改成 `$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>`，写明「位置不进模型，全部由启动参数装载」与环境变量的装载顺序（命令行 > `QTCLOUD_WORK_ROOT` > 向上搜索）。
+- [x] **开发指南**：`docs/dev-guide/task.md` 拆成 `work-order.md`（封面与推导）与 `work-record.md`（记账与只增不改）；`workspace.md` 补工作区身份与三处位置（根 / 账本 / 产物）；`artifact.md` 的落点从「相对工作区根」改成「相对产物落点」；`index.md` 的落点图跟着改。
+- [x] **规矩落座**：「定义里不抄别处拥有的事实（分类目录、落点、名字一律指过去）」写进 dev-guide 的 `workflow.md`；「账本归 CLI、产物归工作区」写进 `workspace.md`。
+- [x] **使用指南**：`docs/user-guide/{index,task,workflow,workspace,usecases}.md` 的命令示例、全局选项说明与用例标题跟着改。
 
 ## 三 · 发布
 

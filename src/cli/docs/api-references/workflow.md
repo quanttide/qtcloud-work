@@ -2,50 +2,55 @@
 
 六个动作加定义的 schema。
 
-## workflow --list
+## workflow create
 
 ```bash
-qtcloud-work workflow --list
+qtcloud-work workflow create <名字> --steps 甲,乙,丙 [--note 一句话]
+```
+
+写一条工作流到 `<工作流目录>/<名字>.yaml`。每步给一份判据骨架：一条 rule（`path: data/journal/README.md`）加一条 human。`--note` 是工作流的一句话描述，不给就用一句默认。定义文件里不写凭证——读进来时按「工作区 id + 名字」现算。
+
+## workflow show
+
+```bash
+qtcloud-work workflow show <名字> [--json]
+```
+
+看这条工作流的步骤、谁执行、各有几条 rule / agent / human；`--json` 的 `data` 带派生出的 `workflow_id` 与各步骤的 `step_ids`。
+
+## workflow list
+
+```bash
+qtcloud-work workflow list
 ```
 
 列出工作流、各自的步骤与文件位置。
 
-## workflow --new
+## workflow check
 
 ```bash
-qtcloud-work workflow --new <名字> --steps 甲,乙,丙 [--note 一句话]
+qtcloud-work workflow check <名字>
 ```
 
-写一条工作流到 `<工作流目录>/<名字>.yaml`。每步给一份判据骨架：一条 rule（`path: data/journal/README.md`）加一条 human。`--note` 是工作流的一句话描述，不给就用一句默认。
+核对这条定义的声明与判据对不对得上，只看写下的位置、不访问文件系统：
 
-## workflow <名字>
+- 判据里 `path` / `file` 的路径须在工作区内；
+- 描述里点到的小节须有 `contains` 判据覆盖——小节只认干净的名字（`##` 起的标题或引号里的短名），引号里的长句当叙述。
 
-```bash
-qtcloud-work workflow <名字>
-```
+占位（`{{report}}` / `{{journal}}` / `{{artifacts}}`）是运行时按产物落点展开的，不是写下的位置，不核。有一件对不上就退出码 1。
 
-看这条工作流的步骤、谁执行、各有几条 rule / agent / human。
-
-## workflow <名字> --check
+## workflow export
 
 ```bash
-qtcloud-work workflow <名字> --check
-```
-
-核对这条定义的声明与判据对不对得上：判据里的路径（`path` / `file`）在不在工作区里；描述里提到的报告小节（`## 名字` 或「名字」一节）有没有判据覆盖。按任务落点的占位（`{{report}}` / `{{journal}}` / `{{log}}`）在定义这一层核不了，跳过。有一件对不上就退出码 1。
-
-## workflow <名字> --export <文件>
-
-```bash
-qtcloud-work workflow <名字> --export <文件>
+qtcloud-work workflow export <名字> <文件>
 ```
 
 把定义原样存成一份可带走的文件，步骤、执行者、判据一字不改。目标是目录时，存成目录下的同名文件。
 
-## workflow --import <文件> [--as <名字>]
+## workflow import
 
 ```bash
-qtcloud-work workflow --import <文件> [--as <名字>]
+qtcloud-work workflow import <文件> [--as <名字>]
 ```
 
 把一份工作流导进来。先按 schema 验一遍，不是工作流的文件挡回来；重名挡回来，用 `--as` 换名。导入后落在 `<工作流目录>/`。
@@ -73,7 +78,7 @@ qtcloud-work workflow --import <文件> [--as <名字>]
 
 拓扑上按有向无环图理解，当前实现按顺序走，顺序即排序。
 
-不认识的字段直接报错，不是忽略。顶层只认 `name` / `description` / `steps`，步骤只认 `name` / `description` / `executor` / `criteria`，判据只认 `executor` / `description` / `path` / `absent` / `file` / `contains` / `run`。
+不认识的字段直接报错，不是忽略。顶层只认 `name` / `description` / `steps`，步骤只认 `name` / `description` / `executor` / `criteria`，判据只认 `executor` / `description` / `path` / `absent` / `file` / `contains` / `run`。定义文件里不写 `id`——写下的凭证不是派生的凭证。
 
 ## 判据
 
@@ -92,13 +97,14 @@ qtcloud-work workflow --import <文件> [--as <名字>]
 
 schema 约束：`rule` 必须正好一种判法；`file` 与 `contains` 成对；`agent` 与 `human` 必须写 `description`；步骤的 `executor` 只能是 `agent` 或 `human`。
 
-执行判定：一步算过，等于这一步所有 `rule` 通过、所有 `agent` 判为通过；`human` 只列闸门，不影响过不过。人为地记一步（`--done`）时不跑智能体，`agent` 判据算**待判**——不挡这一步，原样进闸门项等人看。AI 没跑成则该步不算过，流水留 ✗。`agent` 审查由智能体逐条答「通过 / 不通过 加一句理由」，同一步的执行者与审查者若同一个智能体，流水注明「同一模型」。
+执行判定：一步算过，等于这一步所有 `rule` 通过、所有 `agent` 判为通过；`human` 只进待拍板清单，不影响过不过，放行须出自人（`order done`）。`order next` 走机器路径：`agent` 审查由智能体逐条答「通过 / 不通过 加一句理由」；AI 没跑成不记账，修好重走。带闸门的站，程序核完自己的半程就等人——这一笔不记。
 
 ## 占位
 
-判据里可写占位，执行时换成本次任务的真实路径（相对工作区根，跨仓则绝对），所以工作流不写死任务名：
+判据里可写占位，执行时按「产物落点 + 工单名」换成本次行程的真实路径（相对工作区根，跨仓则绝对），所以工作流不写死工单名：
 
-- `{{report}}` 本任务的报告；
-- `{{journal}}` 本任务的日志；
-- `{{log}}` 本任务的流水（就在任务文件里）；
-- `{{artifacts}}` 本任务的产物目录。
+- `{{report}}` 本趟的报告；
+- `{{journal}}` 本趟的日志；
+- `{{artifacts}}` 本趟的产物落点。
+
+定义里不抄别处拥有的事实：会变的分类目录、落点、名字一律指过去，不抄进来。

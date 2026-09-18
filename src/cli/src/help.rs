@@ -85,7 +85,7 @@ pub fn guide() -> Outcome {
         result.lines.push(String::new());
     }
     result.lines.push(
-        "三处位置：--root 工作区 / --data 账本 / --artifacts 产物落点（缺省见 `--help`）。"
+        "四处位置：--root 工作区 / --data 账本 / --workflows 工作流目录 / --artifacts 产物落点（缺省见 `--help`）。"
             .to_string(),
     );
     result.lines.push("话题：`qtcloud-work help <命令>` 看它一句话要点；`qtcloud-work <命令> --help` 看全部选项。".to_string());

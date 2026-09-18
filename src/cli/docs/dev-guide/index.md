@@ -8,7 +8,7 @@
 src/
 ├── main.rs        入口：一行，把命令行交给 cli
 ├── cli.rs         适配：clap 定义、定位、发射
-├── cli/           适配：子命令分派（handlers/）与发射（emit.rs）
+├── cli/           适配：命令树（commands.rs）、子命令分派（handlers/）与发射（emit.rs）
 ├── help.rs        适配：导览
 ├── prompts.rs     适配：给智能体的话术
 ├── health.rs      适配：provider 探活
@@ -18,12 +18,16 @@ src/
 ├── paths.rs       领域模型：占位
 ├── fields.rs      领域模型：定义字段表
 ├── error.rs       领域模型：定义读不通的错误
-├── task/          聚合：任务（model.rs 领域模型 + 平台侧读写与动作）
-├── workflow/      聚合：工作流（model.rs / read.rs 领域模型 + yaml / check / actions）
+├── ids.rs         领域模型：凭证——新发与按名派生（uuid5，命名空间钉死）
+├── clock.rs       领域模型：时刻
+├── sha1.rs        领域模型：摘要（工作区键用）
+├── events.rs      领域模型：领域事件落 JSONL
+├── order/         聚合：工单（model / record 领域模型 + 账本、动作、看与列、交给 AI）
+├── workflow/      聚合：工作流（model / read 领域模型 + yaml / actions）
 ├── catalog/       聚合：目录
 ├── artifact/      聚合：资产表（mod.rs）与产物实例（model.rs）
 ├── material/      聚合：材料
-├── workspace/     聚合：工作区（model / place / progress / check + 平台定位）
+├── workspace/     聚合：工作区（装载与身份 locate / 落点 place / 核对 check / 流水判定 progress）
 ├── search/        领域服务：按名找文档
 └── audit/         领域服务：判据与审计
 ```
@@ -32,12 +36,13 @@ src/
 
 有自己的定义：身份、生命周期、字段规矩。
 
-- [task](task.md)——一次执行的状态、流水与产物落点；
+- [work-order](work-order.md)——工单：封面、开单与销户、进度与完结的推导；
+- [work-record](work-record.md)——工作记录：记账纪律、领域事件；
 - [workflow](workflow.md)——YAML 定义、schema 与动作；
 - [catalog](catalog.md)——扫成名字索引；
 - [artifact](artifact.md)——资产表二十格与落点，产物实例（名字 + 规格）；
 - [material](material.md)——材料的四字段与阶段；
-- [workspace](workspace.md)——工作区根与数据仓的定位、路径显示。
+- [workspace](workspace.md)——三处位置的装载、工作区身份与只读纪律。
 
 ## 领域服务
 
