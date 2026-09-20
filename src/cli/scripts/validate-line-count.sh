@@ -1,7 +1,7 @@
 #!/bin/sh
 # 行数门禁：src/ 下任一 .rs 超过 250 行即红。
 #
-# 阈值的出处是 src/CONVENTIONS.md「单文件 ≤250 行」。
+# 阈值的出处是 CONTRIBUTING.md「单文件 ≤250 行」。
 
 set -eu
 

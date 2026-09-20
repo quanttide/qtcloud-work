@@ -2,7 +2,7 @@
 
 程序怎么继续长。使用与命令看[使用指南](../user-guide/index.md)，字段与 schema 看[接口参考](../api-references/index.md)。
 
-`src/` 顶层按三类落位：聚合 / 领域服务 / 适配。判据与命名规矩在 [`src/CONVENTIONS.md`](../../src/CONVENTIONS.md)；构建、门禁与依赖见 [README](../../README.md)。下面是落点图，图里每一项都对应实际目录或文件。
+`src/` 顶层按三类落位：聚合 / 领域服务 / 适配。判据与命名规矩在 [`CONTRIBUTING.md`](../../CONTRIBUTING.md)；构建、门禁与依赖见 [README](../../README.md)。下面是落点图，图里每一项都对应实际目录或文件。
 
 ```text
 src/

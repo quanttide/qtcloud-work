@@ -57,7 +57,7 @@ sh scripts/validate-usecases.sh      # 文档用例与测试出处对账
 sh scripts/validate-line-count.sh    # src/ 下单文件超 250 行即红
 ```
 
-测试按用例组织：一个场景一个文件，测试上标 `// 用例：N`，与使用指南的「用例」对账；分层规矩见 [`src/CONVENTIONS.md`](src/CONVENTIONS.md)。
+测试按用例组织：一个场景一个文件，测试上标 `// 用例：N`，与使用指南的「用例」对账；分层规矩见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
 
 发布走 `qtcloud-devops`：`release audit` 预检、`release publish` 建 tag 与 Release；推 `cli/v*` tag 触发本仓 `release-cli` 工作流（校验、质量门禁、多平台产物、crates.io）。
 
