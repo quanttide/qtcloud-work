@@ -12,6 +12,7 @@ src/
 ├── help.rs        适配：导览
 ├── prompts.rs     适配：给智能体的话术
 ├── health.rs      适配：provider 探活
+├── locate/        适配：位置装载（根、账本、产物落点、身份与工单落盘）
 ├── outcome.rs     领域模型：结果信封
 ├── criterion/     领域模型：判据（模型 / 读法 / 翻成要跑什么）
 ├── executor.rs    领域模型：执行者取值
@@ -27,7 +28,7 @@ src/
 ├── catalog/       聚合：目录
 ├── artifact/      聚合：资产表（mod.rs）与产物实例（model.rs）
 ├── material/      聚合：材料
-├── workspace/     聚合：工作区（装载与身份 locate / 落点 place / 核对 check / 流水判定 progress）
+├── workspace/     聚合：工作区（落点 place / 核对 check / 流水判定 progress）
 ├── search/        领域服务：按名找文档
 └── audit/         领域服务：判据与审计
 ```
@@ -42,7 +43,7 @@ src/
 - [catalog](catalog.md)——扫成名字索引；
 - [artifact](artifact.md)——资产表二十格与落点，产物实例（名字 + 规格）；
 - [material](material.md)——材料的四字段与阶段；
-- [workspace](workspace.md)——三处位置的装载、工作区身份与只读纪律。
+- [workspace](workspace.md)——三处位置的装载与工作区身份、只读纪律（装载那半在 `locate/`）。
 
 ## 领域服务
 
@@ -55,6 +56,7 @@ src/
 
 边界外的东西与入口。
 
-- [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）、provider 探活（`health`）。
+- [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）、provider 探活（`health`）；
+- 位置装载（`locate/`）——根、账本、产物落点、身份与工单落盘；规矩与纪律见 [workspace](workspace.md)·装载。
 
 crate 在 `apps/qtcloud-work/src/cli/`，Rust 加 clap，二进制名 `qtcloud-work`。provider 的正式接口层等就位后另起一轮。

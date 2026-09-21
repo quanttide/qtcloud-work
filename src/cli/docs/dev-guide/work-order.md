@@ -9,7 +9,7 @@
 - `order/actions.rs`——动作：开单、走一步、人记一笔、日志、删白纸；
 - `order/inspect.rs`——看与列：封面、步骤状态、待拍板闸门、状态行；
 - `workspace/progress.rs`——进度与完结的推导（见下）；
-- `workspace/locate.rs`——账本与产物的装载、工作区身份。
+- `locate/mod.rs`——账本与产物的装载、工作区身份与工单落盘。
 
 ## 封面
 

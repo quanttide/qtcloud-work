@@ -10,7 +10,7 @@
 | :-- | :-- | :-- |
 | **聚合** | 有自己的定义：身份、生命周期、字段规矩 | 一个聚合一个目录：`task/`、`workflow/`、`catalog/`、`artifact/`、`material/`、`workspace/` |
 | **领域服务** | 没有自己的定义，跨聚合只做一件事 | `search/`、`audit/` |
-| **适配** | 边界外的东西与入口 | `cli.rs`、`cli/`（子命令分派与发射）、`help.rs`、`prompts.rs`、`health.rs` |
+| **适配** | 边界外的东西与入口 | `cli.rs`、`cli/`（子命令分派与发射）、`help.rs`、`prompts.rs`、`health.rs`、`locate/`（位置装载：根、账本、产物落点、身份与工单落盘） |
 
 举例：`catalog` 有自己的定义（条目与快照语义），所以是聚合；`search` 只用 `catalog` 建的名字索引做一件事，所以是服务。`artifact` 是**定义型聚合**——它定的是有哪些标准产物、各落在哪，改它即改规范。
 
@@ -29,6 +29,8 @@
 ## 依赖单向
 
 服务可依赖聚合，聚合不得依赖服务；聚合与服务都不得依赖入口层（`crate::cli`）。`search → catalog` 是允许的，`catalog → search` 是零。这条有测试钉住（`tests/contract.rs` 的「动作层不依赖入口层」）。
+
+装载层（`locate/`）另算：它不吃聚合的定义，聚合可以调它落盘——`order → locate`、`workflow → locate` 单向。反过来它认聚合类型（`order_file` 收 `&WorkOrder`），于是 `locate ⇄ order` 是一对互认，不是聚合环；聚合之间的环（`workspace ↔ order`、`workspace ↔ workflow`）在装载搬出去之后已消。
 
 ## 单文件 ≤250 行
 

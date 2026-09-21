@@ -4,7 +4,7 @@
 
 ## 装载
 
-`locate.rs` 的 `Locate` 把启动参数落成三处位置，装载顺序写死：命令行 > 环境变量 `QTCLOUD_WORK_ROOT`（只管根）> 缺省规矩。
+`crate::locate` 的 `Locate` 把启动参数落成三处位置，装载顺序写死：命令行 > 环境变量 `QTCLOUD_WORK_ROOT`（只管根）> 缺省规矩。
 
 - **根（root）**：判据路径的基准、`run` 判据的工作目录、工作区级动作扫描的面。缺省从当前目录往上找含 `data/journal` 的第二大脑，找不到就用当前目录；
 - **账本（data）**：工作区身份、工单、事件。缺省 `$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/`，键由根派生（可读名加短码）——账本是「这台机器上的这个工作区」的账；
@@ -35,43 +35,10 @@
 
 装载与只读纪律在 `tests/run_context.rs`（向上搜索、环境变量、指哪落哪、只读不落盘）；缺省矩阵在 `tests/defaults.rs`——四个可省位置各缺一次的行为。
 
-## 拆环
+## 结构
 
-### 背景
+装载与领域分住两处：碰盘的那半归 `locate/`（根、账本、产物落点、身份与工单落盘、路径的短显示），聚合里只剩纯领域——`model` / `place` / `progress` / `check`。
 
-`workspace/` 一个目录下住了两种东西：只算不碰盘的领域逻辑（`model` / `place` / `progress` / `check`），和专门碰盘的装载逻辑（`locate.rs` 的 `Locate`，以及 `mod.rs` 里的 `root` / `workspace_key` / `account` / `short`）。
+为什么这么切：`order` 与 `workflow` 要落盘，只能引 `workspace::Locate`；`workspace` 又要读工单与工作流来推导进度——两条反向边让 `workspace ↔ order`、`workspace ↔ workflow` 两个聚合环以本聚名为枢纽（体检见 [STATUS](../../STATUS.md)）。装载搬出去之后，`order → locate`、`workflow → locate` 单向，而 `workspace → order` / `workspace → workflow` 保留——工作区持有工单、推导进度本来就是设计意图，这条边不该断。
 
-`order` 与 `workflow` 要的其实是后者——落盘、找目录；但引用时只能写 `use crate::workspace::Locate`，读起来就成了「聚合引用聚合」。而 `workspace` 的 `progress` / `model` / `check` 又反过来读工单与工作流。两条边互为反向，`workspace ↔ order`、`workspace ↔ workflow` 两个聚合环都以此为枢纽（扇入全库最高，见 [STATUS](../../STATUS.md)）。
-
-### 选项
-
-**前三步：把装载那半搬出去。**
-
-1. 新建一个装载模块（下面暂称 `locate/`），从 `workspace` 搬进：`Locate` 结构体（连同 `ensure` / `workspace_id` / `workorders_dir` / `order_file` / `artifact_path` 等方法）、`root()`、`account()`、`workspace_key()`、`repo_root()`；
-2. `workspace/` 删掉这些，只剩纯领域 `model` / `place` / `progress` / `check`——`mod.rs` 只留出口，或直接并进 `model`；
-3. 调用方改路径：`use crate::workspace::Locate` → `use crate::locate::Locate`（`order/` 六件、`workflow/` 两件是主要调用方）。纯替换，逻辑一行不改。
-
-**可选第四步：连 `Locate` 的签名也去聚合化。** `order_file(&self, order: &WorkOrder)` 现在认聚合类型，可改成收 `&str`（调用方传 `order.name`）——`artifact_path` 已经是收字符串，不用动。改完 `locate` 只依赖 `ids` / `fields` / `clock` 这类小件，成为纯粹的平台装载层。
-
-拆前 / 拆后：
-
-```text
-拆前  order ─use Locate─→ workspace ─done(order)─→ order        两个环
-     workflow ─use Locate─→ workspace ─model/check─→ workflow
-
-拆后  order ──→ locate ←── workflow          装载模块，单向
-     workspace ──→ order / workflow          纯领域，单向
-     locate ⇄ order                          装载层与聚合互认类型，不算聚合环
-```
-
-### 影响
-
-- 两个聚合环消失：`order → locate`、`workflow → locate` 单向；`workspace → order` / `workspace → workflow` 保留——工作区持有工单、推导进度本来就是设计意图，这条边不该断；
-- `ensure()` / `repo_root` / `account` 从聚合归位装载层（`ensure` 本就是应用服务的行为），`short` 挪去 `cli`；
-- 剩下 `locate ⇄ order` 仍是互引：`order_file` 要 `WorkOrder` 类型，order 落盘要 `Locate`。这是「平台装载层 ⇄ 聚合」，不是聚合之间互引，分层上允许；要连这条也消，只有第四步。
-
-工作量：搬文件加一处全局替换，逻辑零改动。
-
-### 建议
-
-先做前三步——两个聚合环当场消失，不碰签名、风险最小；第四步等 `locate` 稳定后另起一轮。
+剩下 `locate ⇄ order` 是一对互认（`order_file` 收 `&WorkOrder`，order 落盘收 `Locate`）：属装载层与聚合互认类型，不算聚合环。要连它一起消，得让 `order_file` 改收 `&str`——记在 [TODO](../../TODO.md) 第五步（可选，单独一轮）。
