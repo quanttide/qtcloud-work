@@ -1,9 +1,9 @@
 //! 工单聚合 / 看与列：读全貌与列清单（只读动作，不写账）。
 
+use super::progress;
 use super::{journal, listing, open};
 use crate::locate::{Locate, short};
 use crate::outcome::Outcome;
-use crate::workspace::progress;
 use serde_json::json;
 
 /// 进度条：十格。

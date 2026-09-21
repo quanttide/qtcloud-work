@@ -1,11 +1,11 @@
-//! 工作区聚合 / 流水判定：走过哪几步、下一步是哪、完结没完结。
+//! 工单聚合 / 流水判定：走过哪几步、下一步是哪、完结没完结。
 //!
 //! 进度与完结只推导，不落字段：拿流水（`records`）的 `step` 名对着定义的
 //! `steps` 逐站对账——每站有一条 `is_succeeded` 为真的记录即走过；带 `human`
 //! 判据的闸门步骤，通过须出自人（闸门放行走 `order done`，程序不替人记）。
 //! 出处：`docs/specification/process/work-order.md`·关联、`work-record.md`·关联。
 
-use crate::order::model::WorkOrder;
+use super::model::WorkOrder;
 use crate::workflow::Workflow;
 
 /// 这件工单走过哪几步（按定义里的顺序）。

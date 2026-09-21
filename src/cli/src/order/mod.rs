@@ -16,6 +16,7 @@ pub mod execute;
 pub mod inspect;
 pub mod journal;
 pub(crate) mod model;
+pub mod progress;
 pub mod record;
 
 pub use actions::{order_create, order_delete, order_done, order_journal, order_next};
@@ -44,17 +45,17 @@ impl Order {
         crate::locate::write_yaml(&self.file(), &self.payload.to_yaml())
     }
 
-    /// 走过了哪几步（进度只推导，见 `crate::workspace::progress`）。
+    /// 走过了哪几步（进度只推导，见 [`progress`]）。
     pub fn done_steps(&self) -> Vec<String> {
-        crate::workspace::progress::done_steps(&self.payload, &self.workflow)
+        progress::done_steps(&self.payload, &self.workflow)
     }
 
     pub fn next_step(&self) -> Option<&workflow::Step> {
-        crate::workspace::progress::next_step(&self.payload, &self.workflow)
+        progress::next_step(&self.payload, &self.workflow)
     }
 
     pub fn state_line(&self) -> String {
-        crate::workspace::progress::state_line(&self.payload, &self.workflow)
+        progress::state_line(&self.payload, &self.workflow)
     }
 
     /// 追加一笔：id 由追加方给（幂等键），seq 与 step_id 账本方分配查填。

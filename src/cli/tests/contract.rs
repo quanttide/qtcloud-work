@@ -152,7 +152,7 @@ fn 动作层不依赖入口层() {
         "workspace/mod.rs",
         "workflow/check.rs",
         "workspace/place.rs",
-        "workspace/progress.rs",
+        "order/progress.rs",
         "order/mod.rs",
         "order/actions.rs",
         "order/execute.rs",
