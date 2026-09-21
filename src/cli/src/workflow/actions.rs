@@ -2,7 +2,6 @@
 
 use super::check;
 use super::{create as create_file, export as export_file, import as import_file, listing, open};
-use crate::events;
 use crate::locate::{Locate, short};
 use crate::outcome::Outcome;
 use serde_json::json;
@@ -21,7 +20,7 @@ pub fn workflow_create(locate: &Locate, name: &str, steps: &[String], note: &str
         Err(error) => return Outcome::lines(false, vec![error.0]),
     };
     if let Ok(payload) = flow.credentialed() {
-        let _ = events::workflow_created(locate, &payload);
+        let _ = crate::workflow::events::created(locate, &payload);
     }
     workflow_show(locate, &flow.name)
         .with_first(format!("写下工作流：{}", short(&locate.root, &flow.file())))
@@ -183,7 +182,7 @@ pub fn workflow_import(locate: &Locate, source: &Path, as_name: &str) -> Outcome
         Err(error) => return Outcome::lines(false, vec![error.0]),
     };
     if let Ok(payload) = flow.credentialed() {
-        let _ = events::workflow_created(locate, &payload);
+        let _ = crate::workflow::events::created(locate, &payload);
     }
     Outcome::lines(
         true,

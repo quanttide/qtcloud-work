@@ -12,6 +12,7 @@
 
 pub mod actions;
 pub mod ai;
+pub mod events;
 pub mod execute;
 pub mod inspect;
 pub mod journal;

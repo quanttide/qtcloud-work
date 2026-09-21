@@ -22,7 +22,7 @@ pub fn order_create(locate: &Locate, name: &str, workflow: &str, description: &s
         Ok(order) => order,
         Err(error) => return Outcome::lines(false, vec![error]),
     };
-    if let Err(error) = crate::events::workorder_created(locate, &order.payload) {
+    if let Err(error) = crate::order::events::created(locate, &order.payload) {
         return Outcome::lines(false, vec![error]);
     }
     order_show(locate, &order.payload.name)
@@ -49,7 +49,7 @@ pub fn order_next(locate: &Locate, name: &str, note: &str) -> Outcome {
     }
     let (ok, lines, rows, recorded) = execute::walk(&mut order, &step, note);
     if let Some(record) = &recorded
-        && let Err(error) = crate::events::work_recorded(locate, &order.payload, record)
+        && let Err(error) = crate::order::events::recorded(locate, &order.payload, record)
     {
         return Outcome::lines(false, vec![error]);
     }
@@ -87,7 +87,7 @@ pub fn order_done(locate: &Locate, name: &str, step: &str, note: &str) -> Outcom
         Ok(result) => result,
         Err(error) => return Outcome::lines(false, vec![error]),
     };
-    if let Err(error) = crate::events::work_recorded(locate, &order.payload, &recorded) {
+    if let Err(error) = crate::order::events::recorded(locate, &order.payload, &recorded) {
         return Outcome::lines(false, vec![error]);
     }
     let mut result = Outcome::new(ok);

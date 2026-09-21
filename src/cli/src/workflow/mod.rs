@@ -16,6 +16,7 @@
 
 mod actions;
 mod check;
+mod events;
 mod model;
 mod read;
 mod yaml;

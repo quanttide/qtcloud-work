@@ -104,7 +104,8 @@ impl Locate {
         ))
     }
 
-    /// 写动作前把账本开出来：身份缺则首跑生成。只读动作不调它。
+    /// 写动作前把账本开出来：身份缺则首跑生成，并按规范落一条 `WorkspaceCreated`
+    /// （规范要求它先于其内一切事件）。只读动作不调它。
     pub fn ensure(&self) -> Result<(), String> {
         std::fs::create_dir_all(self.workorders_dir())
             .map_err(|e| format!("账本开不了：{}（{e}）", self.workorders_dir().display()))?;
@@ -115,6 +116,7 @@ impl Locate {
         if !self.identity_file().is_file() {
             let payload = crate::workspace::model::identity(&root_name(&self.root));
             write_yaml(&self.identity_file(), &Value::Mapping(payload))?;
+            crate::workspace::events::created(self)?;
         }
         Ok(())
     }
