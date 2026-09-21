@@ -15,6 +15,7 @@
 //! 五个动作在 `actions`。
 
 mod actions;
+mod check;
 mod model;
 mod read;
 mod yaml;

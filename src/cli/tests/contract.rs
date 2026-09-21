@@ -150,7 +150,7 @@ fn 动作层不依赖入口层() {
     let layers = [
         "locate/mod.rs",
         "workspace/mod.rs",
-        "workspace/check.rs",
+        "workflow/check.rs",
         "workspace/place.rs",
         "workspace/progress.rs",
         "order/mod.rs",

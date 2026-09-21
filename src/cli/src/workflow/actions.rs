@@ -1,10 +1,10 @@
 //! 工作流聚合 / 动作：写、看、列、核、带走、导进来。
 
+use super::check;
 use super::{create as create_file, export as export_file, import as import_file, listing, open};
 use crate::events;
 use crate::locate::{Locate, short};
 use crate::outcome::Outcome;
-use crate::workspace::check;
 use serde_json::json;
 use std::path::Path;
 
