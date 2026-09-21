@@ -5,7 +5,7 @@
 //! 三个公共字段（`event` / `at` / `workspace_id`）、拼成一行、追加到账本的事件文件。
 //! 下游按 `id` 幂等去重。
 
-use crate::locate::LocalWorkspace;
+use crate::workspace::LocalWorkspace;
 use serde_json::{Map as JsonMap, Value as Json};
 
 /// 追加一条事件：公共三样在前，聚合给的字段随后——顺序即写出的顺序。

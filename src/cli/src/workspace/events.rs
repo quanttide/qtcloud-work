@@ -2,7 +2,7 @@
 //!
 //! 出处：`docs/specification/place/workspace.md`·领域事件。
 
-use crate::locate::LocalWorkspace;
+use crate::workspace::LocalWorkspace;
 
 /// 工作区已创建。
 pub const CREATED: &str = "WorkspaceCreated";

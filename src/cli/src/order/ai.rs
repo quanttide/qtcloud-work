@@ -58,7 +58,7 @@ fn place_of(order: &Order, name: &str) -> Option<String> {
     Some(relative_to_root(locate, &path))
 }
 
-fn relative_to_root(locate: &crate::locate::LocalWorkspace, path: &Path) -> String {
+fn relative_to_root(locate: &crate::workspace::LocalWorkspace, path: &Path) -> String {
     match path.strip_prefix(&locate.root) {
         Ok(rest) => rest.to_string_lossy().to_string(),
         Err(_) => path.to_string_lossy().to_string(),

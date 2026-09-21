@@ -3,8 +3,8 @@
 //! 出处：`docs/specification/process/work-order.md`·领域事件、
 //! `process/work-record.md`·领域事件。
 
-use crate::locate::LocalWorkspace;
 use crate::order::model::{WorkOrder, WorkRecord};
+use crate::workspace::LocalWorkspace;
 use serde_json::Value as Json;
 
 /// 工单已创建。

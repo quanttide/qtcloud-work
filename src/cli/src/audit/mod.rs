@@ -90,8 +90,8 @@ use serde_json::json;
 // ---- 动作 ----
 
 use crate::catalog;
-use crate::locate::short;
 use crate::outcome::Outcome;
+use crate::workspace::short;
 
 pub fn audit(root: &Path, make: bool) -> Outcome {
     let made = if make {

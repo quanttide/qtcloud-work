@@ -13,7 +13,6 @@ mod fields;
 mod health;
 mod help;
 mod ids;
-mod locate;
 mod material;
 mod order;
 mod outcome;

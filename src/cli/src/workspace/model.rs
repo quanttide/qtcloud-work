@@ -5,7 +5,7 @@
 //! `updated_at`（只读）。
 //!
 //! 模型管「是什么」：新身份怎么造（[`Workspace::new`]）、盘上读回的怎么核
-//! （[`Workspace::parse`]）。落在哪、怎么落是 [`crate::locate`] 的事；名字与标题
+//! （[`Workspace::parse`]）。落在哪、怎么落是 [`crate::workspace::local`] 的事；名字与标题
 //! 缺省取自工作区根的名字。
 
 use serde_yaml::{Mapping, Value};

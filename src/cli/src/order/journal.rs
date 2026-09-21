@@ -10,7 +10,7 @@ pub const JOURNAL: &str = "journal";
 
 /// 日志收叙事：别的节原样保留，只把占位的临时说明滤掉。
 pub fn narrate(
-    locate: &crate::locate::LocalWorkspace,
+    locate: &crate::workspace::LocalWorkspace,
     order_name: &str,
     words: &str,
 ) -> std::path::PathBuf {

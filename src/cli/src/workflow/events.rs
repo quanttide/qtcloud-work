@@ -2,8 +2,8 @@
 //!
 //! 出处：`docs/specification/process/workflow.md`·领域事件。
 
-use crate::locate::LocalWorkspace;
 use crate::workflow::Workflow;
+use crate::workspace::LocalWorkspace;
 use serde_json::{Map as JsonMap, Value as Json};
 
 /// 工作流已创建。

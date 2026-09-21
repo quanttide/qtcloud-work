@@ -4,7 +4,7 @@
 //! 工单是行程的封面——封皮上写着走哪条工作流（`workflow_id` 落笔即封），
 //! 内页是流水（`records`，只增不改）。工单落在账本里
 //! `<账本>/workorders/<名字>.yaml`，流水内嵌、不另落盘；账本在哪由平台装载
-//! （`crate::locate::LocalWorkspace`），位置不进工单文件。
+//! （`crate::workspace::LocalWorkspace`），位置不进工单文件。
 //!
 //! 这一件装账本本身：文件读写、开单、追加、销白纸。子件按事分：
 //! 领域模型在 `model`、流水纪律在 `record`、走一步在 `execute`、
@@ -25,8 +25,8 @@ pub use inspect::{order_list, order_show};
 pub use model::{WorkOrder, WorkRecord};
 
 use crate::ids;
-use crate::locate::LocalWorkspace;
 use crate::workflow::{self, Workflow};
+use crate::workspace::LocalWorkspace;
 use std::path::PathBuf;
 
 /// 一本打开的账：位置装载 + 工单内容 + 所引工作流（凭证已补）。
@@ -43,7 +43,7 @@ impl Order {
 
     /// 落盘：工单 YAML 写回账本。
     pub fn save(&self) -> Result<(), String> {
-        crate::locate::write_yaml(&self.file(), &self.payload.to_yaml())
+        crate::workspace::local::write_yaml(&self.file(), &self.payload.to_yaml())
     }
 
     /// 走过了哪几步（进度只推导，见 [`progress`]）。

@@ -2,8 +2,8 @@
 
 use super::progress;
 use super::{journal, listing, open};
-use crate::locate::{LocalWorkspace, short};
 use crate::outcome::Outcome;
+use crate::workspace::{LocalWorkspace, short};
 use serde_json::json;
 
 /// 进度条：十格。

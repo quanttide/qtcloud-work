@@ -2,8 +2,8 @@
 
 use super::check;
 use super::{create as create_file, export as export_file, import as import_file, listing, open};
-use crate::locate::{LocalWorkspace, short};
 use crate::outcome::Outcome;
+use crate::workspace::{LocalWorkspace, short};
 use serde_json::json;
 use std::path::Path;
 
