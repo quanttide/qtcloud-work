@@ -4,7 +4,7 @@
 //! 工单是行程的封面——封皮上写着走哪条工作流（`workflow_id` 落笔即封），
 //! 内页是流水（`records`，只增不改）。工单落在账本里
 //! `<账本>/workorders/<名字>.yaml`，流水内嵌、不另落盘；账本在哪由平台装载
-//! （`crate::locate::Locate`），位置不进工单文件。
+//! （`crate::locate::LocalWorkspace`），位置不进工单文件。
 //!
 //! 这一件装账本本身：文件读写、开单、追加、销白纸。子件按事分：
 //! 领域模型在 `model`、流水纪律在 `record`、走一步在 `execute`、
@@ -25,13 +25,13 @@ pub use inspect::{order_list, order_show};
 pub use model::{WorkOrder, WorkRecord};
 
 use crate::ids;
-use crate::locate::Locate;
+use crate::locate::LocalWorkspace;
 use crate::workflow::{self, Workflow};
 use std::path::PathBuf;
 
 /// 一本打开的账：位置装载 + 工单内容 + 所引工作流（凭证已补）。
 pub struct Order {
-    pub locate: Locate,
+    pub locate: LocalWorkspace,
     pub payload: WorkOrder,
     pub workflow: Workflow,
 }
@@ -100,7 +100,7 @@ impl Order {
 }
 
 /// 读一本账：文件在、账成形、所引工作流还在（认 `workflow_id`）。
-pub fn open(locate: &Locate, name: &str) -> Result<Order, String> {
+pub fn open(locate: &LocalWorkspace, name: &str) -> Result<Order, String> {
     let path = locate.workorders_dir().join(format!("{name}.yaml"));
     let text =
         std::fs::read_to_string(&path).map_err(|_| format!("没有这件工单：{}", path.display()))?;
@@ -117,7 +117,7 @@ pub fn open(locate: &Locate, name: &str) -> Result<Order, String> {
 }
 
 /// 按凭证找工作流：区内定义按名现算凭证，逐一对照。
-pub fn workflow_by_id(locate: &Locate, workflow_id: &str) -> Option<Workflow> {
+pub fn workflow_by_id(locate: &LocalWorkspace, workflow_id: &str) -> Option<Workflow> {
     workflow::listing(locate)
         .into_iter()
         .map(|flow| flow.credentialed())
@@ -126,7 +126,7 @@ pub fn workflow_by_id(locate: &Locate, workflow_id: &str) -> Option<Workflow> {
 }
 
 /// 账上有哪些工单；`workflow` 给了名字就只列引着那条工作流的。
-pub fn listing(locate: &Locate, workflow: &str) -> Result<Vec<Order>, String> {
+pub fn listing(locate: &LocalWorkspace, workflow: &str) -> Result<Vec<Order>, String> {
     let base = locate.workorders_dir();
     if !base.is_dir() {
         return Ok(Vec::new());
@@ -165,7 +165,7 @@ pub fn listing(locate: &Locate, workflow: &str) -> Result<Vec<Order>, String> {
 
 /// 开工单：名字与所引工作流由请求给，凭证与时刻由账本查填。封面落笔即封。
 pub fn create(
-    locate: &Locate,
+    locate: &LocalWorkspace,
     name: &str,
     workflow_name: &str,
     description: &str,
@@ -202,7 +202,7 @@ pub fn create(
 }
 
 /// 删一张白纸：流水非空即拒——账本不销户。
-pub fn delete(locate: &Locate, name: &str) -> Result<PathBuf, String> {
+pub fn delete(locate: &LocalWorkspace, name: &str) -> Result<PathBuf, String> {
     let order = open(locate, name)?;
     if !order.payload.records.is_empty() {
         return Err(format!(

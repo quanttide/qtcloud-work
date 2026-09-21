@@ -2,7 +2,7 @@
 //!
 //! 出处：`docs/specification/process/workflow.md`·领域事件。
 
-use crate::locate::Locate;
+use crate::locate::LocalWorkspace;
 use crate::workflow::Workflow;
 use serde_json::{Map as JsonMap, Value as Json};
 
@@ -10,7 +10,7 @@ use serde_json::{Map as JsonMap, Value as Json};
 pub const CREATED: &str = "WorkflowCreated";
 
 /// 工作流已创建：带声明全文与派生出的凭证。
-pub fn created(locate: &Locate, workflow: &Workflow) -> Result<(), String> {
+pub fn created(locate: &LocalWorkspace, workflow: &Workflow) -> Result<(), String> {
     crate::events::append(
         locate,
         CREATED,

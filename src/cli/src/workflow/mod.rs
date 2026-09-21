@@ -31,18 +31,18 @@ pub use yaml::{WorkflowError, load, text_of};
 // 执行者取值：一处定义，本仓自持。
 pub use crate::executor::{AGENT, HUMAN, RULE};
 
-use crate::locate::Locate;
+use crate::locate::LocalWorkspace;
 use serde_yaml::{Mapping, Value};
 
 /// 一条定义**连同它的文件位置**（[`Workflow`] 那份只管内容，不管文件）。
 pub struct WorkflowFile {
     pub name: String,
     pub payload: Value,
-    pub locate: Locate,
+    pub locate: LocalWorkspace,
 }
 
 impl WorkflowFile {
-    pub fn new(locate: &Locate, name: &str, payload: Value) -> Self {
+    pub fn new(locate: &LocalWorkspace, name: &str, payload: Value) -> Self {
         WorkflowFile {
             name: name.to_string(),
             payload,
@@ -96,11 +96,12 @@ impl WorkflowFile {
 
 /// 写一条工作流：步骤串联，每步给一份判据骨架（执行者默认 AI）。定义不带凭证。
 pub fn create(
-    locate: &Locate,
+    locate: &LocalWorkspace,
     name: &str,
     steps: &[String],
     note: &str,
 ) -> Result<WorkflowFile, WorkflowError> {
+    locate.check_flows_dir().map_err(WorkflowError)?;
     let mut payload = Mapping::new();
     payload.insert(
         Value::String("name".into()),
@@ -165,7 +166,7 @@ pub(crate) fn write(flow: &WorkflowFile) -> Result<(), String> {
         .map_err(|e| format!("{} 写不了：{e}", flow.file().display()))
 }
 
-pub fn open(locate: &Locate, name: &str) -> WorkflowFile {
+pub fn open(locate: &LocalWorkspace, name: &str) -> WorkflowFile {
     WorkflowFile::new(locate, name, Value::Mapping(Mapping::new())).reload()
 }
 
@@ -185,10 +186,11 @@ pub fn export(flow: &WorkflowFile, target: &std::path::Path) -> std::path::PathB
 
 /// 把一份工作流导进来：先照 schema 验一遍，再起个名字落进工作流目录。
 pub fn import(
-    locate: &Locate,
+    locate: &LocalWorkspace,
     source: &std::path::Path,
     name: &str,
 ) -> Result<WorkflowFile, WorkflowError> {
+    locate.check_flows_dir().map_err(WorkflowError)?;
     let mut payload = load(source)?;
     let chosen = if !name.trim().is_empty() {
         name.trim().to_string()
@@ -218,7 +220,7 @@ pub fn import(
     Ok(flow)
 }
 
-pub fn listing(locate: &Locate) -> Vec<WorkflowFile> {
+pub fn listing(locate: &LocalWorkspace) -> Vec<WorkflowFile> {
     let base = locate.workflows_dir();
     if !base.is_dir() {
         return Vec::new();

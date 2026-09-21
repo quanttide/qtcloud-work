@@ -3,7 +3,7 @@
 //! 出处：`docs/specification/process/work-order.md`·领域事件、
 //! `process/work-record.md`·领域事件。
 
-use crate::locate::Locate;
+use crate::locate::LocalWorkspace;
 use crate::order::model::{WorkOrder, WorkRecord};
 use serde_json::Value as Json;
 
@@ -13,7 +13,7 @@ pub const CREATED: &str = "WorkOrderCreated";
 pub const RECORDED: &str = "WorkRecorded";
 
 /// 工单已创建：带封面全文。
-pub fn created(locate: &Locate, order: &WorkOrder) -> Result<(), String> {
+pub fn created(locate: &LocalWorkspace, order: &WorkOrder) -> Result<(), String> {
     crate::events::append(
         locate,
         CREATED,
@@ -27,7 +27,11 @@ pub fn created(locate: &Locate, order: &WorkOrder) -> Result<(), String> {
 }
 
 /// 工作记录已追加：带记录全文。
-pub fn recorded(locate: &Locate, order: &WorkOrder, record: &WorkRecord) -> Result<(), String> {
+pub fn recorded(
+    locate: &LocalWorkspace,
+    order: &WorkOrder,
+    record: &WorkRecord,
+) -> Result<(), String> {
     crate::events::append(
         locate,
         RECORDED,

@@ -2,7 +2,7 @@
 //!
 //! 规格出处：`docs/specification/process/work-order.md` 与 `work-record.md`。
 //! 工单是行程的封面——封皮上写着走哪条工作流，内页是流水；工作记录是账上一笔。
-//! 位置不进模型：工单在哪、产物落哪，由平台装载（`crate::locate::Locate`）。
+//! 位置不进模型：工单在哪、产物落哪，由平台装载（`crate::locate::LocalWorkspace`）。
 
 use serde_yaml::Value as Yaml;
 

@@ -1,13 +1,18 @@
 //! 工单聚合 / 动作：开、看、列、走下一步、人记一笔、日志、销白纸。
 
 use super::{create, delete, execute, inspect::order_show, journal, open};
-use crate::locate::{Locate, short};
+use crate::locate::{LocalWorkspace, short};
 use crate::outcome::Outcome;
 use serde_json::json;
 
 /// 走下一步：能让 AI 跑的交给 AI，然后跑判据、记一笔。
 /// 开工单：写完发事件，再看一遍。
-pub fn order_create(locate: &Locate, name: &str, workflow: &str, description: &str) -> Outcome {
+pub fn order_create(
+    locate: &LocalWorkspace,
+    name: &str,
+    workflow: &str,
+    description: &str,
+) -> Outcome {
     let flow = crate::workflow::open(locate, workflow.trim());
     if !flow.exists() {
         return Outcome::lines(
@@ -29,7 +34,7 @@ pub fn order_create(locate: &Locate, name: &str, workflow: &str, description: &s
         .with_first(format!("开了工单：{}", short(&locate.root, &order.file())))
 }
 
-pub fn order_next(locate: &Locate, name: &str, note: &str) -> Outcome {
+pub fn order_next(locate: &LocalWorkspace, name: &str, note: &str) -> Outcome {
     let mut order = match open(locate, name) {
         Ok(order) => order,
         Err(error) => return Outcome::lines(false, vec![error]),
@@ -64,7 +69,7 @@ pub fn order_next(locate: &Locate, name: &str, note: &str) -> Outcome {
 }
 
 /// 人记一笔：闸门放行，或人自己做完记一笔；程序仍核 rule 判据。
-pub fn order_done(locate: &Locate, name: &str, step: &str, note: &str) -> Outcome {
+pub fn order_done(locate: &LocalWorkspace, name: &str, step: &str, note: &str) -> Outcome {
     if step.trim().is_empty() {
         return Outcome::lines(
             false,
@@ -106,7 +111,7 @@ pub fn order_done(locate: &Locate, name: &str, step: &str, note: &str) -> Outcom
 }
 
 /// 日志：叙事落产物，不记流水。
-pub fn order_journal(locate: &Locate, name: &str, words: &str) -> Outcome {
+pub fn order_journal(locate: &LocalWorkspace, name: &str, words: &str) -> Outcome {
     let _order = match open(locate, name) {
         Ok(order) => order,
         Err(error) => return Outcome::lines(false, vec![error]),
@@ -132,7 +137,7 @@ pub fn order_journal(locate: &Locate, name: &str, words: &str) -> Outcome {
 }
 
 /// 删一张白纸：流水非空即拒——账本不销户。
-pub fn order_delete(locate: &Locate, name: &str) -> Outcome {
+pub fn order_delete(locate: &LocalWorkspace, name: &str) -> Outcome {
     match delete(locate, name) {
         Ok(path) => {
             let mut result = Outcome::lines(

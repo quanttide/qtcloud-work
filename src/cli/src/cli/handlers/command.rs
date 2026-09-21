@@ -1,12 +1,12 @@
 //! 工作流与工单那一组的子命令分派。
 
 use super::super::{Cli, OrderCommand, WorkflowCommand, emit};
-use crate::locate::{Locate, short};
+use crate::locate::{LocalWorkspace, short};
 use crate::outcome::Outcome;
 
 /// 装载：三处位置由启动参数定，写动作另开账本。
-fn locate(cli: &Cli) -> Locate {
-    Locate::resolve(
+fn locate(cli: &Cli) -> LocalWorkspace {
+    LocalWorkspace::resolve(
         cli.root.as_deref(),
         cli.data.as_deref(),
         cli.workflows.as_deref(),

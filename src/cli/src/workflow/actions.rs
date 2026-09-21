@@ -2,13 +2,18 @@
 
 use super::check;
 use super::{create as create_file, export as export_file, import as import_file, listing, open};
-use crate::locate::{Locate, short};
+use crate::locate::{LocalWorkspace, short};
 use crate::outcome::Outcome;
 use serde_json::json;
 use std::path::Path;
 
 /// 写一条工作流：写完发事件，再看一遍。
-pub fn workflow_create(locate: &Locate, name: &str, steps: &[String], note: &str) -> Outcome {
+pub fn workflow_create(
+    locate: &LocalWorkspace,
+    name: &str,
+    steps: &[String],
+    note: &str,
+) -> Outcome {
     if name.trim().is_empty() {
         return Outcome::lines(false, vec!["请先给工作流起个名字".to_string()]);
     }
@@ -27,7 +32,7 @@ pub fn workflow_create(locate: &Locate, name: &str, steps: &[String], note: &str
 }
 
 /// 看一条工作流：步骤、谁执行、几条判据，外加凭证。
-pub fn workflow_show(locate: &Locate, name: &str) -> Outcome {
+pub fn workflow_show(locate: &LocalWorkspace, name: &str) -> Outcome {
     let flow = open(locate, name);
     if !flow.exists() {
         return Outcome::lines(
@@ -88,7 +93,7 @@ pub fn workflow_show(locate: &Locate, name: &str) -> Outcome {
     result
 }
 
-pub fn workflow_list(locate: &Locate) -> Outcome {
+pub fn workflow_list(locate: &LocalWorkspace) -> Outcome {
     let found = listing(locate);
     let mut result = Outcome::new(true);
     result.columns = vec!["工作流".to_string(), "步骤".to_string(), "位置".to_string()];
@@ -114,7 +119,7 @@ pub fn workflow_list(locate: &Locate) -> Outcome {
 }
 
 /// 定义核对：只看写下的位置、不访问文件系统——路径须在区内、小节须有判据覆盖。
-pub fn workflow_check(locate: &Locate, name: &str) -> Outcome {
+pub fn workflow_check(locate: &LocalWorkspace, name: &str) -> Outcome {
     let flow = open(locate, name);
     if !flow.exists() {
         return Outcome::lines(
@@ -158,7 +163,7 @@ pub fn workflow_check(locate: &Locate, name: &str) -> Outcome {
     result
 }
 
-pub fn workflow_export(locate: &Locate, name: &str, target: &Path) -> Outcome {
+pub fn workflow_export(locate: &LocalWorkspace, name: &str, target: &Path) -> Outcome {
     let flow = open(locate, name);
     if !flow.exists() {
         return Outcome::lines(
@@ -176,7 +181,7 @@ pub fn workflow_export(locate: &Locate, name: &str, target: &Path) -> Outcome {
     )
 }
 
-pub fn workflow_import(locate: &Locate, source: &Path, as_name: &str) -> Outcome {
+pub fn workflow_import(locate: &LocalWorkspace, source: &Path, as_name: &str) -> Outcome {
     let flow = match import_file(locate, source, as_name) {
         Ok(flow) => flow,
         Err(error) => return Outcome::lines(false, vec![error.0]),

@@ -1,4 +1,6 @@
-//! 位置装载：根、账本、工作流目录、产物落点——三处位置由启动参数定。
+//! 本地工作区（[`LocalWorkspace`]）：这台机器上的这个工作区——根、账本、工作流
+//! 目录、产物四处落点由启动参数定，账本的生命周期（首跑开账、身份读回）也在这
+//! 里。位置解析是纯函数，生命周期只有「在不在、身份是什么」一件本体状态。
 //!
 //! 工作区是建模单位，不是目录：领域那一侧只认内容（定义与工单），不认位置；
 //! 物理位置由平台在装载时给（规格 `docs/specification/place/workspace.md`）。
@@ -14,7 +16,7 @@
 //! - **产物（artifacts）**：报告与日志是内容，不跟账本走；缺省落工作区根下的
 //!   `artifacts/`，由 `--artifacts` 另指。
 //!
-//! 工作区身份缺则首跑生成（[`Locate::ensure`]）：`id` / `name` / `title` /
+//! 工作区身份缺则首跑生成（[`LocalWorkspace::ensure`]）：`id` / `name` / `title` /
 //! `description` / `created_at` / `updated_at`；`id` 供凭证派生用。位置不进模型：
 //! 这些都不写进工单文件。
 
@@ -28,9 +30,9 @@ pub const IDENTITY: &str = "workspace.yaml";
 /// 事件文件名：领域事件落 JSONL，一条一行。
 pub const EVENTS: &str = "events.jsonl";
 
-/// 一次装载：根、账本与产物落点。
+/// 本地工作区：三处落点，外加账本生命周期（首跑开账、身份读回）。
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Locate {
+pub struct LocalWorkspace {
     /// 工作区根：判据路径的基准。
     pub root: PathBuf,
     /// 账本：工作区身份、工单、事件。
@@ -41,14 +43,14 @@ pub struct Locate {
     pub artifacts: PathBuf,
 }
 
-impl Locate {
+impl LocalWorkspace {
     /// 装载：给了就用给的，没给按缺省的规矩找。
     pub fn resolve(
         root: Option<&Path>,
         data: Option<&Path>,
         workflows: Option<&Path>,
         artifacts: Option<&Path>,
-    ) -> Locate {
+    ) -> LocalWorkspace {
         let root = match root {
             Some(root) => root.to_path_buf(),
             None => self::root(None),
@@ -61,7 +63,7 @@ impl Locate {
             Some(path) => path.to_path_buf(),
             None => root.join("artifacts"),
         };
-        Locate {
+        LocalWorkspace {
             root,
             data,
             workflows: workflows.map(|p| p.to_path_buf()),
@@ -109,26 +111,45 @@ impl Locate {
     pub fn ensure(&self) -> Result<(), String> {
         std::fs::create_dir_all(self.workorders_dir())
             .map_err(|e| format!("账本开不了：{}（{e}）", self.workorders_dir().display()))?;
-        if self.workflows.is_none() {
+        if self.workflows.is_some() {
+            self.check_flows_dir()?;
+        } else {
             std::fs::create_dir_all(self.workflows_dir())
                 .map_err(|e| format!("工作流目录开不了：{e}"))?;
         }
         if !self.identity_file().is_file() {
-            let payload = crate::workspace::model::identity(&root_name(&self.root));
-            write_yaml(&self.identity_file(), &Value::Mapping(payload))?;
+            let identity = crate::workspace::model::Workspace::new(&root_name(&self.root));
+            write_yaml(
+                &self.identity_file(),
+                &Value::Mapping(identity.to_mapping()),
+            )?;
             crate::workspace::events::created(self)?;
         }
         Ok(())
     }
 
+    /// 外部工作流目录自备：缺了当场报，不代建——免得拼写错了静默造出一个空目录。
+    /// 缺省那份（跟在账本里）由 [`LocalWorkspace::ensure`] 建；写定义的动作
+    /// （`workflow create` / `import`）也调它，因为写盘不经过 `ensure`。
+    pub fn check_flows_dir(&self) -> Result<(), String> {
+        match &self.workflows {
+            Some(dir) if !dir.is_dir() => Err(format!(
+                "工作流目录开不了：{} 不存在——`--workflows` 指自备的外部目录，不代建",
+                dir.display()
+            )),
+            _ => Ok(()),
+        }
+    }
+
     /// 工作区 id：身份缺则先开账本——凭证派生认它，宁可落盘不可空算。
+    /// 调用方全是写动作（开单、记账），读路径不会触发首跑写盘。
     pub fn workspace_id(&self) -> Result<String, String> {
         self.ensure()?;
         let text = std::fs::read_to_string(self.identity_file())
             .map_err(|e| format!("{} 读不了：{e}", self.identity_file().display()))?;
-        let payload: Value = serde_yaml::from_str(&text)
-            .map_err(|e| format!("{} 不是合法的 YAML：{e}", IDENTITY))?;
-        Ok(crate::fields::text_of(&payload, "id"))
+        crate::workspace::model::Workspace::parse(&text)
+            .map_err(|e| format!("{} ：{e}", self.identity_file().display()))
+            .map(|workspace| workspace.id)
     }
 }
 

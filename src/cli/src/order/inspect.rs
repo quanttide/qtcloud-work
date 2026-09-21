@@ -2,7 +2,7 @@
 
 use super::progress;
 use super::{journal, listing, open};
-use crate::locate::{Locate, short};
+use crate::locate::{LocalWorkspace, short};
 use crate::outcome::Outcome;
 use serde_json::json;
 
@@ -17,7 +17,7 @@ fn bar(done: usize, total: usize) -> String {
 }
 
 /// 读全貌：封面加全量流水，进度照流水推导。
-pub fn order_show(locate: &Locate, name: &str) -> Outcome {
+pub fn order_show(locate: &LocalWorkspace, name: &str) -> Outcome {
     let order = match open(locate, name) {
         Ok(order) => order,
         Err(error) => return Outcome::lines(false, vec![error]),
@@ -83,7 +83,7 @@ pub fn order_show(locate: &Locate, name: &str) -> Outcome {
     result
 }
 
-pub fn order_list(locate: &Locate, workflow: &str) -> Outcome {
+pub fn order_list(locate: &LocalWorkspace, workflow: &str) -> Outcome {
     let found = match listing(locate, workflow) {
         Ok(found) => found,
         Err(error) => return Outcome::lines(false, vec![error]),
