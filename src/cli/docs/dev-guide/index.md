@@ -43,7 +43,7 @@ src/
 - [catalog](catalog.md)——扫成名字索引；
 - [artifact](artifact.md)——资产表二十格与落点，产物实例（名字 + 规格）；
 - [material](material.md)——材料的四字段与阶段；
-- [workspace](workspace.md)——三处位置的装载与工作区身份、只读纪律（装载那半在 `locate/`）。
+- [workspace](workspace.md)——三处位置的装载与工作区身份、只读纪律（装载那半在 `locate/`；不属这里的三件与两处缺件见·归属）。
 
 ## 领域服务
 

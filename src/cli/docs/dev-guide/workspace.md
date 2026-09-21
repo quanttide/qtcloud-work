@@ -37,8 +37,22 @@
 
 ## 结构
 
-装载与领域分住两处：碰盘的那半归 `locate/`（根、账本、产物落点、身份与工单落盘、路径的短显示），聚合里只剩纯领域——`model` / `place` / `progress` / `check`。
+装载与领域分住两处：碰盘的那半归 `locate/`（根、账本、产物落点、身份与工单落盘、路径的短显示），聚合里只剩纯领域。
 
-为什么这么切：`order` 与 `workflow` 要落盘，只能引 `workspace::Locate`；`workspace` 又要读工单与工作流来推导进度——两条反向边让 `workspace ↔ order`、`workspace ↔ workflow` 两个聚合环以本聚名为枢纽（体检见 [STATUS](../../STATUS.md)）。装载搬出去之后，`order → locate`、`workflow → locate` 单向，而 `workspace → order` / `workspace → workflow` 保留——工作区持有工单、推导进度本来就是设计意图，这条边不该断。
+原先 `order` 与 `workflow` 要落盘，只能引 `workspace::Locate`，两边互引成环；装载搬出去之后 `order → locate`、`workflow → locate` 单向，`workspace → order` / `workspace → workflow` 那两条边则等下节处理。剩下 `locate ⇄ order` 是一对互认（`order_file` 收 `&WorkOrder`，order 落盘收 `Locate`），属装载层与聚合互认类型，不算聚合环。
 
-剩下 `locate ⇄ order` 是一对互认（`order_file` 收 `&WorkOrder`，order 落盘收 `Locate`）：属装载层与聚合互认类型，不算聚合环。要连它一起消，得让 `order_file` 改收 `&str`——记在 [TODO](../../TODO.md) 第五步（可选，单独一轮）。
+## 归属：哪些不属这里
+
+判据一句话：**这件说的是谁的事？** 下面几件说的都不是工作区自己的事——三件是别家寄住在这里，两件是本家的东西落在了别处。
+
+| 件 | 说的是谁的事 | 该住哪 | 出处 |
+| :-- | :-- | :-- | :-- |
+| `check.rs` | 工作流定义写得对不对（判据路径出不出界、描述提到的小节有没有判据覆盖） | `workflow/` | `process/workflow.md`·约束：「定义须可对照工作区核对：`description` 里提到的小节须有 `contains` 判据覆盖；核对由端侧执行」 |
+| `progress.rs` | 工单走过哪几步、走完没有 | `order/` | `process/work-order.md`·约束：「工单没有状态字段：走到哪一步、走完没走完，由流水对照定义推导」 |
+| `place.rs` | 产物落在哪一格 | `artifact/` | `piece/artifact.md` 只写「产物不带位置：它落在哪由工作区算」，没给算式；算式（按 [artifact](artifact.md)）是产物的规则——规范要先补这一条 |
+| 身份生成（现在在 `locate::ensure()` 里拼 `id` / `name` / `title` / 时刻） | 工作区自己的字段 | `workspace/`（装载只写盘） | `place/workspace.md`·领域属性 |
+| `WorkspaceCreated` / `WorkspaceUpdated` | 工作区自己的事件 | `workspace/`（代码里一个还没有） | `place/workspace.md`·领域事件 |
+
+**这也是聚合环的根因。** `workspace` 引 `order` / `workflow`，不是为了自己，是因为住着这三件；装载搬出去只解了「落盘」那半。归位之后 `workspace` 不再引 `order` / `workflow`——环不必解，它不成立。工作区聚合随之收成「模型 + 事件」两样：自己的字段、身份与事件。
+
+去处、顺序与判据见 [TODO](../../TODO.md)·归位。

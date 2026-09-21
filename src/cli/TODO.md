@@ -36,4 +36,22 @@ sh scripts/validate-line-count.sh
 - [x] **`docs/dev-guide/index.md` 落点图**：`workspace/` 一行改为纯领域，并列 `locate/` 一行；适配一节点出装载的所在。
 - [x] **`docs/dev-guide/workspace.md`**：装载一节改指 `crate::locate`；原「拆环」提案一节改为「结构」——现状、为什么这么切、剩什么。
 - [x] **`docs/dev-guide/work-order.md`**：落点清单里的 `workspace/locate.rs` 改 `locate/mod.rs`。
-- [x] **`STATUS.md` 复检**：两个聚合环标为已消，扇入与贴线数刷新，新增 `workspace/model.rs` 死件一条。`order → audit` 与 events 虚环两条不在本次范围，仍在账上。
+- [x] **`STATUS.md` 复检**：两个聚合环标为已消，扇入与贴线数刷新，新增 `workspace/model.rs` 死件一条。`order → audit` 一条不在本次范围，仍在账上。
+
+## 归位：把别家的事还给别家
+
+判断与依据见 [docs/dev-guide/workspace.md](docs/dev-guide/workspace.md)·归属，判据一句话：**这件说的是谁的事？** 三件别家寄住在 `workspace/`，两件本家的东西落在了装载层。
+
+都是搬文件加改路径，逻辑不改；验法与上一段同——改动前后各编一份二进制，同一批命令逐条对 stdout、stderr、退出码、落盘文件清单与全文。
+
+- [ ] **一 · `check` 归 `workflow/`**：整件搬到 `workflow/check.rs`（出处 `process/workflow.md`·约束：核对由端侧执行）。调用点只有一处——`workflow/actions.rs` 的 `workflow check`。
+  - 判据：`grep -rn "workspace::check" src tests` 为空；`workflow check` 的输出逐字节相同，`tests/definition_check.rs` 全绿。
+- [ ] **二 · `progress` 归 `order/`**：搬到 `order/progress.rs`（出处 `process/work-order.md`·约束：进度由流水对照定义推导）。调用点两处——`order/mod.rs`、`order/inspect.rs`。
+  - 判据：`grep -rn "workspace::progress" src tests` 为空；工单的进度、下一步、状态行一字不变，`tests/state_machine.rs` 全绿。
+- [ ] **三 · `place` 归 `artifact/`（规范先补一条）**：算式 `<类别>/<工单名>.md` 现在规范里没有出处——先在 `piece/artifact.md` 补这一条（建议写在这里：算式是产物的规则），并把该篇「它落在哪由工作区算」的口径说清（位置由所在工作区给、算式归产物）；再搬 `place` 进 `artifact/`，`Locate::artifact_path` 只负责拼目录。
+  - 判据：规范里有这条算式；`grep -rn "workspace::place" src tests` 为空；产物落点不变，`tests/criteria.rs` 与 `tests/order_done.rs` 全绿。
+- [ ] **四 · 身份生成收回本家**：`locate::ensure()` 里拼 `id` / `name` / `title` / 时刻的那半搬回 `workspace/`——模型造内容，装载只写盘。
+  - 判据：`workspace/` 里有身份生成、`locate/` 里不再拼字段；首跑生成的身份逐字段相同，`tests/run_context.rs` 与 `tests/defaults.rs` 全绿。
+- [ ] **五 · 补两个工作区事件，事件定义随聚合**：`WorkspaceCreated` / `WorkspaceUpdated` 现在代码里一个都没有（规范 `place/workspace.md`·领域事件）；顺带把根 `events.rs` 里 `WorkflowCreated` / `WorkOrderCreated` / `WorkRecorded` 的定义分别归 `workflow/` 与 `order/`，根 `events.rs` 只留「追加成 JSONL」这一件事（收 `id` 与原始值，不认聚合类型）——`STATUS` 记的「聚合 → infra → 聚合」虚环随之消掉。
+  - 判据：三个聚合各自带事件定义；`grep -n "crate::order\|crate::workflow" src/events.rs` 为空；`events.jsonl` 的字段与搬前一致，`tests/events.rs` 全绿。
+- [ ] **收尾对表**：`workspace/` 收成「模型 + 事件」；连带改 `docs/dev-guide/index.md` 落点图、`CONTRIBUTING.md` 归类表、`tests/contract.rs` 的层清单、`STATUS.md` 复检。

@@ -8,7 +8,7 @@
 - `order/mod.rs`——账本本身：文件读写、开单、销白纸、按凭证找工作流；
 - `order/actions.rs`——动作：开单、走一步、人记一笔、日志、删白纸；
 - `order/inspect.rs`——看与列：封面、步骤状态、待拍板闸门、状态行；
-- `workspace/progress.rs`——进度与完结的推导（见下）；
+- `order/progress.rs`（现住 `workspace/progress.rs`，待归位）——进度与完结的推导（见下）；
 - `locate/mod.rs`——账本与产物的装载、工作区身份与工单落盘。
 
 ## 封面
@@ -25,7 +25,7 @@
 
 ## 推导
 
-推导在 `workspace/progress.rs`，只拿流水与定义这两样：
+推导在 `order/progress.rs`（现住 `workspace/`，待归位），只拿流水与定义这两样：
 
 - **走过**：这一站在流水里有一条 `is_succeeded` 为真的记录；
 - **下一步**：定义里第一个没走过的站；
