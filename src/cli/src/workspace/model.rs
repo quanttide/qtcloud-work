@@ -1,27 +1,27 @@
-//! 工作区聚合 / 模型：一次工作的边界，把定义与任务系在一起。
+//! 工作区聚合 / 模型：身份六字段。
 //!
-//! 工作区是建模单位，不是目录——它只装内容（装载起来的定义与任务），不装位置。
-//! 物理位置由平台给：落点与核对要用的目录基准，当参数传进来。
-//! 出处：`docs/specification/place/workspace.md`。
+//! 出处：`docs/specification/place/workspace.md`·领域属性——`id`（只读，UUID）、
+//! `name`（必选）、`title`（必选）、`description`（推荐，默认为空）、`created_at` /
+//! `updated_at`（只读）。
+//!
+//! 模型造内容、装载写盘：这里只管把一份**新身份**拼出来（`id` 走 `ids`、时刻走 `clock`），
+//! 落在哪、怎么落是 `crate::locate` 的事；名字与标题缺省取自工作区根的名字。
 
-use crate::task::model::Task;
-use crate::workflow::Workflow;
+use serde_yaml::{Mapping, Value};
 
-/// 工作区：装载起来的定义与任务。跨着定义与现场的操作都挂在这里。
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct Workspace {
-    pub workflows: Vec<Workflow>,
-    pub tasks: Vec<Task>,
-}
-
-impl Workspace {
-    /// 拿装载好的定义与任务装一个工作区。
-    pub fn of(workflows: Vec<Workflow>, tasks: Vec<Task>) -> Workspace {
-        Workspace { workflows, tasks }
+/// 新开一份身份：名字与标题取工作区根的名字，描述留空，时刻由本侧落定。
+pub fn identity(root_name: &str) -> Mapping {
+    let stamp = crate::clock::now();
+    let mut payload = Mapping::new();
+    for (key, value) in [
+        ("id", Value::String(crate::ids::new_id())),
+        ("name", Value::String(root_name.to_string())),
+        ("title", Value::String(root_name.to_string())),
+        ("description", Value::String(String::new())),
+        ("created_at", Value::String(stamp.clone())),
+        ("updated_at", Value::String(stamp)),
+    ] {
+        payload.insert(Value::String(key.into()), value);
     }
-
-    /// 按名字取装载起来的工作流定义。
-    pub fn workflow(&self, name: &str) -> Option<&Workflow> {
-        self.workflows.iter().find(|flow| flow.name == name)
-    }
+    payload
 }

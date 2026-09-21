@@ -20,7 +20,7 @@
 
 use crate::order::WorkOrder;
 use crate::sha1::sha1_hex;
-use serde_yaml::{Mapping, Value};
+use serde_yaml::Value;
 use std::path::{Path, PathBuf};
 
 /// 工作区身份文件名。
@@ -113,18 +113,7 @@ impl Locate {
                 .map_err(|e| format!("工作流目录开不了：{e}"))?;
         }
         if !self.identity_file().is_file() {
-            let stamp = crate::clock::now();
-            let mut payload = Mapping::new();
-            for (key, value) in [
-                ("id", Value::String(crate::ids::new_id())),
-                ("name", Value::String(root_name(&self.root))),
-                ("title", Value::String(root_name(&self.root))),
-                ("description", Value::String(String::new())),
-                ("created_at", Value::String(stamp.clone())),
-                ("updated_at", Value::String(stamp)),
-            ] {
-                payload.insert(Value::String(key.into()), value);
-            }
+            let payload = crate::workspace::model::identity(&root_name(&self.root));
             write_yaml(&self.identity_file(), &Value::Mapping(payload))?;
         }
         Ok(())
