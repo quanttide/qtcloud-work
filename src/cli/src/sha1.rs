@@ -1,7 +1,7 @@
 //! SHA-1 摘要（RFC 3174）：只给工作区键用——账本目录名里的短码。
 //!
 //! 不引依赖：实现只此一处，测试钉住标准向量。键的稳定性靠它：同一台机器上
-//! 同一个工作区根，永远算出同一个键（见 `crate::workspace::workspace_key`）。
+//! 同一个工作区根，永远算出同一个键（见 `crate::locate::workspace_key`）。
 
 pub fn sha1_hex(input: &str) -> String {
     let data = input.as_bytes();

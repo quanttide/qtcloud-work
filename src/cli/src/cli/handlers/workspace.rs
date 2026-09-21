@@ -6,10 +6,10 @@ use crate::audit;
 use crate::catalog;
 use crate::health;
 use crate::help;
+use crate::locate;
 use crate::material;
 use crate::outcome::Outcome;
 use crate::search;
-use crate::workspace;
 
 pub(crate) fn help(topic: Option<&str>, cli: &Cli) -> i32 {
     match topic {
@@ -34,14 +34,14 @@ pub(crate) fn health(cli: &Cli) {
 }
 
 pub(crate) fn search(name: &str, show: bool, cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref());
+    let root = locate::root(cli.root.as_deref());
     let result =
         search::search(&root, name, show).with_first(format!("工作区：{}", root.display()));
     emit(result, cli)
 }
 
 pub(crate) fn catalog(cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref());
+    let root = locate::root(cli.root.as_deref());
     emit(
         catalog::catalog(&root).with_first(format!("工作区：{}", root.display())),
         cli,
@@ -49,7 +49,7 @@ pub(crate) fn catalog(cli: &Cli) -> i32 {
 }
 
 pub(crate) fn audit(make: bool, cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref());
+    let root = locate::root(cli.root.as_deref());
     if cli.dry_run {
         let missing = artifact::missing(&root);
         let mut lines = vec![
@@ -70,7 +70,7 @@ pub(crate) fn audit(make: bool, cli: &Cli) -> i32 {
 }
 
 pub(crate) fn material(paths: &[String], cli: &Cli) -> i32 {
-    let root = workspace::root(cli.root.as_deref());
+    let root = locate::root(cli.root.as_deref());
     let paths = if paths.is_empty() { None } else { Some(paths) };
     emit(
         material::material(&root, paths).with_first(format!("工作区：{}", root.display())),

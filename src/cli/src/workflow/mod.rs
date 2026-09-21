@@ -29,7 +29,7 @@ pub use yaml::{WorkflowError, load, text_of};
 // 执行者取值：一处定义，本仓自持。
 pub use crate::executor::{AGENT, HUMAN, RULE};
 
-use crate::workspace::Locate;
+use crate::locate::Locate;
 use serde_yaml::{Mapping, Value};
 
 /// 一条定义**连同它的文件位置**（[`Workflow`] 那份只管内容，不管文件）。

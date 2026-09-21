@@ -148,9 +148,9 @@ fn json字段是契约() {
 fn 动作层不依赖入口层() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let layers = [
+        "locate/mod.rs",
         "workspace/mod.rs",
         "workspace/check.rs",
-        "workspace/locate.rs",
         "workspace/place.rs",
         "workspace/progress.rs",
         "order/mod.rs",

@@ -5,9 +5,9 @@
 //! `id` 与 `name`、`workflow_id` 与声明全文；记录事件带记录 `id` / `seq` /
 //! `step_id` 与记录全文。下游按 `id` 幂等去重。事件文件落账本仓。
 
+use crate::locate::Locate;
 use crate::order::{WorkOrder, WorkRecord};
 use crate::workflow::Workflow;
-use crate::workspace::Locate;
 use serde_json::{Map as JsonMap, Value as Json};
 
 pub const WORKFLOW_CREATED: &str = "WorkflowCreated";

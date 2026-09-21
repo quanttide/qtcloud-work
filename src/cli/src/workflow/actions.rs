@@ -2,8 +2,9 @@
 
 use super::{create as create_file, export as export_file, import as import_file, listing, open};
 use crate::events;
+use crate::locate::{Locate, short};
 use crate::outcome::Outcome;
-use crate::workspace::{Locate, check, short};
+use crate::workspace::check;
 use serde_json::json;
 use std::path::Path;
 
