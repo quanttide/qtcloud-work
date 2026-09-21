@@ -20,7 +20,7 @@
 ```text
 $XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/   # 账本：归 CLI
 ├── workspace.yaml               工作区身份：id 供凭证派生，首跑生成
-├── events.jsonl                 领域事件：开工作流、开单、记账各一行
+├── events.jsonl                 领域事件：开工作区、开工作流、开单、记账各一行
 ├── workorders/<工单>.yaml       工单：封面（id / workflow_id / created_at）+ 流水
 └── workflows/                   工作流目录的缺省位置
 

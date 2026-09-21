@@ -8,17 +8,17 @@
 
 | 类 | 判据 | 落位 |
 | :-- | :-- | :-- |
-| **聚合** | 有自己的定义：身份、生命周期、字段规矩 | 一个聚合一个目录：`task/`、`workflow/`、`catalog/`、`artifact/`、`material/`、`workspace/` |
+| **聚合** | 有自己的定义：身份、生命周期、字段规矩 | 一个聚合一个目录：`order/`、`workflow/`、`catalog/`、`artifact/`、`material/`、`workspace/` |
 | **领域服务** | 没有自己的定义，跨聚合只做一件事 | `search/`、`audit/` |
-| **适配** | 边界外的东西与入口 | `cli.rs`、`cli/`（子命令分派与发射）、`help.rs`、`prompts.rs`、`health.rs`、`locate/`（位置装载：根、账本、产物落点、身份与工单落盘） |
+| **适配** | 边界外的东西与入口 | `cli.rs`、`cli/`（子命令分派与发射）、`help.rs`、`prompts.rs`、`health.rs`、`locate/`（位置装载：根、账本、产物落点、身份与工单落盘）、`events.rs`（事件落盘） |
 
 举例：`catalog` 有自己的定义（条目与快照语义），所以是聚合；`search` 只用 `catalog` 建的名字索引做一件事，所以是服务。`artifact` 是**定义型聚合**——它定的是有哪些标准产物、各落在哪，改它即改规范。
 
 聚合件不与适配件同层：`src/` 顶层只剩目录、少量适配件、领域模型与 `main.rs`。
 
-领域模型随聚合并回本仓：每个聚合目录里，模型在 `model.rs`（`task/`、`workspace/`、`artifact/`），
-读法与校验在 `read.rs`（`workflow/`），跨定义与现场的操作用独立文件（`workspace/` 的
-`place.rs` / `progress.rs` / `check.rs`）。跨聚合的中立件在根下：`criterion/`（判据）与
+领域模型随聚合并回本仓：每个聚合目录里，模型在 `model.rs`（`order/`、`workflow/`、`workspace/`、`artifact/`），
+读法与校验在 `read.rs`（`workflow/`），自己的领域事件在 `events.rs`（`order/`、`workflow/`、`workspace/` 各一件），
+本聚合的规则与推导用独立文件（`order/` 的 `progress.rs`、`workflow/` 的 `check.rs`、`artifact/` 的 `place.rs`）。跨聚合的中立件在根下：`criterion/`（判据）与
 `outcome.rs`（结果）、`error.rs`（定义错误）、`executor.rs`（执行者取值）、`paths.rs`（占位）、
 `fields.rs`（字段表）。
 
@@ -30,7 +30,9 @@
 
 服务可依赖聚合，聚合不得依赖服务；聚合与服务都不得依赖入口层（`crate::cli`）。`search → catalog` 是允许的，`catalog → search` 是零。这条有测试钉住（`tests/contract.rs` 的「动作层不依赖入口层」）。
 
-装载层（`locate/`）另算：它不吃聚合的定义，聚合可以调它落盘——`order → locate`、`workflow → locate` 单向。反过来它认聚合类型（`order_file` 收 `&WorkOrder`），于是 `locate ⇄ order` 是一对互认，不是聚合环；聚合之间的环（`workspace ↔ order`、`workspace ↔ workflow`）在装载搬出去之后已消。
+装载层（`locate/`）另算：它不吃聚合的定义，聚合可以调它落盘——`order → locate`、`workflow → locate` 单向。反过来它认聚合类型（`order_file` 收 `&WorkOrder`），于是 `locate ⇄ order` 是一对互认，不是聚合环。聚合之间的环已经不存在：`workspace ↔ order` 与 `workspace ↔ workflow` 两条都从根上去掉了——装载归 `locate/`、别家的事归各家，`workspace` 一件也不引。
+
+新增一件东西先问一句：**它说的是谁的事？** 谁的事住谁家；判据与逐件去处见 [docs/dev-guide/workspace.md](docs/dev-guide/workspace.md)·归属。
 
 ## 单文件 ≤250 行
 

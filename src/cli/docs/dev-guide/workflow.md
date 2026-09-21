@@ -8,7 +8,7 @@
 - `workflow/read.rs`——读法与语法校验：`of` / `validate`；
 - `workflow/mod.rs`——类型与出入口：`WorkflowFile`（定义连同它的文件位置）、动作出口；
 - `workflow/yaml.rs`——YAML 读写与 schema 校验：`load` / `dump` / `WorkflowError`；
-- `workflow/check.rs`（现住 `workspace/check.rs`，待归位）——定义核对：判据写下的路径在不在区内、描述点到的小节有没有覆盖；
+- `workflow/check.rs`——定义核对：判据写下的路径在不在区内、描述点到的小节有没有覆盖；
 - `workflow/actions.rs`——动作：写（`create`）、看、列、核对（`check`）、导出、导入。
 
 ## 规矩

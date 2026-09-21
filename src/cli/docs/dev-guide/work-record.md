@@ -22,7 +22,9 @@
 
 ## 领域事件
 
-三件事各落一行 JSONL 到账本仓的 `events.jsonl`：`WorkflowCreated` / `WorkOrderCreated` / `WorkRecorded`。负载带工作区 `id`；工单事件带工单 `id` / `name` / `workflow_id` 与封面全文；记录事件带记录 `id` / `seq` / `step_id` 与全文。事件文件只增不改，去重是下游按 `id` 做的事。
+四件事各落一行 JSONL 到账本仓的 `events.jsonl`：`WorkspaceCreated` / `WorkflowCreated` / `WorkOrderCreated` / `WorkRecorded`——工作区先立，先于其内一切事件。负载带工作区 `id`；工单事件带工单 `id` / `name` / `workflow_id` 与封面全文；记录事件带记录 `id` / `seq` / `step_id` 与全文。事件文件只增不改，去重是下游按 `id` 做的事。
+
+事件名与负载形状由各聚合自己定（`workflow/events.rs`、`order/events.rs`、`workspace/events.rs`）；`events.rs` 只管三件事：补公共三样（`event` / `at` / `workspace_id`）、拼一行、追加——它不认任何聚合类型。
 
 ## 测试
 

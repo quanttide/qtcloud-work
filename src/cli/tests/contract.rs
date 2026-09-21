@@ -143,40 +143,55 @@ fn json字段是契约() {
     }
 }
 
-/// 依赖方向：聚合与服务不依赖入口层（重构搬家时最容易被顺手破坏的一条）。
+/// 依赖方向：聚合、服务与装载都不依赖入口层（重构搬家时最容易被顺手破坏的一条）。
+/// 分层只认一件事：一件东西是不是入口——`main.rs` / `cli.rs` / `cli/` / `help.rs` /
+/// `prompts.rs` 之外，一件都不许引 `crate::cli`。
 #[test]
 fn 动作层不依赖入口层() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let layers = [
-        "locate/mod.rs",
-        "workspace/mod.rs",
-        "workflow/check.rs",
+        "artifact/mod.rs",
+        "artifact/model.rs",
         "artifact/place.rs",
-        "order/progress.rs",
-        "order/mod.rs",
+        "audit/mod.rs",
+        "catalog/mod.rs",
+        "clock.rs",
+        "criterion/items.rs",
+        "criterion/mod.rs",
+        "criterion/model.rs",
+        "criterion/read.rs",
+        "error.rs",
+        "events.rs",
+        "executor.rs",
+        "fields.rs",
+        "health.rs",
+        "ids.rs",
+        "locate/mod.rs",
+        "material/mod.rs",
         "order/actions.rs",
+        "order/ai.rs",
+        "order/events.rs",
         "order/execute.rs",
         "order/inspect.rs",
         "order/journal.rs",
+        "order/mod.rs",
         "order/model.rs",
+        "order/progress.rs",
         "order/record.rs",
-        "order/ai.rs",
-        "workflow/mod.rs",
+        "outcome.rs",
+        "paths.rs",
+        "search/mod.rs",
+        "sha1.rs",
         "workflow/actions.rs",
+        "workflow/check.rs",
+        "workflow/events.rs",
+        "workflow/mod.rs",
         "workflow/model.rs",
         "workflow/read.rs",
         "workflow/yaml.rs",
-        "events.rs",
-        "ids.rs",
-        "artifact/mod.rs",
-        "artifact/model.rs",
-        "criterion/mod.rs",
-        "criterion/model.rs",
-        "search/mod.rs",
-        "health.rs",
-        "audit/mod.rs",
-        "catalog/mod.rs",
-        "material/mod.rs",
+        "workspace/events.rs",
+        "workspace/mod.rs",
+        "workspace/model.rs",
     ];
     for file in layers {
         let text = std::fs::read_to_string(src.join(file)).expect("读源码");
