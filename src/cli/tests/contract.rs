@@ -151,7 +151,7 @@ fn 动作层不依赖入口层() {
         "locate/mod.rs",
         "workspace/mod.rs",
         "workflow/check.rs",
-        "workspace/place.rs",
+        "artifact/place.rs",
         "order/progress.rs",
         "order/mod.rs",
         "order/actions.rs",

@@ -98,7 +98,7 @@ impl Locate {
 
     /// 产物落点：`<产物落点>/<类别>/<工单名>.md`。
     pub fn artifact_path(&self, category: &str, order_name: &str) -> PathBuf {
-        self.artifacts.join(crate::workspace::place::place(
+        self.artifacts.join(crate::artifact::place::place(
             &crate::artifact::Artifact::named(category),
             order_name,
         ))
