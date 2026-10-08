@@ -25,7 +25,7 @@ pub struct AgentWorker {
 }
 
 /// 这一步的现场：话术要的数据 + 全部判据（占位已展开）。
-struct Context {
+struct Plan {
     facts: Facts,
     criteria: Vec<Criterion>,
 }
@@ -61,30 +61,22 @@ impl AgentWorker {
                 ],
             );
         }
-        self.execute(&mut order, &step, note)
-    }
-
-    /// 把一步交给 AI：组装现场、调 AI、判、记。
-    pub fn execute(&self, order: &mut Order, step: &Step, note: &str) -> Outcome {
-        let context = self.build_context(order, step);
-        let output = self.invoke_ai(&crate::prompts::prompt_for(
-            &context.facts,
-            &context.criteria,
-        ));
-        let judgments = self.judge(&context, &output);
-        self.record(order, step, &output, &judgments, note)
+        let plan = self.plan(&order, &step);
+        let output = self.execute(&crate::prompts::prompt_for(&plan.facts, &plan.criteria));
+        let verdicts = self.evaluate(&plan, &output);
+        self.record(&mut order, &step, &output, &verdicts, note)
     }
 
     /// 组装现场：工单、步骤、产物路径、前几笔流水，外加这一步全部判据（占位已展开）。
-    fn build_context(&self, order: &Order, step: &Step) -> Context {
-        Context {
+    fn plan(&self, order: &Order, step: &Step) -> Plan {
+        Plan {
             facts: facts_of(order, step),
             criteria: expanded_criteria(order, &step.criteria()),
         }
     }
 
     /// 把话交给 `pi` 跑一趟。
-    fn invoke_ai(&self, prompt: &str) -> Output {
+    fn execute(&self, prompt: &str) -> Output {
         let (ran, text) = run_ai(prompt, &self.workspace.root);
         let one = if text.is_empty() {
             "（没输出）".to_string()
@@ -95,8 +87,8 @@ impl AgentWorker {
     }
 
     /// 让智能体按判准审一遍；返回（说明，结论，理由）。
-    fn judge(&self, context: &Context, output: &Output) -> Vec<Judging> {
-        let agents: Vec<Criterion> = context
+    fn evaluate(&self, plan: &Plan, output: &Output) -> Vec<Judging> {
+        let agents: Vec<Criterion> = plan
             .criteria
             .iter()
             .filter(|criterion| criterion.executor() == crate::executor::AGENT)
@@ -105,7 +97,7 @@ impl AgentWorker {
         if !output.ran || agents.is_empty() {
             return Vec::new();
         }
-        let verdicts = self.invoke_ai(&crate::prompts::judge_prompt(&context.facts, &agents));
+        let verdicts = self.execute(&crate::prompts::judge_prompt(&plan.facts, &agents));
         let mut rows = Vec::new();
         for (index, criterion) in agents.iter().enumerate() {
             let note = criterion.text();
