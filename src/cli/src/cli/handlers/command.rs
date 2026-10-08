@@ -14,6 +14,29 @@ fn locate(cli: &Cli) -> LocalWorkspace {
     )
 }
 
+/// 走下一步：开单、认下一步，人做的让开，其余交给执行器。
+fn order_next(locate: &LocalWorkspace, name: &str, note: &str) -> Outcome {
+    let mut order = match crate::order::open(locate, name) {
+        Ok(order) => order,
+        Err(error) => return Outcome::lines(false, vec![error]),
+    };
+    let Some(step) = order.next_step().cloned() else {
+        return Outcome::lines(true, vec!["所有步骤都走过了".to_string()]);
+    };
+    // 人做的步骤程序不抢着做：轮到人，做完用 `order done` 记一笔。
+    if step.executor == crate::executor::HUMAN {
+        return Outcome::lines(
+            true,
+            vec![
+                format!("{}：这一步轮到你（人做的不替你做）", step.name),
+                format!("做完记一笔：qtcloud-work order done {name} {}", step.name),
+            ],
+        );
+    }
+    let worker = crate::workers::agent::AgentWorker::new(locate.clone());
+    worker.run(&mut order, &step, note)
+}
+
 pub(crate) fn workflow(args: &WorkflowCommand, cli: &Cli) -> i32 {
     let locate = locate(cli);
     match args {
@@ -120,8 +143,7 @@ pub(crate) fn order(args: &OrderCommand, cli: &Cli) -> i32 {
                     cli,
                 );
             }
-            let worker = crate::workers::agent::AgentWorker::new(locate.clone());
-            emit(worker.order_next(name, note), cli)
+            emit(order_next(&locate, name, note), cli)
         }
         OrderCommand::Done { name, step, note } => {
             if cli.dry_run {

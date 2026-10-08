@@ -42,29 +42,12 @@ impl AgentWorker {
         AgentWorker { workspace }
     }
 
-    /// 走下一步：开单、认下一步，人做的让开，其余交给执行器。
-    pub fn order_next(&self, name: &str, note: &str) -> Outcome {
-        let mut order = match open(&self.workspace, name) {
-            Ok(order) => order,
-            Err(error) => return Outcome::lines(false, vec![error]),
-        };
-        let Some(step) = order.next_step().cloned() else {
-            return Outcome::lines(true, vec!["所有步骤都走过了".to_string()]);
-        };
-        // 人做的步骤程序不抢着做：轮到人，做完用 `order done` 记一笔。
-        if step.executor == crate::executor::HUMAN {
-            return Outcome::lines(
-                true,
-                vec![
-                    format!("{}：这一步轮到你（人做的不替你做）", step.name),
-                    format!("做完记一笔：qtcloud-work order done {name} {}", step.name),
-                ],
-            );
-        }
-        let plan = self.plan(&order, &step);
+    /// 走一步：组装现场、调 AI、判、记。开单与认下一步在调用方。
+    pub fn run(&self, order: &mut Order, step: &Step, note: &str) -> Outcome {
+        let plan = self.plan(order, step);
         let output = self.execute(&crate::prompts::prompt_for(&plan.facts, &plan.criteria));
         let verdicts = self.evaluate(&plan, &output);
-        self.record(&mut order, &step, &output, &verdicts, note)
+        self.record(order, step, &output, &verdicts, note)
     }
 
     /// 组装现场：工单、步骤、产物路径、前几笔流水，外加这一步全部判据（占位已展开）。
