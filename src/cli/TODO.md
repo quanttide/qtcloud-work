@@ -1,6 +1,6 @@
 # TODO：cli 待办
 
-可直接动手的事项，逐条列、做完就勾。依据 [data/roadmap/qtcloud-work/cli.md](../../../../data/roadmap/qtcloud-work/cli.md) 与 [data/report/plan/qtcloud-work-cli.md](../../../../data/report/plan/qtcloud-work-cli.md)（2026-10-08）。
+可直接动手的事项，逐条列、做完就勾。依据 [ROADMAP.md](ROADMAP.md) 与 [data/report/plan/qtcloud-work-cli.md](../../../../data/report/plan/qtcloud-work-cli.md)（2026-10-08）。
 
 每一条做完的通用判据（缺一不算完）：
 
