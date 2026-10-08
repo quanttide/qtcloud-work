@@ -120,7 +120,7 @@ pub(crate) fn order(args: &OrderCommand, cli: &Cli) -> i32 {
                     cli,
                 );
             }
-            emit(crate::order::order_next(&locate, name, note), cli)
+            emit(crate::ai::order_next(&locate, name, note), cli)
         }
         OrderCommand::Done { name, step, note } => {
             if cli.dry_run {

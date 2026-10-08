@@ -145,62 +145,43 @@ fn json字段是契约() {
 
 /// 依赖方向：聚合、服务与装载都不依赖入口层（重构搬家时最容易被顺手破坏的一条）。
 /// 分层只认一件事：一件东西是不是入口——`main.rs` / `cli.rs` / `cli/` / `help.rs` /
-/// `prompts.rs` 之外，一件都不许引 `crate::cli`。
+/// `prompts.rs` 之外，一件都不许引 `crate::cli`。扫 `src/` 自动收集，新增文件即入检。
 #[test]
 fn 动作层不依赖入口层() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-    let layers = [
-        "artifact/mod.rs",
-        "artifact/model.rs",
-        "artifact/place.rs",
-        "audit/mod.rs",
-        "catalog/mod.rs",
-        "clock.rs",
-        "criterion/items.rs",
-        "criterion/mod.rs",
-        "criterion/model.rs",
-        "criterion/read.rs",
-        "error.rs",
-        "events.rs",
-        "executor.rs",
-        "fields.rs",
-        "health.rs",
-        "ids.rs",
-        "workspace/local.rs",
-        "workspace/events.rs",
-        "workspace/mod.rs",
-        "workspace/model.rs",
-        "material/mod.rs",
-        "order/actions.rs",
-        "order/ai.rs",
-        "order/events.rs",
-        "order/execute.rs",
-        "order/inspect.rs",
-        "order/journal.rs",
-        "order/mod.rs",
-        "order/model.rs",
-        "order/progress.rs",
-        "order/record.rs",
-        "outcome.rs",
-        "paths.rs",
-        "search/mod.rs",
-        "sha1.rs",
-        "workflow/actions.rs",
-        "workflow/check.rs",
-        "workflow/events.rs",
-        "workflow/mod.rs",
-        "workflow/model.rs",
-        "workflow/read.rs",
-        "workflow/yaml.rs",
-        "workspace/events.rs",
-        "workspace/mod.rs",
-        "workspace/model.rs",
-    ];
-    for file in layers {
-        let text = std::fs::read_to_string(src.join(file)).expect("读源码");
+    for file in rust_files(&src) {
+        let rel = file
+            .strip_prefix(&src)
+            .expect("在 src 下")
+            .to_string_lossy()
+            .replace('\\', "/");
+        if 是入口(&rel) {
+            continue;
+        }
+        let text = std::fs::read_to_string(&file).expect("读源码");
         assert!(
             !text.contains("crate::cli"),
-            "{file} 不该依赖入口模块 cli（聚合与服务要和入口层分开）"
+            "{rel} 不该依赖入口模块 cli（聚合与服务要和入口层分开）"
         );
     }
+}
+
+fn 是入口(rel: &str) -> bool {
+    matches!(rel, "main.rs" | "cli.rs" | "help.rs" | "prompts.rs") || rel.starts_with("cli/")
+}
+
+fn rust_files(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut found = Vec::new();
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return found;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            found.extend(rust_files(&path));
+        } else if path.extension().is_some_and(|ext| ext == "rs") {
+            found.push(path);
+        }
+    }
+    found
 }

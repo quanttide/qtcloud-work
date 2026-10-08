@@ -7,7 +7,7 @@
 - `order/record.rs`——流水纪律：读出与校验；
 - `order/journal.rs`——产物落点常量（`REPORT` / `JOURNAL`）与人写的日志叙事；
 - `events.rs`——领域事件落 JSONL；
-- `order/ai.rs`——交给 AI 的两段话与智能体审查。
+- `crate::ai`——交给 AI：造话术、调 `pi`、审（话术本身在 `prompts.rs`）。
 
 ## 记账纪律
 
@@ -22,7 +22,7 @@
 
 ## 领域事件
 
-四件事各落一行 JSONL 到账本仓的 `events.jsonl`：`WorkspaceCreated` / `WorkflowCreated` / `WorkOrderCreated` / `WorkRecorded`——工作区先立，先于其内一切事件。负载带工作区 `id`；工单事件带工单 `id` / `name` / `workflow_id` 与封面全文；记录事件带记录 `id` / `seq` / `step_id` 与全文。事件文件只增不改，去重是下游按 `id` 做的事。
+四件事各落一行 JSONL 到账本仓的 `events.jsonl`：`WorkspaceCreated` / `WorkflowCreated` / `WorkOrderCreated` / `WorkRecorded`——工作区先立，先于其内一切事件。负载带工作区 `id`；工作流事件带工作流 `id` / `name` 与声明全文；工单事件带工单 `id` / `name` / `workflow_id` 与封面全文；记录事件带记录 `id` / `seq` / `step_id` 与全文。事件文件只增不改，去重是下游按 `id` 做的事。
 
 事件名与负载形状由各聚合自己定（`workflow/events.rs`、`order/events.rs`、`workspace/events.rs`）；`events.rs` 只管三件事：补公共三样（`event` / `at` / `workspace_id`）、拼一行、追加——它不认任何聚合类型。
 

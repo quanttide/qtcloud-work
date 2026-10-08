@@ -3,6 +3,7 @@
 //! 目录是快照——仓库变了要重扫；名字索引同时收文件名与篇内标题，因为命名规则规定
 //! 英文文件名与中文标题不互译。
 
+use crate::workspace::short;
 use serde_json::{Value as Json, json};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -79,13 +80,6 @@ pub fn payload(root: &Path, catalog: &Catalog) -> Json {
             "names": entry.names.iter().cloned().collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
     })
-}
-
-pub fn short(root: &Path, path: &Path) -> String {
-    match path.strip_prefix(root) {
-        Ok(rest) => rest.to_string_lossy().to_string(),
-        Err(_) => path.to_string_lossy().to_string(),
-    }
 }
 
 pub fn write_json(target: &Path, payload: &Json) {

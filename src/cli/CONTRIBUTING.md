@@ -10,7 +10,7 @@
 | :-- | :-- | :-- |
 | **聚合** | 有自己的定义：身份、生命周期、字段规矩 | 一个聚合一个目录：`order/`、`workflow/`、`catalog/`、`artifact/`、`material/`、`workspace/` |
 | **领域服务** | 没有自己的定义，跨聚合只做一件事 | `search/`、`audit/` |
-| **适配** | 边界外的东西与入口 | `cli.rs`、`cli/`（子命令分派与发射）、`help.rs`、`prompts.rs`、`health.rs`、`locate/`（位置装载：根、账本、产物落点、身份与工单落盘）、`events.rs`（事件落盘） |
+| **适配** | 边界外的东西与入口 | `cli.rs`、`cli/`（子命令分派与发射）、`help.rs`、`prompts.rs`（给智能体的话术）、`ai.rs`（交给智能体：造话术、调 pi、审）、`health.rs`、`events.rs`（事件落盘） |
 
 举例：`catalog` 有自己的定义（条目与快照语义），所以是聚合；`search` 只用 `catalog` 建的名字索引做一件事，所以是服务。`artifact` 是**定义型聚合**——它定的是有哪些标准产物、各落在哪，改它即改规范。
 
@@ -30,7 +30,7 @@
 
 服务可依赖聚合，聚合不得依赖服务；聚合与服务都不得依赖入口层（`crate::cli`）。`search → catalog` 是允许的，`catalog → search` 是零。这条有测试钉住（`tests/contract.rs` 的「动作层不依赖入口层」）。
 
-装载层（`locate/`）另算：它不吃聚合的定义，聚合可以调它落盘——`order → locate`、`workflow → locate` 单向。反过来它认聚合类型（`order_file` 收 `&WorkOrder`），于是 `locate ⇄ order` 是一对互认，不是聚合环。聚合之间的环已经不存在：`workspace ↔ order` 与 `workspace ↔ workflow` 两条都从根上去掉了——装载归 `locate/`、别家的事归各家，`workspace` 一件也不引。
+装载（`workspace/local.rs` 的 `LocalWorkspace`）另算：它不吃聚合的定义，聚合可以调它落盘——`order → workspace`、`workflow → workspace` 单向。反过来它认聚合类型（`order_file` 收 `&WorkOrder`），这是容器与内件的互认——`workspace` 是 `workorder` 的上级容器，容器认内件、内件认容器是常态，不是聚合环。`order` 与 `prompts` 也不再互引：话术在 `prompts.rs`、造话术与调 `pi`、审在 `ai.rs`，聚合两件都不碰。
 
 新增一件东西先问一句：**它说的是谁的事？** 谁的事住谁家；判据与逐件去处见 [docs/dev-guide/workspace.md](docs/dev-guide/workspace.md)·归属。
 

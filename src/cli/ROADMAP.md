@@ -1,5 +1,7 @@
 # 路线图
 
+三站已办（2026-10-08）。待人类评审后，本文件与 [TODO.md](TODO.md) 一并删除。
+
 这一份是给人看的：为什么做、做到哪、怎么算做完。逐条待办见 [TODO.md](TODO.md)，逐条体检数据见 [STATUS.md](STATUS.md)。
 
 把 CLI 里该消掉的依赖逐站拆掉。依据 `data/report/evaluation/qtcloud-work-cli.md` 与 `data/report/plan/qtcloud-work-cli.md`（2026-10-08）。
@@ -21,21 +23,24 @@
 - 来路：`2cc2e41` 接上前向边，`e689df7` 接上反向边；此前 `prompts.rs` 只引 `criterion`
 - 拆法：`previous_records` 移出 `prompts`；造话术、调 pi、审从 `order/ai.rs` 移到适配层；`order` 只留走一步的判据与记账
 - 判据：`src/prompts.rs` 与 `src/order/` 之间两个方向都不再出现 `crate::` 互引
+- 已成：话术在 `prompts.rs`、造话术与调 pi、审在 `src/ai.rs`；`order/ai.rs` 已撤
 
 ## 站二 order → audit
 
 - 现状：`order/execute.rs` 调 `crate::audit`
 - 证据：`src/order/execute.rs:47`、`:48`、`:136`、`:137`
 - 来路：`2cc2e41` 把机械判据的运行放进 `audit` 服务，`e689df7` 拆工单时 `order` 开始调它
-- 拆法：把 `audit::check` / `run` / `items_of` 搬进 `order`，`audit` 只留资产审计（见重构方案·待确认的决策二）
+- 拆法：把 `audit::check` / `run` / `items_of` 搬进 `order`，`audit` 只留资产审计
 - 判据：`src/order/` 不再出现 `crate::audit`
+- 已成：规则执行在 `src/order/execute.rs`；`audit` 只做资产表与工作区对账
 
 ## 站三 locate 文档
 
-- 现状：`CONTRIBUTING.md`、`docs/dev-guide/index.md`、`docs/dev-guide/workspace.md`、`docs/dev-guide/work-order.md`、`docs/user-guide/usecases.md`、`STATUS.md` 仍写已不存在的 `locate/`
+- 现状：`CONTRIBUTING.md`、`docs/dev-guide/index.md`、`docs/dev-guide/workspace.md`、`docs/dev-guide/work-order.md`、`STATUS.md` 仍写已不存在的 `locate/`
 - 拆法：改成 `workspace` 容器事实
-- 判据：六份文档里不再出现 `locate/`
+- 判据：五份文档里不再出现 `locate/`
 - 时机：随站一改
+- 已成：五份已改；`docs/user-guide/usecases.md` 里的 `locate` 是步骤名，不动
 
 ## 顺序
 

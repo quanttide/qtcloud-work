@@ -89,26 +89,3 @@ pub fn judge_prompt(facts: &Facts, criteria: &[Criterion]) -> String {
         listed = listed,
     )
 }
-
-/// 前几笔流水：执行者与复查者得看得见前面发生了什么。
-pub fn previous_records(records: &[crate::order::WorkRecord], limit: usize) -> String {
-    let recent: Vec<&crate::order::WorkRecord> = records.iter().rev().take(limit).collect();
-    if recent.is_empty() {
-        return "（还没有流水）".to_string();
-    }
-    recent
-        .iter()
-        .rev()
-        .map(|record| {
-            format!(
-                "- 第 {} 笔（{}）{}：{}——{}",
-                record.seq,
-                record.created_at,
-                record.step,
-                if record.is_succeeded { "过" } else { "没过" },
-                record.description
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-}

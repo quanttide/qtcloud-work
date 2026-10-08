@@ -92,8 +92,7 @@ impl Criterion {
 
     /// 占位展开：每个字段里的 `{{name}}` 交给 `resolve` 换成哪条路径。
     ///
-    /// `resolve` 认不得的名字原样留着。换成哪条路径是平台的事——
-    /// 见 `crate::task::execute` 里的落点。
+    /// `resolve` 认不得的名字原样留着；换成哪条路径由调用方定。
     pub fn expanded<F>(&self, resolve: F) -> Criterion
     where
         F: Fn(&str) -> Option<String>,

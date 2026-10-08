@@ -6,10 +6,11 @@
 
 - `order/model.rs`——领域模型：`WorkOrder` 与 `WorkRecord`，字段表 `FIELDS`；
 - `order/mod.rs`——账本本身：文件读写、开单、销白纸、按凭证找工作流；
-- `order/actions.rs`——动作：开单、走一步、人记一笔、日志、删白纸；
+- `order/execute.rs`——走一步：展开占位、跑判据、记账；
+- `order/actions.rs`——动作：开单、人记一笔、日志、删白纸（走一步的动作在 `crate::ai`，因为它调 `pi`）；
 - `order/inspect.rs`——看与列：封面、步骤状态、待拍板闸门、状态行；
 - `order/progress.rs`——进度与完结的推导（见下）；
-- `locate/mod.rs`——账本与产物的装载、工作区身份与工单落盘。
+- `workspace/local.rs`——账本与产物的装载、工作区身份与工单落盘。
 
 ## 封面
 

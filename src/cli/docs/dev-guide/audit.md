@@ -1,16 +1,8 @@
-# audit：判据与审计
+# audit：审计资产表与工作区
 
-`src/audit/` 装两件相关的事：跑机械判据，与审计资产表与工作区。
+`src/audit/` 只做一件事：比资产表与工作区——资产表有而工作区无（`artifact::missing`）、工作区有而未登记（`catalog::unregistered`）。`--make` 补建缺的文档格，独立仓库那三格不凭空建。
 
-## 判据怎么跑
-
-判据是字段，不是一行小语法。四种判法：`path` 存在、`absent` 不存在、`file` 加 `contains` 文件含这段文字、`run` 命令退出码为零。路径相对工作区根，写绝对路径则按绝对路径（跨仓库核对用）。
-
-翻译（说明怎么写、四种判法怎么认）在本仓 `crate::criterion`；本侧只剩「真去跑」，`run` 拿 `sh -c` 在工作区根跑。
-
-## 审计什么
-
-`audit` 比资产表与工作区：资产表有而工作区无（`artifact::missing`）、工作区有而未登记（`catalog::unregistered`）。`--make` 补建缺的文档格，独立仓库那三格不凭空建。
+判据怎么跑不在这里：工单走一步时展开占位、核 rule 判据，在 `crate::order::execute`。判据的模型与翻译（四种判法怎么认）在 `crate::criterion`；真去跑（文件系统、起进程）在 `order/execute.rs`。
 
 ## 测试
 

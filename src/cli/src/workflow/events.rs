@@ -2,6 +2,7 @@
 //!
 //! 出处：`docs/specification/process/workflow.md`·领域事件。
 
+use crate::criterion::Criterion;
 use crate::workflow::Workflow;
 use crate::workspace::LocalWorkspace;
 use serde_json::{Map as JsonMap, Value as Json};
@@ -34,6 +35,22 @@ fn to_json(workflow: &Workflow) -> Json {
                 .map(|criterion| {
                     let mut item = JsonMap::new();
                     item.insert("executor".into(), Json::String(criterion.executor().into()));
+                    match criterion {
+                        Criterion::PathExists { path, .. } => {
+                            item.insert("path".into(), Json::String(path.clone()));
+                        }
+                        Criterion::PathAbsent { absent, .. } => {
+                            item.insert("absent".into(), Json::String(absent.clone()));
+                        }
+                        Criterion::FileContains { file, contains, .. } => {
+                            item.insert("file".into(), Json::String(file.clone()));
+                            item.insert("contains".into(), Json::String(contains.clone()));
+                        }
+                        Criterion::CommandRun { run, .. } => {
+                            item.insert("run".into(), Json::String(run.clone()));
+                        }
+                        Criterion::AgentJudgement { .. } | Criterion::HumanGate { .. } => {}
+                    }
                     item.insert("description".into(), Json::String(criterion.text()));
                     Json::Object(item)
                 })

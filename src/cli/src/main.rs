@@ -1,5 +1,6 @@
 //! 入口：声明模块，把命令行交给 `cli` 模块。
 
+mod ai;
 mod artifact;
 mod audit;
 mod catalog;

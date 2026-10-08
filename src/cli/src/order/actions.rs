@@ -5,7 +5,6 @@ use crate::outcome::Outcome;
 use crate::workspace::{LocalWorkspace, short};
 use serde_json::json;
 
-/// 走下一步：能让 AI 跑的交给 AI，然后跑判据、记一笔。
 /// 开工单：写完发事件，再看一遍。
 pub fn order_create(
     locate: &LocalWorkspace,
@@ -32,40 +31,6 @@ pub fn order_create(
     }
     order_show(locate, &order.payload.name)
         .with_first(format!("开了工单：{}", short(&locate.root, &order.file())))
-}
-
-pub fn order_next(locate: &LocalWorkspace, name: &str, note: &str) -> Outcome {
-    let mut order = match open(locate, name) {
-        Ok(order) => order,
-        Err(error) => return Outcome::lines(false, vec![error]),
-    };
-    let Some(step) = order.next_step().cloned() else {
-        return Outcome::lines(true, vec!["所有步骤都走过了".to_string()]);
-    };
-    // 人做的步骤程序不抢着做：轮到人，做完用 `order done` 记一笔。
-    if step.executor == crate::executor::HUMAN {
-        return Outcome::lines(
-            true,
-            vec![
-                format!("{}：这一步轮到你（人做的不替你做）", step.name),
-                format!("做完记一笔：qtcloud-work order done {name} {}", step.name),
-            ],
-        );
-    }
-    let (ok, lines, rows, recorded) = execute::walk(&mut order, &step, note);
-    if let Some(record) = &recorded
-        && let Err(error) = crate::order::events::recorded(locate, &order.payload, record)
-    {
-        return Outcome::lines(false, vec![error]);
-    }
-    let mut result = Outcome::new(ok);
-    result.lines = lines;
-    result.columns = vec!["核对".to_string(), "结论".to_string(), "说明".to_string()];
-    result.rows = rows.into_iter().map(|(a, b, c)| vec![a, b, c]).collect();
-    if let Ok(fresh) = open(locate, name) {
-        result.lines.push(fresh.state_line());
-    }
-    result
 }
 
 /// 人记一笔：闸门放行，或人自己做完记一笔；程序仍核 rule 判据。

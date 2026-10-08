@@ -4,7 +4,7 @@
 
 ## 装载
 
-`crate::locate` 的 `Locate` 把启动参数落成三处位置，装载顺序写死：命令行 > 环境变量 `QTCLOUD_WORK_ROOT`（只管根）> 缺省规矩。
+`crate::workspace::LocalWorkspace` 把启动参数落成三处位置，装载顺序写死：命令行 > 环境变量 `QTCLOUD_WORK_ROOT`（只管根）> 缺省规矩。
 
 - **根（root）**：判据路径的基准、`run` 判据的工作目录、工作区级动作扫描的面。缺省从当前目录往上找含 `data/journal` 的第二大脑，找不到就用当前目录；
 - **账本（data）**：工作区身份、工单、事件。缺省 `$XDG_DATA_HOME/qtcloud-work/workspaces/<工作区键>/`，键由根派生（可读名加短码）——账本是「这台机器上的这个工作区」的账；
@@ -15,7 +15,7 @@
 
 ## 身份
 
-工作区身份落账本仓的 `workspace.yaml`，六个字段（`id` / `name` / `title` / `description` / `created_at` / `updated_at`）由 `model.rs` 的 `identity()` 拼出来——**模型造内容、装载写盘**。写动作前把账本开出来，身份缺则首跑生成（并落一条 `WorkspaceCreated`）；`id` 供凭证派生用——宁可落盘不可空算。只读动作不开账本，不在任何根上建文件。
+工作区身份落账本仓的 `workspace.yaml`，六个字段（`id` / `name` / `title` / `description` / `created_at` / `updated_at`）由 `model.rs` 的 `Workspace::new` 造出来——**模型造内容、装载写盘**。写动作前把账本开出来，身份缺则首跑生成（并落一条 `WorkspaceCreated`）；`id` 供凭证派生用——宁可落盘不可空算。只读动作不开账本，不在任何根上建文件。
 
 ## 三处位置的分工
 
@@ -27,11 +27,9 @@
 
 ## 结构
 
-工作区聚合只装自己的东西：身份与字段在 `model`、领域事件在 `events`。碰盘的全在 `locate/`，别家的推导与核对各回各家（见下节）。
+工作区聚合装两样：身份与字段在 `model`、领域事件在 `events`，装载（三处落点、账本生命周期）在 `local.rs`。
 
-原先 `order` 与 `workflow` 要落盘，只能引 `workspace::Locate`；`workspace` 又要读工单与工作流来推导进度、核对定义——两条反向边让 `workspace ↔ order`、`workspace ↔ workflow` 两个聚合环以本聚名为枢纽。两次搬动把环从根上去掉：装载归 `locate/`，三件别家的事归各家。现在 `workspace` 一件也不引 `order` / `workflow`——环不必解，它不成立。
-
-剩下 `locate ⇄ order` 是一对互认（`order_file` 收 `&WorkOrder`，order 落盘收 `Locate`），属装载层与聚合互认类型，不算聚合环。
+`workspace` 是 `workorder` 的上级容器：装载认内件的类型（`order_file` 收 `&WorkOrder`），内件落盘要调装载（`order → workspace::LocalWorkspace` 单向）——容器认内件、内件认容器是常态，不是聚合环。别家的推导与核对各回各家（见下节）。
 
 ## 归属：只装自己的事
 
