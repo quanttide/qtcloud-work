@@ -12,7 +12,7 @@
 
 ## 入口的边界
 
-入口不写算法，只解析参数、定位路径、把动作层的结果印出来。发射一处：`--out` 落 `data` 那一栏，`--json` 印信封（`ok` / `lines` / `columns` / `rows` / `data`），人看的走 `lines`。
+入口不写算法，只解析参数、定位路径、把结果印出来。唯一例外是 `order next`：走一步的编排（开单、认下一步、判人 / AI、打发人做的）落在 `cli/handlers/`，执行那一段交给 [`workers`](workers/index.md)。发射一处：`--out` 落 `data` 那一栏，`--json` 印信封（`ok` / `lines` / `columns` / `rows` / `data`），人看的走 `lines`。
 
 聚合与服务不得依赖入口层（`crate::cli`）。
 

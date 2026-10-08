@@ -28,11 +28,11 @@ qtcloud-work order next AI冒烟
 6. 两边都过，就在账上记一笔（这一步过了）；任一边不过，也记一笔（没过）。有等人拍板的判据就不记，停在「等人放行」。
 7. 把每一步的结果打到屏幕上。
 
-一句话：这块执行器管的是第 2 到第 6 步，也就是「怎么把一步交给 AI、怎么把结果收回来」。
+一句话：开单与认下一步在调用方，worker 管的是「怎么把一步交给 AI、怎么把结果收回来」那一段。
 
 ## 代码在哪
 
-- `workers/agent.rs`——执行器 `AgentWorker`，上面这套流程的四个动作都在这儿，另加动作出口 `order_next`。逐法说明见 [agent](agent.md)；
+- `workers/agent.rs`——执行器 `AgentWorker`：给一步，组装现场、调 `pi`、判、记（入口 `run`）。逐法说明见 [agent](agent.md)；
 - `adapters/pi.rs`——跟 `pi` 打交道：起进程、把输出收成一行、从回答里认「通过 / 不通过」。见 [adapters](../adapters/pi.md)。
 
 给 AI 的那两段话（做什么、按什么判）本身不在这儿，在 `src/prompts.rs`；执行器只把工单现场凑成那两段话要的数据。
