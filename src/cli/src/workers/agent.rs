@@ -55,7 +55,7 @@ impl AgentWorker {
     /// 组装现场：工单、步骤、产物路径、前几笔流水，外加这一步全部判据（占位已展开）。
     fn plan(&self, order: &Order, step: &Step) -> Plan {
         Plan {
-            facts: facts_of(order, step),
+            facts: facts_of(&self.root, order, step),
             criteria: expanded_criteria(order, &step.criteria()),
         }
     }
@@ -129,10 +129,9 @@ impl AgentWorker {
 }
 
 /// 这一步的现场：路径由命令行这边算好递进去。
-fn facts_of(order: &Order, step: &Step) -> Facts {
-    let locate = &order.locate;
+fn facts_of(root: &Path, order: &Order, step: &Step) -> Facts {
     Facts {
-        root: locate.root.display().to_string(),
+        root: root.display().to_string(),
         name: order.payload.name.clone(),
         description: order.payload.description.clone(),
         workflow_name: order.workflow.name.clone(),
@@ -145,13 +144,10 @@ fn facts_of(order: &Order, step: &Step) -> Facts {
             .join("、"),
         step: step.name.clone(),
         what: step.description.clone(),
-        report: crate::workspace::short(
-            &locate.root,
-            &locate.artifact_path(crate::order::journal::REPORT, &order.payload.name),
-        ),
+        report: crate::workspace::short(root, &order.artifact_path(crate::order::journal::REPORT)),
         journal: crate::workspace::short(
-            &locate.root,
-            &locate.artifact_path(crate::order::journal::JOURNAL, &order.payload.name),
+            root,
+            &order.artifact_path(crate::order::journal::JOURNAL),
         ),
         records: previous_records(&order.payload.records, 8),
     }

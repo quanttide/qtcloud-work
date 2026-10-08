@@ -42,6 +42,11 @@ impl Order {
         self.locate.order_file(&self.payload)
     }
 
+    /// 本单某类产物的落点：`<产物落点>/<类别>/<工单名>.md`。
+    pub fn artifact_path(&self, category: &str) -> PathBuf {
+        self.locate.artifact_path(category, &self.payload.name)
+    }
+
     /// 落盘：工单 YAML 写回账本。
     pub fn save(&self) -> Result<(), String> {
         crate::workspace::local::write_yaml(&self.file(), &self.payload.to_yaml())
