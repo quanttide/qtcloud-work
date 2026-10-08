@@ -8,7 +8,7 @@
 - `order/mod.rs`——账本本身：文件读写、开单、销白纸、按凭证找工作流；
 - `order/execute.rs`——走一步：展开占位、核判据、记账并发 `WorkRecorded`；
 - `order/rules.rs`——跑判据：真去碰文件系统、起进程；
-- `order/actions.rs`——动作：开单、人记一笔、日志、删白纸（走一步的动作在 `crate::worker::agent`，因为它调 `pi`）；
+- `order/actions.rs`——动作：开单、人记一笔、日志、删白纸（走一步的动作在 `crate::workers::agent`，因为它调 `pi`）；
 - `order/inspect.rs`——看与列：封面、步骤状态、待拍板闸门、状态行；
 - `order/progress.rs`——进度与完结的推导（见下）；
 - `workspace/local.rs`——账本与产物的装载、工作区身份与工单落盘。

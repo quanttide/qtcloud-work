@@ -21,7 +21,7 @@ mod paths;
 mod prompts;
 mod search;
 mod sha1;
-mod worker;
+mod workers;
 mod workflow;
 mod workspace;
 

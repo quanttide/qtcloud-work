@@ -1,6 +1,6 @@
 # AgentWorker：走一步的执行器
 
-`AgentWorker` 是 `src/worker/agent.rs` 里的一个结构体，负责把工单的一步交给 AI 并收回结果。它是 [worker](index.md) 这一层的主角。
+`AgentWorker` 是 `src/workers/agent.rs` 里的一个结构体，负责把工单的一步交给 AI 并收回结果。它是 [workers](index.md) 这一层的主角。
 
 ## 它拿什么、不拿什么
 

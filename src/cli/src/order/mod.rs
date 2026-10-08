@@ -9,7 +9,7 @@
 //! 这一件装账本本身：文件读写、开单、追加、销白纸。子件按事分：
 //! 领域模型在 `model`、流水纪律在 `record`、走一步在 `execute`、跑判据在 `rules`、
 //! 动作在 `actions`、看与列在 `inspect`、日志叙事在 `journal`。
-//! 交给 AI 的两段话与执行在 [`crate::worker::agent`]，不属本聚合。
+//! 交给 AI 的两段话与执行在 [`crate::workers::agent`]，不属本聚合。
 
 pub mod actions;
 pub mod events;

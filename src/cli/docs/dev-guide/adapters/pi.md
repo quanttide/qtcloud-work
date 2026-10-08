@@ -10,7 +10,7 @@
 
 ## 谁在用
 
-`worker` 的 `invoke_ai` 用 `run_ai` 执行、`one_line` 取摘要；`judge` 用 `run_ai` 审、`verdict_of` 认回每条结论（见 [agent](../worker/agent.md)）。
+`workers` 的 `invoke_ai` 用 `run_ai` 执行、`one_line` 取摘要；`judge` 用 `run_ai` 审、`verdict_of` 认回每条结论（见 [agent](../workers/agent.md)）。
 
 ## 测试
 

@@ -12,7 +12,7 @@ src/
 ├── help.rs        适配：导览
 ├── prompts.rs     适配：给智能体的话术
 ├── adapters/      适配：边界外（pi 起进程、读回）
-├── worker/        适配：交给智能体的执行器（agent 造数据、判、记）
+├── workers/       适配：交给智能体的执行器（agent 造数据、判、记）
 ├── health.rs      适配：provider 探活
 ├── events.rs      适配：领域事件落 JSONL（事件名与负载由各聚合定）
 ├── outcome.rs     领域模型：结果信封
@@ -59,7 +59,7 @@ src/
 
 - [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）、provider 探活（`health`）；
 - [adapters](adapters/index.md)——边界外的东西：跟命令行 AI `pi` 打交道（见 [pi](adapters/pi.md)）；
-- [worker](worker/index.md)——交给智能体的执行器：走一步、判、记（见 [agent](worker/agent.md)）；
+- [workers](workers/index.md)——交给智能体的执行器：走一步、判、记（见 [agent](workers/agent.md)）；
 - 位置装载（`workspace/local.rs`）——根、账本、产物落点、身份与工单落盘；规矩与纪律见 [workspace](workspace.md)·装载；
 - 事件落盘（`events.rs`）——各聚合定好事件名与负载，它补公共字段、拼行、追加；事件本身见 [work-record](work-record.md)·领域事件。
 

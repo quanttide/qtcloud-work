@@ -5,7 +5,7 @@
 //! 闸门不落封面字段：带 `human` 判据的站，程序核完 rule 判据后等人放行（`order done`）。
 //!
 //! 记一笔与随之而来的 `WorkRecorded` 事件都在本件——事件归聚合自己发。
-//! 跑判据真去碰文件系统、起进程在 [`super::rules`]；把一步交给 AI 在 [`crate::worker::agent`]。
+//! 跑判据真去碰文件系统、起进程在 [`super::rules`]；把一步交给 AI 在 [`crate::workers::agent`]。
 
 use super::Order;
 use super::rules::run;
