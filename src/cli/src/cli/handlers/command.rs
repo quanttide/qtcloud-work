@@ -33,7 +33,7 @@ fn order_next(locate: &LocalWorkspace, name: &str, note: &str) -> Outcome {
             ],
         );
     }
-    let worker = crate::workers::agent::AgentWorker::new(locate.clone());
+    let worker = crate::workers::agent::AgentWorker::new(&locate.root);
     worker.run(&mut order, &step, note)
 }
 

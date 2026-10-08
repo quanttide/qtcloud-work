@@ -13,15 +13,15 @@
 use crate::adapters::pi::{one_line, run_ai, verdict_of};
 use crate::criterion::Criterion;
 use crate::order::execute::{AiRun, Judging, expanded_criteria, walk};
-use crate::order::{Order, WorkRecord, open};
+use crate::order::{Order, WorkRecord};
 use crate::outcome::Outcome;
 use crate::prompts::Facts;
 use crate::workflow::Step;
-use crate::workspace::LocalWorkspace;
+use std::path::{Path, PathBuf};
 
-/// 走一步的执行器：持工作区（路径），不持工单。
+/// 走一步的执行器：持工作区根（路径），不持工单。
 pub struct AgentWorker {
-    workspace: LocalWorkspace,
+    root: PathBuf,
 }
 
 /// 这一步的现场：话术要的数据 + 全部判据（占位已展开）。
@@ -38,8 +38,10 @@ struct Output {
 }
 
 impl AgentWorker {
-    pub fn new(workspace: LocalWorkspace) -> Self {
-        AgentWorker { workspace }
+    pub fn new(root: &Path) -> Self {
+        AgentWorker {
+            root: root.to_path_buf(),
+        }
     }
 
     /// 走一步：组装现场、调 AI、判、记。开单与认下一步在调用方。
@@ -60,7 +62,7 @@ impl AgentWorker {
 
     /// 把话交给 `pi` 跑一趟。
     fn execute(&self, prompt: &str) -> Output {
-        let (ran, text) = run_ai(prompt, &self.workspace.root);
+        let (ran, text) = run_ai(prompt, &self.root);
         let one = if text.is_empty() {
             "（没输出）".to_string()
         } else {
@@ -121,9 +123,7 @@ impl AgentWorker {
         result.lines = lines;
         result.columns = vec!["核对".to_string(), "结论".to_string(), "说明".to_string()];
         result.rows = rows.into_iter().map(|(a, b, c)| vec![a, b, c]).collect();
-        if let Ok(fresh) = open(&self.workspace, &order.payload.name) {
-            result.lines.push(fresh.state_line());
-        }
+        result.lines.push(order.state_line());
         result
     }
 }
