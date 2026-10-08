@@ -12,7 +12,7 @@
 
 use crate::adapters::pi::{one_line, run_ai, verdict_of};
 use crate::criterion::Criterion;
-use crate::order::execute::{AiRun, Judging, expanded_criteria, walk};
+use crate::order::execute::{AiRun, Judging, expanded_criteria};
 use crate::order::{Order, WorkRecord};
 use crate::outcome::Outcome;
 use crate::prompts::Facts;
@@ -109,8 +109,7 @@ impl AgentWorker {
         judgments: &[Judging],
         note: &str,
     ) -> Outcome {
-        let (ok, lines, rows, _) = walk(
-            order,
+        let (ok, lines, rows) = order.record_step_result(
             step,
             note,
             AiRun {
