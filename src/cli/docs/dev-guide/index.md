@@ -56,7 +56,8 @@ src/
 
 边界外的东西与入口。
 
-- [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）与执行器（`worker`）、provider 探活（`health`）；
+- [adapter](adapter.md)——入口（`cli`）、导览（`help`）、给智能体的话术（`prompts`）、provider 探活（`health`）；
+- [worker](worker/index.md)——交给智能体的执行器：走一步、起 `pi`、判、记（见 [agent](worker/agent.md)）；
 - 位置装载（`workspace/local.rs`）——根、账本、产物落点、身份与工单落盘；规矩与纪律见 [workspace](workspace.md)·装载；
 - 事件落盘（`events.rs`）——各聚合定好事件名与负载，它补公共字段、拼行、追加；事件本身见 [work-record](work-record.md)·领域事件。
 
