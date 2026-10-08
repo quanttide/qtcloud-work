@@ -6,7 +6,7 @@
 - `cli.rs` 与 `cli/`——clap 定义、定位（根 / 账本 / 工作流目录 / 产物落点）、命令树、子命令分派（`handlers/`）、发射（`emit.rs`）；
 - `help.rs`——导览：按用途分组列命令、给话题要点；
 - `prompts.rs`——给智能体的两段话（走一步要它做什么、审一遍按什么判）；
-- `ai.rs`——交给智能体：把工单现场凑成话术要的数据、非交互调 `pi`、读回结论（话术本身在 `prompts.rs`）；
+- `worker/`——交给智能体的执行器：`agent.rs` 把工单现场凑成话术要的数据、判、记，`pi.rs` 非交互起 `pi`、读回结论（话术本身在 `prompts.rs`）；
 - `health.rs`——provider 探活：`GET /health`，基地址优先级 `--server` > 环境变量 `QTCLOUD_WORK_API_BASE_URL` > 默认网关。
 
 ## 入口的边界

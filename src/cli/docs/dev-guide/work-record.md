@@ -7,7 +7,7 @@
 - `order/record.rs`——流水纪律：读出与校验；
 - `order/journal.rs`——产物落点常量（`REPORT` / `JOURNAL`）与人写的日志叙事；
 - `events.rs`——领域事件落 JSONL；
-- `crate::ai`——交给 AI：造话术、调 `pi`、审（话术本身在 `prompts.rs`）。
+- `crate::worker::agent`——交给 AI 的执行器（凑现场、调 `pi`、审；话术本身在 `prompts.rs`）。
 
 ## 记账纪律
 

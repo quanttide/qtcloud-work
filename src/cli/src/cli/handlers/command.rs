@@ -120,7 +120,8 @@ pub(crate) fn order(args: &OrderCommand, cli: &Cli) -> i32 {
                     cli,
                 );
             }
-            emit(crate::ai::order_next(&locate, name, note), cli)
+            let worker = crate::worker::agent::AgentWorker::new(locate.clone());
+            emit(worker.order_next(name, note), cli)
         }
         OrderCommand::Done { name, step, note } => {
             if cli.dry_run {

@@ -57,9 +57,6 @@ pub fn order_done(locate: &LocalWorkspace, name: &str, step: &str, note: &str) -
         Ok(result) => result,
         Err(error) => return Outcome::lines(false, vec![error]),
     };
-    if let Err(error) = crate::order::events::recorded(locate, &order.payload, &recorded) {
-        return Outcome::lines(false, vec![error]);
-    }
     let mut result = Outcome::new(ok);
     result.lines = vec![format!(
         "{} {}：{}",

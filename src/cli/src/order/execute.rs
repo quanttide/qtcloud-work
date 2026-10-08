@@ -1,18 +1,17 @@
-//! 工单聚合 / 走一步：展开占位、跑判据、记一笔工作记录。
+//! 工单聚合 / 走一步：展开占位、核判据、记一笔工作记录。
 //!
 //! 工作记录的 `is_succeeded` 来源与判据的 `executor` 一一对应——`rule` 机械比对、
 //! `agent` 智能体审查、`human` 闸门放行（出处：`docs/specification/process/work-record.md`）。
 //! 闸门不落封面字段：带 `human` 判据的站，程序核完 rule 判据后等人放行（`order done`）。
 //!
-//! 跑判据（文件系统、起进程）在本件；交给 AI 的两段话与调 `pi` 在 [`crate::ai`]，
-//! 不在这里——聚合只认判据与记账。
+//! 记一笔与随之而来的 `WorkRecorded` 事件都在本件——事件归聚合自己发。
+//! 跑判据真去碰文件系统、起进程在 [`super::rules`]；把一步交给 AI 在 [`crate::worker::agent`]。
 
 use super::Order;
-use crate::criterion::{Criterion, RuleItem, RuleKind, items_of};
+use super::rules::run;
+use crate::criterion::{Criterion, items_of};
 use crate::order::WorkRecord;
 use crate::workflow::Step;
-use std::path::Path;
-use std::process::Command;
 
 /// 一条核对：说明、结论、理由（给人看的表格行）。
 pub type Judging = (String, String, String);
@@ -118,13 +117,18 @@ pub fn walk(
         ));
         return (ok, lines, rows, None);
     }
-    match order.append(&crate::ids::new_id(), &step.name, &detail, ok) {
-        Ok(record) => (ok, lines, rows, Some(record)),
+    let record = match order.append(&crate::ids::new_id(), &step.name, &detail, ok) {
+        Ok(record) => record,
         Err(error) => {
             lines.push(format!("  （这笔记不下：{error}）"));
-            (false, lines, rows, None)
+            return (false, lines, rows, None);
         }
+    };
+    if let Err(error) = super::events::recorded(&order.locate, &order.payload, &record) {
+        lines.push(format!("  （这笔记不下：{error}）"));
+        return (false, lines, rows, None);
     }
+    (ok, lines, rows, Some(record))
 }
 
 /// 人的路径（`order done`）：闸门放行，或人自己做完记一笔；程序仍核 rule 判据。
@@ -159,6 +163,7 @@ pub fn record_by_human(
         })
         .collect();
     let record = order.append(&crate::ids::new_id(), &step.name, &detail, ok)?;
+    super::events::recorded(&order.locate, &order.payload, &record)?;
     Ok((ok, rows, record))
 }
 
@@ -182,68 +187,4 @@ fn place_of(order: &Order, name: &str) -> Option<String> {
         _ => return None,
     };
     Some(crate::workspace::short(&locate.root, &path))
-}
-
-/// 跑一条判据，返回（是否通过，说明）。
-pub fn check(root: &Path, item: &RuleItem) -> (bool, String) {
-    match item.kind {
-        Some(RuleKind::PathExists) => {
-            let target = &item.args[0];
-            (root.join(target).exists(), target.clone())
-        }
-        Some(RuleKind::PathAbsent) => {
-            let target = &item.args[0];
-            (!root.join(target).exists(), target.clone())
-        }
-        Some(RuleKind::FileContains) => {
-            let target = &item.args[0];
-            let needle = &item.args[1];
-            let path = root.join(target);
-            if !path.is_file() {
-                return (false, format!("{target} 不存在"));
-            }
-            let body = std::fs::read_to_string(&path).unwrap_or_default();
-            (
-                body.contains(needle.as_str()),
-                format!("{target} 含「{needle}」"),
-            )
-        }
-        Some(RuleKind::CommandRun) => {
-            let command = &item.args[0];
-            let done = Command::new("sh")
-                .arg("-c")
-                .arg(command)
-                .current_dir(root)
-                .output();
-            match done {
-                Ok(out) if out.status.success() => (true, command.clone()),
-                Ok(out) => {
-                    let text = String::from_utf8_lossy(&out.stderr).trim().to_string();
-                    let text = if text.is_empty() {
-                        String::from_utf8_lossy(&out.stdout).trim().to_string()
-                    } else {
-                        text
-                    };
-                    let tail = text.lines().last().unwrap_or("无输出").trim().to_string();
-                    (false, format!("{command}——{tail}"))
-                }
-                Err(e) => (false, format!("{command}——{e}")),
-            }
-        }
-        None => (false, "不认得的判据".to_string()),
-    }
-}
-
-/// 跑全部要跑的判据，返回（逐条结果，不跑的——留给智能体或人）。
-pub fn run(root: &Path, items: &[RuleItem]) -> (Vec<(RuleItem, bool, String)>, Vec<RuleItem>) {
-    let results = items
-        .iter()
-        .filter(|i| i.machine())
-        .map(|i| {
-            let (passed, spec) = check(root, i);
-            (i.clone(), passed, spec)
-        })
-        .collect();
-    let pending = items.iter().filter(|i| !i.machine()).cloned().collect();
-    (results, pending)
 }
