@@ -33,7 +33,7 @@ qtcloud-work order next AI冒烟
 ## 代码在哪
 
 - `worker/agent.rs`——执行器 `AgentWorker`，上面这套流程的四个动作都在这儿，另加动作出口 `order_next`。逐法说明见 [agent](agent.md)；
-- `worker/pi.rs`——跟 `pi` 打交道：起进程、把输出收成一行、从回答里认「通过 / 不通过」。
+- `adapters/pi.rs`——跟 `pi` 打交道：起进程、把输出收成一行、从回答里认「通过 / 不通过」。见 [adapters](../adapters/pi.md)。
 
 给 AI 的那两段话（做什么、按什么判）本身不在这儿，在 `src/prompts.rs`；worker 只把工单现场凑成那两段话要的数据。
 

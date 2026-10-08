@@ -10,7 +10,7 @@
 //!
 //! 给智能体的两段话在 `crate::prompts`，走一步的判据与记账在 `crate::order::execute`。
 
-use super::pi::{one_line, run_ai, verdict_of};
+use crate::adapters::pi::{one_line, run_ai, verdict_of};
 use crate::criterion::Criterion;
 use crate::order::execute::{AiRun, Judging, expanded_criteria, walk};
 use crate::order::{Order, WorkRecord, open};
