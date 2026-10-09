@@ -3,7 +3,7 @@
 //! 判据是**字段**，不是一行小语法：`path` 存在、`absent` 不存在、
 //! `file` + `contains` 含这段文字、`run` 这条命令退出码为零。
 //! 工具箱只把判据翻成「要跑什么」——真去跑（文件系统、起进程）是各自包的事。
-//! 出处：`docs/specification/process/workflow.md`·语法（判据三个字段）。
+//! 出处：`docs/api-references/workflow.md`·判据——规格定「谁判」，判法归平台。
 
 use crate::executor::{AGENT, HUMAN, RULE};
 use crate::paths::replace_placeholders;

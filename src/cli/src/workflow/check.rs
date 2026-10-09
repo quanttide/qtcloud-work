@@ -1,6 +1,6 @@
 //! 工作流聚合 / 定义核对：声明与判据对不对得上。
 //!
-//! 只看写下的位置、不访问文件系统（出处：`docs/specification/process/workflow.md`·约束）：
+//! 只看写下的位置、不访问文件系统（出处：`docs/api-references/workflow.md`·check）：
 //!
 //! - 判据里 `path` / `file` 的路径须在工作区内；
 //! - 描述里点到的小节须有 `contains` 判据覆盖——小节只认干净的名字

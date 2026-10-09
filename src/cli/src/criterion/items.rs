@@ -2,7 +2,7 @@
 //!
 //! 模型在 [`super::model`]；把一条条判据翻成要跑的东西，
 //! 真去跑（文件系统、起进程）是各自包的事。
-//! 出处：`docs/specification/process/workflow.md`·语法（判据判法）。
+//! 出处：`docs/api-references/workflow.md`·判据。
 
 use super::model::{Criterion, RuleKind};
 

@@ -2,7 +2,7 @@
 //!
 //! 判据是**字段**，不是一行小语法：`path` 存在、`absent` 不存在、
 //! `file` + `contains` 含这段文字、`run` 这条命令退出码为零。字段名、取值、
-//! 不认识、缺了、越界，当场报错。规矩的出处是 `docs/specification/process/workflow.md`·语法。
+//! 不认识、缺了、越界，当场报错。规矩的出处是 `docs/api-references/workflow.md`·判据（schema 约束）。
 
 use super::model::Criterion;
 use crate::error::{DefinitionError, Fault, Position};
