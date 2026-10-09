@@ -1,6 +1,6 @@
 //! 场景：位置装载——位置不进模型，全部由启动参数与环境定：
 //! 不给 `--root` 往上找第二大脑，`QTCLOUD_WORK_ROOT` 指哪算哪，
-//! `--data` / `--artifacts` 指到哪就落哪，只读动作不在任何根上落盘。
+//! `--data` / `--artifacts` 指到哪就落哪；四个只读动作不落盘，要打凭证的读命令缺身份时会开账本。
 
 mod common;
 
@@ -82,7 +82,7 @@ fn 账本与产物指哪落哪() {
     );
 }
 
-/// 只读纪律：只读动作不在任何根上建文件——账本是写动作开的，不写不开。
+/// 只读纪律：空账本上没有工单可开，`order list` 不开账本、不落盘。
 #[test]
 fn 只读动作不落盘() {
     let fix = Fixture::new("locate-readonly");
@@ -109,5 +109,61 @@ fn 只读动作不落盘() {
     assert!(
         !fix.root.join("artifacts").exists(),
         "缺省产物落点也不该被只读动作建出来"
+    );
+}
+
+/// 有内容的工作区上，四条只读动作（`search` / `catalog` / `audit` / `material`）
+/// 都不建账本、不落盘。
+#[test]
+fn 四条只读动作都不建账本不落盘() {
+    let fix = Fixture::new("locate-readonly-four");
+    fix.file("data/insight/试.md", "# 试\n");
+    fix.file("data/journal/二〇二六-〇九-一一.md", "# 日记\n");
+    let data = fix.root.join("干净账本");
+    let artifacts = fix.root.join("干净产物");
+    for args in [
+        vec!["search", "试"],
+        vec!["catalog"],
+        vec!["audit"],
+        vec!["material"],
+    ] {
+        let mut full = vec![
+            "--root",
+            fix.root.to_str().unwrap(),
+            "--data",
+            data.to_str().unwrap(),
+            "--artifacts",
+            artifacts.to_str().unwrap(),
+        ];
+        full.extend_from_slice(&args);
+        let ran = fix.run(false, &full);
+        assert!(
+            ran.stdout().contains("工作区："),
+            "{args:?} 该跑到动作: {}",
+            ran.crop()
+        );
+    }
+    assert!(!data.exists(), "四条只读动作不该建账本");
+    assert!(!artifacts.exists(), "四条只读动作不该建产物落点");
+}
+
+/// 打凭证的读命令要工作区 id，缺身份的账本上会开账本：建目录、补写
+/// `workspace.yaml`、落一条 `WorkspaceCreated`。
+#[test]
+fn 打凭证的读命令会开账本() {
+    let fix = Fixture::new("locate-credential");
+    fix.workflow(
+        "写报告",
+        "name: 写报告\ndescription: 试\nsteps:\n- name: 写\n  description: 写\n",
+    );
+    let shown = fix.run_ledger(&["workflow", "show", "写报告"]);
+    assert!(shown.ok(), "workflow show 该跑得通: {}", shown.crop());
+    assert!(
+        fix.data.join("workspace.yaml").is_file(),
+        "缺身份时该补写 workspace.yaml"
+    );
+    assert!(
+        fix.data.join("events.jsonl").is_file(),
+        "首跑该落一条 WorkspaceCreated"
     );
 }

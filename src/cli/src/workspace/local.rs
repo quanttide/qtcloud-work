@@ -106,8 +106,9 @@ impl LocalWorkspace {
         ))
     }
 
-    /// 写动作前把账本开出来：身份缺则首跑生成，并按规范落一条 `WorkspaceCreated`
-    /// （规范要求它先于其内一切事件）。只读动作不调它。
+    /// 写动作与要打或核对凭证的读命令前把账本开出来：身份缺则首跑生成，并按规范
+    /// 落一条 `WorkspaceCreated`（规范要求它先于其内一切事件）；身份已在就不重复写。
+    /// 工作区的四个只读动作（`search` / `catalog` / `audit` / `material`）不调它。
     pub fn ensure(&self) -> Result<(), String> {
         std::fs::create_dir_all(self.workorders_dir())
             .map_err(|e| format!("账本开不了：{}（{e}）", self.workorders_dir().display()))?;
@@ -142,7 +143,8 @@ impl LocalWorkspace {
     }
 
     /// 工作区 id：身份缺则先开账本——凭证派生认它，宁可落盘不可空算。
-    /// 调用方全是写动作（开单、记账），读路径不会触发首跑写盘。
+    /// 调用方既有写动作（开单、记账），也有要打或核对凭证的读命令
+    /// （`workflow show`、`order list` / `show`）——后者因此会首跑开账本。
     pub fn workspace_id(&self) -> Result<String, String> {
         self.ensure()?;
         let text = std::fs::read_to_string(self.identity_file())

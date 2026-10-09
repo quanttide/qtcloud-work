@@ -15,7 +15,7 @@
 
 ## 身份
 
-工作区身份落账本仓的 `workspace.yaml`，六个字段（`id` / `name` / `title` / `description` / `created_at` / `updated_at`）由 `model.rs` 的 `Workspace::new` 造出来——**模型造内容、装载写盘**。写动作前把账本开出来，身份缺则首跑生成（并落一条 `WorkspaceCreated`）；`id` 供凭证派生用——宁可落盘不可空算。只读动作不开账本，不在任何根上建文件。
+工作区身份落账本仓的 `workspace.yaml`，六个字段（`id` / `name` / `title` / `description` / `created_at` / `updated_at`）由 `model.rs` 的 `Workspace::new` 造出来——**模型造内容、装载写盘**。写动作前把账本开出来，身份缺则首跑生成（并落一条 `WorkspaceCreated`）；`id` 供凭证派生用——宁可落盘不可空算。工作区的四个只读动作（`search` / `catalog` / `audit` / `material`）不开账本、不落盘；要打或核对凭证的读命令（`workflow show`、`order list` / `show`）也会开账本——建目录，身份缺时补写 `workspace.yaml` 并落一条 `WorkspaceCreated`，身份已在就不重复写。缘由见 [ADR-0001](../../../../../../data/report/decision/workflow-id.md)：凭证由 `id` 派生，读凭证得先把它读回来。
 
 ## 三处位置的分工
 
@@ -23,7 +23,7 @@
 
 ## 路径显示与只读纪律
 
-`short` 相对工作区根写短一点，不在根底下就原样；只读动作不开账本、不在任何根上建文件。装载与只读纪律的测试在 `tests/run_context.rs`；缺省矩阵（四个可省位置各缺一次）在 `tests/defaults.rs`。
+`short` 相对工作区根写短一点，不在根底下就原样；四个只读动作（`search` / `catalog` / `audit` / `material`）不开账本、不在任何根上建文件，要打或核对凭证的读命令（`workflow show`、`order list` / `show`）例外——它们开账本，缘由见上节与 [ADR-0001](../../../../../../data/report/decision/workflow-id.md)。装载与只读纪律的测试在 `tests/run_context.rs`；缺省矩阵（四个可省位置各缺一次）在 `tests/defaults.rs`。
 
 ## 结构
 
