@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-23
+
+出 beta 转正式：命令面与 `--json` 字段与 beta.2 一致，不再变；至下一次主版本前只修复、不破面。
+
+### Fixed
+
+- 要打或核对凭证的读命令（`workflow show`、`order list` / `show`）开账本：身份缺时首跑补写 `workspace.yaml` 并落一条 `WorkspaceCreated`，身份已在就不重复写。工作区的四个只读动作（`search` / `catalog` / `audit` / `material`）仍不落盘。
+
+### Changed
+
+- 内部重组，命令面不变：AI 执行收拢为 `AgentWorker`（plan / execute / evaluate / record 四步），`pi` 移入 `adapters/`；一步的编排归调用方，适配层不再驱动聚合状态；判据执行拆到 `order/rules.rs`。
+
 ## [0.1.0-beta.2] - 2026-09-24
 
 按新规格对表：模型拆分、凭证分层、位置归位、命令面动词式。命令面与 `--json` 字段都是破坏性变更。
