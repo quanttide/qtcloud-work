@@ -21,7 +21,7 @@
 | 同一目录不得混用层名与聚合名（硬禁） | `repositories/local/` 里聚合名（`tasks` `workflows` `task_run`）与职能名（`dispatch` `rules` `help` `prompts` `paths` `yaml` `environment*` `fs/` `host/`）并存 | ✗ 违规 |
 | 单文件行数越界即触发转聚合 | 4 个文件 >250 行，最长 378 | ✗ 已触发 |
 | 角色唯一 | `repositories/` 下两套实现并存：`client.dart`（起命令行）+ `local/`（自己算） | ✗ 待收敛 |
-| 依赖单向（端侧引用工具箱，不反向定义） | `quanttide_work` 是依赖；`lib/` 无本地模型（`lib/models/` 已删） | ✓ |
+| 依赖单向（端侧引用标准库，不反向定义） | `quanttide_work` 是依赖；`lib/` 无本地模型（`lib/models/` 已删） | ✓ |
 | 不留第二份模型 | 界面直接用 `qt.Task`／`qt.Workflow`／`Outcome` | ✓ |
 | 组装与实现分离 | `main.dart` 装配、`app.dart` 外壳；命令面在 `repositories/local/dispatch.dart` 一处实现（`bin/qtcloud.dart` 与界面都走它） | ✓ |
 | 测试跟着分层 | `test/` 与 `lib/` 同构 | ✓ |

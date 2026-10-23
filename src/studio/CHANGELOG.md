@@ -4,23 +4,23 @@
 
 ## [Unreleased]
 
-- **收回领域模型**：取消对 pub.dev `quanttide_work` 的依赖，把工具箱抽走的 Dart 领域模型并回本仓——`lib/quanttide_work.dart` 为出口，`artifact/` / `criterion/` / `workflow/` / `task/` / `workspace/` 与根下 `outcome` / `error` / `executor` / `paths` / `fields`；本仓 import 改走 `package:qtcloud_work_studio/quanttide_work.dart`。
+- **收回领域模型**：取消对 pub.dev `quanttide_work` 的依赖，把标准库抽走的 Dart 领域模型并回本仓——`lib/quanttide_work.dart` 为出口，`artifact/` / `criterion/` / `workflow/` / `task/` / `workspace/` 与根下 `outcome` / `error` / `executor` / `paths` / `fields`；本仓 import 改走 `package:qtcloud_work_studio/quanttide_work.dart`。
 - toolkit 升到 `quanttide_work 0.1.0-beta.6`（与 cli 同号），跟着改到位：
-  - **`RunContext` 从工具箱退出**（位置不进模型）：三处位置改由工作台自己在 `repositories/local/run_context.dart` 里定，界面与仓储都引这一份
-  - **落点**改走 `WorkspacePlace.place`：工具箱只给相对工作区根的路径，接目录的规矩与命令行相同（声明过的按工作区根接、没声明的按数据仓接；流水不是产物，是任务文件本身）
+  - **`RunContext` 从标准库退出**（位置不进模型）：三处位置改由工作台自己在 `repositories/local/run_context.dart` 里定，界面与仓储都引这一份
+  - **落点**改走 `WorkspacePlace.place`：标准库只给相对工作区根的路径，接目录的规矩与命令行相同（声明过的按工作区根接、没声明的按数据仓接；流水不是产物，是任务文件本身）
   - **流水判定与定义核对**改走工作区聚合的扩展（`WorkspaceProgress.doneSteps` / `nextStep` / `stateLine`、`WorkspaceCheck.check`）；界面那几处走 `workspaceOf(任务, 定义)` 把两样装在一起
-  - **结果（`Outcome`）在工具箱里改成不可变**：工作台拼结果的写法跟着改成「先攒列表、再交构造器」，`data` 从 `Map?` 放宽成任意 JSON，取时要转型
-  - 定义读不通的报错从工具箱的结构化 `DefinitionError` 翻成工作台自己的 `WorkflowError`（报错文字仍与命令行一字不差）；`textOf` 本仓自备；占位展开改走 `Criterion.expanded`，本仓只答「名字换成哪条路径」
+  - **结果（`Outcome`）在标准库里改成不可变**：工作台拼结果的写法跟着改成「先攒列表、再交构造器」，`data` 从 `Map?` 放宽成任意 JSON，取时要转型
+  - 定义读不通的报错从标准库的结构化 `DefinitionError` 翻成工作台自己的 `WorkflowError`（报错文字仍与命令行一字不差）；`textOf` 本仓自备；占位展开改走 `Criterion.expanded`，本仓只答「名字换成哪条路径」
 
 - `lib/` 按 Bloc 家法重排：`repositories/`（接口 + 命令行客户端与本地两套实现）、`states/`（Bloc）、`screens/`、`widgets/`；`test/` 跟着分层
 - 状态交给 Bloc：`states/workbench_bloc.dart`（状态 + 事件 + Bloc 一个文件）取代 `StatefulWidget` + `setState`；界面件只认传进来的模型与回调
 - 加 `repositories/studio_repository.dart` 接口（任务 / 工作流 / 探活）：`client.dart`（读统一信封）与 `local/local_repository.dart`（直接调命令面）各实现一套
 - toolkit 升到 `quanttide_work 0.1.0-beta.2`（按聚合重写）：判据与定义用不可变值对象，「走过」的算法改调任务聚合（`qt.Task.doneSteps / nextStep / stateLine`），定义核对改调 `flow.check`
-- 定义核对的拼句（`describeFindings` / `allOk`）与提示词（`prompts`）从工具箱搬回工作台：`repositories/local/prompts.dart`
-- 结果（`Outcome`）随规范「过程 / 结果」那一节回到工具箱（`0.1.0-beta.4`）：本地的 `repositories/local/outcome.dart` 与 `repositories/envelope.dart` 删掉，`data` 那一栏成为结果自己的字段（不再走侧表），路径怎么显示留 `repositories/local/paths.dart`
+- 定义核对的拼句（`describeFindings` / `allOk`）与提示词（`prompts`）从标准库搬回工作台：`repositories/local/prompts.dart`
+- 结果（`Outcome`）随规范「过程 / 结果」那一节回到标准库（`0.1.0-beta.4`）：本地的 `repositories/local/outcome.dart` 与 `repositories/envelope.dart` 删掉，`data` 那一栏成为结果自己的字段（不再走侧表），路径怎么显示留 `repositories/local/paths.dart`
 - `--json` 一律是结果四样 + `data`；两套实现（命令行与本地）交出的 `data` 一字不差，对表连这一栏一起比
-- 声明表正名为 `artifacts`（原先叫 `products`）：任务文件、界面参数、Bloc 的状态字段、给窗口那一栏的键一并改；落点算法收进工具箱，本地那份删掉
-- 干掉 `lib/models/`：界面与 Bloc 直接拿工具箱的领域对象（`qt.Task` / `qt.Workflow`），走过几步、下一步、进度、判据条数由领域对象自己算；执行者的中文说法搬进 `lib/widgets/executor_label.dart`；信封那一栏 `data` 改托任务与定义的原文
+- 声明表正名为 `artifacts`（原先叫 `products`）：任务文件、界面参数、Bloc 的状态字段、给窗口那一栏的键一并改；落点算法收进标准库，本地那份删掉
+- 干掉 `lib/models/`：界面与 Bloc 直接拿标准库的领域对象（`qt.Task` / `qt.Workflow`），走过几步、下一步、进度、判据条数由领域对象自己算；执行者的中文说法搬进 `lib/widgets/executor_label.dart`；信封那一栏 `data` 改托任务与定义的原文
 - 删死代码：`lib/core/artifact.dart`（无人引用）与 `tasks.dart` 里重复的 `textOf`
 - 初始化全部平台客户端：android、ios、linux、macos、windows、web（原先只有 web）
 - 按命令行现状实现 `lib/`：模型（工作流定义、任务记录、三处位置）与命令行客户端（子进程 + 统一信封）

@@ -10,7 +10,7 @@ flutter analyze && flutter test
 sh scripts/parity.sh
 ```
 
-## 收回工具箱（Dart）
+## 收回标准库（Dart）
 
 取消对 pub.dev `quanttide_work` 的依赖，把 toolkit 抽走的 Dart 代码并回本仓，本仓自持。
 

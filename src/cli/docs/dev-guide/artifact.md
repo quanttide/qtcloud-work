@@ -10,11 +10,11 @@
 
 `STATED`（陈述型 11）：报告 report、参考 library、历史 history、日志 journal、档案 profile、宣传册 brochure、路线图 roadmap、洞察 insight、意图 intention、语境 context、归档 archive。
 
-`PROCEDURAL`（程序型 9）：章程 bylaw、规格 specification、工具箱 toolkit、手册 handbook、案例 gallery、平台 platform、教程 tutorial、札记 essay、实验室 example。
+`PROCEDURAL`（程序型 9）：章程 bylaw、规格 specification、标准库 toolkit、手册 handbook、案例 gallery、平台 platform、教程 tutorial、札记 essay、实验室 example。
 
 ## 落点
 
-文档类入 `data/<英文名>` 或 `docs/<英文名>`；独立仓库的三格按命名规则找——工具箱 `packages/*-toolkit`、平台 `apps/*`、实验室 `examples/*`。
+文档类入 `data/<英文名>` 或 `docs/<英文名>`；独立仓库的三格按命名规则找——标准库 `packages/*-toolkit`、平台 `apps/*`、实验室 `examples/*`。
 
 ## 用途
 
